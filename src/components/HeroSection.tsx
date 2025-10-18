@@ -65,11 +65,21 @@ export const HeroSection = () => {
 
           {/* CTA Buttons */}
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4">
-            <Button variant="cosmic" size="xl" className="w-full sm:w-auto">
+            <Button 
+              variant="cosmic" 
+              size="xl" 
+              className="w-full sm:w-auto"
+              onClick={() => window.location.href = '/auth'}
+            >
               <Users className="w-5 h-5" />
               Devenir Moissonneur
             </Button>
-            <Button variant="glass" size="xl" className="w-full sm:w-auto">
+            <Button 
+              variant="glass" 
+              size="xl" 
+              className="w-full sm:w-auto"
+              onClick={() => window.location.href = '#network'}
+            >
               <TrendingUp className="w-5 h-5" />
               Explorer le Réseau
             </Button>
