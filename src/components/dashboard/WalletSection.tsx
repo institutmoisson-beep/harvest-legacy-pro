@@ -21,7 +21,18 @@ export default function WalletSection({ balance, userId, onBalanceUpdate }: Wall
   const [withdrawAmount, setWithdrawAmount] = useState('');
   const [transferAmount, setTransferAmount] = useState('');
   const [recipientIdentifier, setRecipientIdentifier] = useState('');
+  const [paymentMethod, setPaymentMethod] = useState('');
+  const [paymentContact, setPaymentContact] = useState('');
   const [loading, setLoading] = useState(false);
+
+  const paymentMethods = [
+    'Orange Money',
+    'MTN Money',
+    'Wave',
+    'Push CI',
+    'Bitcoin',
+    'Ethereum'
+  ];
 
   const convertToFCFA = (msn: number) => msn * MSN_TO_FCFA;
   const convertToMSN = (fcfa: number) => fcfa / MSN_TO_FCFA;
@@ -88,6 +99,15 @@ export default function WalletSection({ balance, userId, onBalanceUpdate }: Wall
       return;
     }
 
+    if (!paymentMethod || !paymentContact) {
+      toast({
+        title: "Informations manquantes",
+        description: "Veuillez sélectionner un moyen de paiement et entrer votre contact",
+        variant: "destructive",
+      });
+      return;
+    }
+
     const amount = parseFloat(withdrawAmount);
     if (amount > balance) {
       toast({
@@ -107,7 +127,9 @@ export default function WalletSection({ balance, userId, onBalanceUpdate }: Wall
           from_user_id: userId,
           amount: amount,
           transaction_type: 'withdrawal',
-          description: `Retrait de ${amount} MSN (${convertToFCFA(amount)} FCFA)`
+          description: `Retrait de ${amount} MSN (${convertToFCFA(amount)} FCFA) via ${paymentMethod}`,
+          payment_method: paymentMethod,
+          payment_contact: paymentContact
         });
 
       if (transactionError) throw transactionError;
@@ -126,6 +148,8 @@ export default function WalletSection({ balance, userId, onBalanceUpdate }: Wall
       });
 
       setWithdrawAmount('');
+      setPaymentMethod('');
+      setPaymentContact('');
       onBalanceUpdate();
     } catch (error: any) {
       toast({
@@ -285,6 +309,31 @@ export default function WalletSection({ balance, userId, onBalanceUpdate }: Wall
           </TabsContent>
 
           <TabsContent value="withdraw" className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="paymentMethod">Moyen de paiement</Label>
+              <select
+                id="paymentMethod"
+                value={paymentMethod}
+                onChange={(e) => setPaymentMethod(e.target.value)}
+                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              >
+                <option value="">Sélectionner un moyen</option>
+                {paymentMethods.map((method) => (
+                  <option key={method} value={method}>
+                    {method}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="paymentContact">Contact / Adresse</Label>
+              <Input
+                id="paymentContact"
+                placeholder="Numéro ou adresse crypto"
+                value={paymentContact}
+                onChange={(e) => setPaymentContact(e.target.value)}
+              />
+            </div>
             <div className="space-y-2">
               <Label htmlFor="withdraw">Montant (MSN)</Label>
               <Input

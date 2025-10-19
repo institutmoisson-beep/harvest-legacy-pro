@@ -9,6 +9,7 @@ import { useNavigate } from 'react-router-dom';
 import WalletSection from '@/components/dashboard/WalletSection';
 import OrdersSection from '@/components/dashboard/OrdersSection';
 import ShareButtons from '@/components/dashboard/ShareButtons';
+import ReferralTreeSection from '@/components/dashboard/ReferralTreeSection';
 
 interface Profile {
   full_name: string;
@@ -79,6 +80,15 @@ export default function Dashboard() {
     fetchUserData();
   }, [user, navigate]);
 
+  const fetchWalletBalance = async () => {
+    const { data } = await supabase
+      .from('wallets')
+      .select('balance')
+      .eq('user_id', user.id)
+      .single();
+    if (data) setWallet(data);
+  };
+
   const copyReferralCode = () => {
     if (profile?.referral_code) {
       const referralLink = `${window.location.origin}/auth?ref=${profile.referral_code}`;
@@ -133,7 +143,10 @@ export default function Dashboard() {
             </CardHeader>
             <CardContent>
               <p className="text-3xl font-bold gradient-text-primary">
-                {wallet?.balance?.toLocaleString() || 0} FCFA
+                {(wallet?.balance || 0).toFixed(2)} MSN
+              </p>
+              <p className="text-sm text-muted-foreground mt-1">
+                {((wallet?.balance || 0) * 750).toLocaleString()} FCFA
               </p>
             </CardContent>
           </Card>
@@ -196,14 +209,7 @@ export default function Dashboard() {
           <WalletSection 
             balance={wallet?.balance || 0} 
             userId={user.id}
-            onBalanceUpdate={async () => {
-              const { data } = await supabase
-                .from('wallets')
-                .select('balance')
-                .eq('user_id', user.id)
-                .single();
-              if (data) setWallet(data);
-            }}
+            onBalanceUpdate={fetchWalletBalance}
           />
 
           {/* Orders Section */}
@@ -215,23 +221,8 @@ export default function Dashboard() {
           {/* Share Buttons */}
           <ShareButtons referralCode={profile?.referral_code || ''} />
 
-          {/* Network Card */}
-          <Card className="glass-card">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Users className="h-5 w-5" />
-                Mon réseau
-              </CardTitle>
-              <CardDescription>
-                Consultez vos filleuls et votre structure
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Button className="w-full" variant="outline">
-                Voir le réseau
-              </Button>
-            </CardContent>
-          </Card>
+          {/* Referral Tree */}
+          <ReferralTreeSection userId={user.id} />
         </div>
       </div>
     </div>

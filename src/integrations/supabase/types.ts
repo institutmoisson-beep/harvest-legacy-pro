@@ -209,6 +209,8 @@ export type Database = {
           description: string | null
           from_user_id: string | null
           id: string
+          payment_contact: string | null
+          payment_method: string | null
           to_user_id: string | null
           transaction_type: Database["public"]["Enums"]["transaction_type"]
         }
@@ -218,6 +220,8 @@ export type Database = {
           description?: string | null
           from_user_id?: string | null
           id?: string
+          payment_contact?: string | null
+          payment_method?: string | null
           to_user_id?: string | null
           transaction_type: Database["public"]["Enums"]["transaction_type"]
         }
@@ -227,6 +231,8 @@ export type Database = {
           description?: string | null
           from_user_id?: string | null
           id?: string
+          payment_contact?: string | null
+          payment_method?: string | null
           to_user_id?: string | null
           transaction_type?: Database["public"]["Enums"]["transaction_type"]
         }
@@ -274,9 +280,14 @@ export type Database = {
       }
     }
     Enums: {
-      app_role: "admin" | "moderator" | "user"
+      app_role: "admin" | "moderator" | "user" | "financier"
       order_status: "pending" | "validated" | "rejected" | "completed"
-      transaction_type: "send" | "receive" | "commission" | "order_profit"
+      transaction_type:
+        | "deposit"
+        | "withdrawal"
+        | "transfer"
+        | "commission"
+        | "order_profit"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -404,9 +415,15 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["admin", "moderator", "user"],
+      app_role: ["admin", "moderator", "user", "financier"],
       order_status: ["pending", "validated", "rejected", "completed"],
-      transaction_type: ["send", "receive", "commission", "order_profit"],
+      transaction_type: [
+        "deposit",
+        "withdrawal",
+        "transfer",
+        "commission",
+        "order_profit",
+      ],
     },
   },
 } as const
