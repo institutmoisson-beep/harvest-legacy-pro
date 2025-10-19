@@ -3,9 +3,12 @@ import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Loader2, Copy, Plus, TrendingUp, Users, Wallet } from 'lucide-react';
+import { Loader2, Copy, TrendingUp, Users, Wallet, Shield } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
+import WalletSection from '@/components/dashboard/WalletSection';
+import OrdersSection from '@/components/dashboard/OrdersSection';
+import ShareButtons from '@/components/dashboard/ShareButtons';
 
 interface Profile {
   full_name: string;
@@ -23,6 +26,7 @@ export default function Dashboard() {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [wallet, setWallet] = useState<WalletData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [hasAdminAccess, setHasAdminAccess] = useState(false);
 
   useEffect(() => {
     if (!user) {
@@ -51,6 +55,16 @@ export default function Dashboard() {
 
         if (walletError) throw walletError;
         setWallet(walletData);
+
+        // Check admin access
+        const { data: roles } = await supabase
+          .from('user_roles')
+          .select('role')
+          .eq('user_id', user.id);
+
+        const hasAccess = roles?.some(r => r.role === 'admin' || r.role === 'financier');
+        setHasAdminAccess(hasAccess || false);
+
       } catch (error: any) {
         toast({
           title: "Erreur",
@@ -95,9 +109,17 @@ export default function Dashboard() {
             </h1>
             <p className="text-muted-foreground mt-2">Votre tableau de bord Moissonneur</p>
           </div>
-          <Button onClick={signOut} variant="outline">
-            Déconnexion
-          </Button>
+          <div className="flex gap-2">
+            {hasAdminAccess && (
+              <Button onClick={() => navigate('/admin')} variant="cosmic">
+                <Shield className="h-4 w-4 mr-2" />
+                Super Dashboard
+              </Button>
+            )}
+            <Button onClick={signOut} variant="outline">
+              Déconnexion
+            </Button>
+          </div>
         </div>
 
         {/* Stats Cards */}
@@ -168,25 +190,32 @@ export default function Dashboard() {
           </CardContent>
         </Card>
 
-        {/* Actions */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <Card className="glass-card hover:glow-primary transition-all cursor-pointer">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Plus className="h-5 w-5" />
-                Initier une commande
-              </CardTitle>
-              <CardDescription>
-                Créez une nouvelle commande pour votre client
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Button className="w-full" variant="cosmic">
-                Nouvelle commande
-              </Button>
-            </CardContent>
-          </Card>
+        {/* Main Content - Grid Layout */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Wallet Section */}
+          <WalletSection 
+            balance={wallet?.balance || 0} 
+            userId={user.id}
+            onBalanceUpdate={async () => {
+              const { data } = await supabase
+                .from('wallets')
+                .select('balance')
+                .eq('user_id', user.id)
+                .single();
+              if (data) setWallet(data);
+            }}
+          />
 
+          {/* Orders Section */}
+          <OrdersSection 
+            userId={user.id}
+            brokerCode={profile?.referral_code || ''}
+          />
+
+          {/* Share Buttons */}
+          <ShareButtons referralCode={profile?.referral_code || ''} />
+
+          {/* Network Card */}
           <Card className="glass-card">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
