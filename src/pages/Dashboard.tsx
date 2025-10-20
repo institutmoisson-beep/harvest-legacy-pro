@@ -10,6 +10,7 @@ import WalletSection from '@/components/dashboard/WalletSection';
 import OrdersSection from '@/components/dashboard/OrdersSection';
 import ShareButtons from '@/components/dashboard/ShareButtons';
 import ReferralTreeSection from '@/components/dashboard/ReferralTreeSection';
+import TransactionHistorySection from '@/components/dashboard/TransactionHistorySection';
 
 interface Profile {
   full_name: string;
@@ -204,7 +205,7 @@ export default function Dashboard() {
         </Card>
 
         {/* Main Content - Grid Layout */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
           {/* Wallet Section */}
           <WalletSection 
             balance={wallet?.balance || 0} 
@@ -224,6 +225,9 @@ export default function Dashboard() {
           {/* Referral Tree */}
           <ReferralTreeSection userId={user.id} />
         </div>
+
+        {/* Transaction History - Full Width */}
+        <TransactionHistorySection userId={user.id} />
       </div>
     </div>
   );

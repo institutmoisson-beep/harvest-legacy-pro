@@ -1,1 +1,13 @@
 project_id = "swefwubntyyfqaerlwym"
+
+[functions.wallet-deposit]
+verify_jwt = true
+
+[functions.wallet-withdraw]
+verify_jwt = true
+
+[functions.wallet-transfer]
+verify_jwt = true
+
+[functions.approve-transaction]
+verify_jwt = true

@@ -14,6 +14,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import AdminTransactionsSection from '@/components/dashboard/AdminTransactionsSection';
 
 interface Order {
   id: string;
@@ -350,8 +351,11 @@ export default function AdminDashboard() {
           </CardContent>
         </Card>
 
+        {/* Pending Transaction Approvals */}
+        <AdminTransactionsSection />
+
         {/* Transactions Table */}
-        <Card className="glass-card">
+        <Card className="glass-card mb-8">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Users className="h-5 w-5 text-secondary" />

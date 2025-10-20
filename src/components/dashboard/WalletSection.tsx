@@ -51,29 +51,15 @@ export default function WalletSection({ balance, userId, onBalanceUpdate }: Wall
     try {
       const amount = parseFloat(depositAmount);
       
-      // Create transaction record
-      const { error: transactionError } = await supabase
-        .from('wallet_transactions')
-        .insert({
-          to_user_id: userId,
-          amount: amount,
-          transaction_type: 'deposit',
-          description: `Dépôt de ${amount} MSN (${convertToFCFA(amount)} FCFA)`
-        });
+      const { error } = await supabase.functions.invoke('wallet-deposit', {
+        body: { amount }
+      });
 
-      if (transactionError) throw transactionError;
-
-      // Update wallet balance
-      const { error: walletError } = await supabase
-        .from('wallets')
-        .update({ balance: balance + amount })
-        .eq('user_id', userId);
-
-      if (walletError) throw walletError;
+      if (error) throw error;
 
       toast({
-        title: "Dépôt réussi",
-        description: `${amount} MSN (${convertToFCFA(amount)} FCFA) ajoutés à votre portefeuille`,
+        title: "Demande de dépôt créée",
+        description: "Votre demande est en attente de validation par un administrateur",
       });
 
       setDepositAmount('');
@@ -120,31 +106,15 @@ export default function WalletSection({ balance, userId, onBalanceUpdate }: Wall
 
     setLoading(true);
     try {
-      // Create transaction record
-      const { error: transactionError } = await supabase
-        .from('wallet_transactions')
-        .insert({
-          from_user_id: userId,
-          amount: amount,
-          transaction_type: 'withdrawal',
-          description: `Retrait de ${amount} MSN (${convertToFCFA(amount)} FCFA) via ${paymentMethod}`,
-          payment_method: paymentMethod,
-          payment_contact: paymentContact
-        });
+      const { error } = await supabase.functions.invoke('wallet-withdraw', {
+        body: { amount, paymentMethod, paymentContact }
+      });
 
-      if (transactionError) throw transactionError;
-
-      // Update wallet balance
-      const { error: walletError } = await supabase
-        .from('wallets')
-        .update({ balance: balance - amount })
-        .eq('user_id', userId);
-
-      if (walletError) throw walletError;
+      if (error) throw error;
 
       toast({
-        title: "Retrait réussi",
-        description: `${amount} MSN (${convertToFCFA(amount)} FCFA) retirés de votre portefeuille`,
+        title: "Demande de retrait créée",
+        description: "Votre demande est en attente de validation par un administrateur",
       });
 
       setWithdrawAmount('');
@@ -184,66 +154,15 @@ export default function WalletSection({ balance, userId, onBalanceUpdate }: Wall
 
     setLoading(true);
     try {
-      // Find recipient by ID, email, or phone
-      const { data: recipientProfile, error: findError } = await supabase
-        .from('profiles')
-        .select('id')
-        .or(`id.eq.${recipientIdentifier},email.eq.${recipientIdentifier},phone.eq.${recipientIdentifier}`)
-        .single();
+      const { error } = await supabase.functions.invoke('wallet-transfer', {
+        body: { amount, recipientIdentifier }
+      });
 
-      if (findError || !recipientProfile) {
-        toast({
-          title: "Destinataire introuvable",
-          description: "Aucun utilisateur trouvé avec cet identifiant",
-          variant: "destructive",
-        });
-        setLoading(false);
-        return;
-      }
-
-      const recipientId = recipientProfile.id;
-
-      // Get recipient wallet
-      const { data: recipientWallet, error: recipientWalletError } = await supabase
-        .from('wallets')
-        .select('balance')
-        .eq('user_id', recipientId)
-        .single();
-
-      if (recipientWalletError) throw recipientWalletError;
-
-      // Create transaction
-      const { error: transactionError } = await supabase
-        .from('wallet_transactions')
-        .insert({
-          from_user_id: userId,
-          to_user_id: recipientId,
-          amount: amount,
-          transaction_type: 'transfer',
-          description: `Transfert de ${amount} MSN (${convertToFCFA(amount)} FCFA)`
-        });
-
-      if (transactionError) throw transactionError;
-
-      // Update sender wallet
-      const { error: senderWalletError } = await supabase
-        .from('wallets')
-        .update({ balance: balance - amount })
-        .eq('user_id', userId);
-
-      if (senderWalletError) throw senderWalletError;
-
-      // Update recipient wallet
-      const { error: recipientUpdateError } = await supabase
-        .from('wallets')
-        .update({ balance: recipientWallet.balance + amount })
-        .eq('user_id', recipientId);
-
-      if (recipientUpdateError) throw recipientUpdateError;
+      if (error) throw error;
 
       toast({
         title: "Transfert réussi",
-        description: `${amount} MSN (${convertToFCFA(amount)} FCFA) envoyés`,
+        description: `${amount} MSN (${convertToFCFA(amount)} FCFA) envoyés avec succès`,
       });
 
       setTransferAmount('');
