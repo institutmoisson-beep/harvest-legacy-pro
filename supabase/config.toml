@@ -11,3 +11,6 @@ verify_jwt = true
 
 [functions.approve-transaction]
 verify_jwt = true
+
+[functions.approve-order]
+verify_jwt = true

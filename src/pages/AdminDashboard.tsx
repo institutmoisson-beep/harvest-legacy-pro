@@ -121,7 +121,7 @@ export default function AdminDashboard() {
         .select(`
           user_id,
           balance,
-          profiles:user_id (
+          profiles(
             full_name,
             referral_code
           )
@@ -288,9 +288,10 @@ export default function AdminDashboard() {
                     <TableHead>Code</TableHead>
                     <TableHead>Statut</TableHead>
                     <TableHead>Date</TableHead>
+                    <TableHead>Actions</TableHead>
                   </TableRow>
                 </TableHeader>
-                <TableBody>
+                 <TableBody>
                   {orders.map((order) => (
                     <TableRow key={order.id}>
                       <TableCell>{order.customer_name}</TableCell>
@@ -302,12 +303,68 @@ export default function AdminDashboard() {
                         <span className={`px-2 py-1 rounded text-xs ${
                           order.status === 'completed' ? 'bg-secondary/20 text-secondary' :
                           order.status === 'pending' ? 'bg-accent/20 text-accent' :
+                          order.status === 'rejected' ? 'bg-destructive/20 text-destructive' :
                           'bg-muted text-muted-foreground'
                         }`}>
                           {order.status}
                         </span>
                       </TableCell>
                       <TableCell>{new Date(order.created_at).toLocaleDateString()}</TableCell>
+                      <TableCell>
+                        {order.status === 'pending' && (
+                          <div className="flex gap-2">
+                            <Button
+                              size="sm"
+                              variant="default"
+                              onClick={async () => {
+                                try {
+                                  const { error } = await supabase.functions.invoke('approve-order', {
+                                    body: { orderId: order.id, action: 'approve' }
+                                  });
+                                  if (error) throw error;
+                                  toast({
+                                    title: "Commande approuvée",
+                                    description: "Les commissions ont été distribuées",
+                                  });
+                                  fetchData();
+                                } catch (error: any) {
+                                  toast({
+                                    title: "Erreur",
+                                    description: error.message,
+                                    variant: "destructive",
+                                  });
+                                }
+                              }}
+                            >
+                              Approuver
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="destructive"
+                              onClick={async () => {
+                                try {
+                                  const { error } = await supabase.functions.invoke('approve-order', {
+                                    body: { orderId: order.id, action: 'reject' }
+                                  });
+                                  if (error) throw error;
+                                  toast({
+                                    title: "Commande rejetée",
+                                  });
+                                  fetchData();
+                                } catch (error: any) {
+                                  toast({
+                                    title: "Erreur",
+                                    description: error.message,
+                                    variant: "destructive",
+                                  });
+                                }
+                              }}
+                            >
+                              Rejeter
+                            </Button>
+                          </div>
+                        )}
+                      </TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
