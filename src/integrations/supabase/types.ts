@@ -115,6 +115,8 @@ export type Database = {
           created_at: string | null
           full_name: string
           id: string
+          id_number: string | null
+          id_verified: boolean | null
           phone: string | null
           referral_code: string
           referred_by: string | null
@@ -128,6 +130,8 @@ export type Database = {
           created_at?: string | null
           full_name: string
           id: string
+          id_number?: string | null
+          id_verified?: boolean | null
           phone?: string | null
           referral_code: string
           referred_by?: string | null
@@ -141,6 +145,8 @@ export type Database = {
           created_at?: string | null
           full_name?: string
           id?: string
+          id_number?: string | null
+          id_verified?: boolean | null
           phone?: string | null
           referral_code?: string
           referred_by?: string | null

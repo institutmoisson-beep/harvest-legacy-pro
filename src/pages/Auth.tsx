@@ -22,9 +22,11 @@ const signInSchema = z.object({
 });
 
 export default function Auth() {
-  const { signUp, signIn } = useAuth();
+  const { signUp, signIn, resetPassword } = useAuth();
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [showResetPassword, setShowResetPassword] = useState(false);
+  const [resetEmail, setResetEmail] = useState('');
 
   // Sign Up Form State
   const [signUpForm, setSignUpForm] = useState({
@@ -93,6 +95,27 @@ export default function Auth() {
     }
   };
 
+  const handleResetPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setErrors({});
+    
+    if (!resetEmail || !z.string().email().safeParse(resetEmail).success) {
+      setErrors({ resetEmail: "Email invalide" });
+      return;
+    }
+
+    setLoading(true);
+    try {
+      await resetPassword(resetEmail);
+      setResetEmail('');
+      setShowResetPassword(false);
+    } catch (error) {
+      // Error handled in useAuth
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-background to-primary/5 px-4 py-12">
       <Card className="w-full max-w-md glass-card">
@@ -108,38 +131,86 @@ export default function Auth() {
             </TabsList>
 
             <TabsContent value="signin">
-              <form onSubmit={handleSignIn} className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="signin-email">Email</Label>
-                  <Input
-                    id="signin-email"
-                    type="email"
-                    placeholder="votre@email.com"
-                    value={signInForm.email}
-                    onChange={(e) => setSignInForm({ ...signInForm, email: e.target.value })}
-                    required
-                  />
-                  {errors.email && <p className="text-sm text-destructive">{errors.email}</p>}
-                </div>
+              {!showResetPassword ? (
+                <form onSubmit={handleSignIn} className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="signin-email">Email</Label>
+                    <Input
+                      id="signin-email"
+                      type="email"
+                      placeholder="votre@email.com"
+                      value={signInForm.email}
+                      onChange={(e) => setSignInForm({ ...signInForm, email: e.target.value })}
+                      required
+                    />
+                    {errors.email && <p className="text-sm text-destructive">{errors.email}</p>}
+                  </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="signin-password">Mot de passe</Label>
-                  <Input
-                    id="signin-password"
-                    type="password"
-                    placeholder="••••••••"
-                    value={signInForm.password}
-                    onChange={(e) => setSignInForm({ ...signInForm, password: e.target.value })}
-                    required
-                  />
-                  {errors.password && <p className="text-sm text-destructive">{errors.password}</p>}
-                </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="signin-password">Mot de passe</Label>
+                    <Input
+                      id="signin-password"
+                      type="password"
+                      placeholder="••••••••"
+                      value={signInForm.password}
+                      onChange={(e) => setSignInForm({ ...signInForm, password: e.target.value })}
+                      required
+                    />
+                    {errors.password && <p className="text-sm text-destructive">{errors.password}</p>}
+                  </div>
 
-                <Button type="submit" className="w-full" disabled={loading}>
-                  {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                  Se connecter
-                </Button>
-              </form>
+                  <Button type="submit" className="w-full" disabled={loading}>
+                    {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                    Se connecter
+                  </Button>
+
+                  <Button
+                    type="button"
+                    variant="link"
+                    className="w-full text-sm"
+                    onClick={() => setShowResetPassword(true)}
+                  >
+                    Mot de passe oublié ?
+                  </Button>
+                </form>
+              ) : (
+                <form onSubmit={handleResetPassword} className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="reset-email">Email</Label>
+                    <Input
+                      id="reset-email"
+                      type="email"
+                      placeholder="votre@email.com"
+                      value={resetEmail}
+                      onChange={(e) => setResetEmail(e.target.value)}
+                      required
+                    />
+                    {errors.resetEmail && <p className="text-sm text-destructive">{errors.resetEmail}</p>}
+                  </div>
+
+                  <p className="text-sm text-muted-foreground">
+                    Un email de réinitialisation sera envoyé à cette adresse.
+                  </p>
+
+                  <Button type="submit" className="w-full" disabled={loading}>
+                    {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                    Envoyer l'email
+                  </Button>
+
+                  <Button
+                    type="button"
+                    variant="link"
+                    className="w-full text-sm"
+                    onClick={() => {
+                      setShowResetPassword(false);
+                      setResetEmail('');
+                      setErrors({});
+                    }}
+                  >
+                    Retour à la connexion
+                  </Button>
+                </form>
+              )}
             </TabsContent>
 
             <TabsContent value="signup">

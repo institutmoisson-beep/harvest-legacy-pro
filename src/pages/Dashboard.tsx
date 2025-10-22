@@ -3,7 +3,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Loader2, Copy, TrendingUp, Users, Wallet, Shield } from 'lucide-react';
+import { Loader2, Copy, TrendingUp, Users, Wallet, Shield, User } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
 import WalletSection from '@/components/dashboard/WalletSection';
@@ -122,6 +122,10 @@ export default function Dashboard() {
             <p className="text-muted-foreground mt-2">Votre tableau de bord Moissonneur</p>
           </div>
           <div className="flex gap-2">
+            <Button onClick={() => navigate('/profile')} variant="outline">
+              <User className="h-4 w-4 mr-2" />
+              Profil
+            </Button>
             {hasAdminAccess && (
               <Button onClick={() => navigate('/admin')} variant="cosmic">
                 <Shield className="h-4 w-4 mr-2" />
