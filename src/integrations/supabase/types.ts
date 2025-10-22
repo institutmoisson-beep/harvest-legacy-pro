@@ -110,6 +110,8 @@ export type Database = {
         Row: {
           binary_parent_id: string | null
           binary_position: string | null
+          career_level: Database["public"]["Enums"]["career_level"] | null
+          career_level_updated_at: string | null
           created_at: string | null
           full_name: string
           id: string
@@ -121,6 +123,8 @@ export type Database = {
         Insert: {
           binary_parent_id?: string | null
           binary_position?: string | null
+          career_level?: Database["public"]["Enums"]["career_level"] | null
+          career_level_updated_at?: string | null
           created_at?: string | null
           full_name: string
           id: string
@@ -132,6 +136,8 @@ export type Database = {
         Update: {
           binary_parent_id?: string | null
           binary_position?: string | null
+          career_level?: Database["public"]["Enums"]["career_level"] | null
+          career_level_updated_at?: string | null
           created_at?: string | null
           full_name?: string
           id?: string
@@ -270,6 +276,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      calculate_career_level: {
+        Args: { p_user_id: string }
+        Returns: Database["public"]["Enums"]["career_level"]
+      }
       generate_referral_code: {
         Args: Record<PropertyKey, never>
         Returns: string
@@ -281,9 +291,24 @@ export type Database = {
         }
         Returns: boolean
       }
+      update_user_career_level: {
+        Args: { p_user_id: string }
+        Returns: undefined
+      }
     }
     Enums: {
       app_role: "admin" | "moderator" | "user" | "financier"
+      career_level:
+        | "novice"
+        | "actif"
+        | "zonal"
+        | "principal"
+        | "gouverneur"
+        | "comte"
+        | "general"
+        | "royal_8"
+        | "royal_9"
+        | "guide"
       order_status: "pending" | "validated" | "rejected" | "completed"
       transaction_type:
         | "deposit"
@@ -419,6 +444,18 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "moderator", "user", "financier"],
+      career_level: [
+        "novice",
+        "actif",
+        "zonal",
+        "principal",
+        "gouverneur",
+        "comte",
+        "general",
+        "royal_8",
+        "royal_9",
+        "guide",
+      ],
       order_status: ["pending", "validated", "rejected", "completed"],
       transaction_type: [
         "deposit",

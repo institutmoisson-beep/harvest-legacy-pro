@@ -11,6 +11,7 @@ import OrdersSection from '@/components/dashboard/OrdersSection';
 import ShareButtons from '@/components/dashboard/ShareButtons';
 import ReferralTreeSection from '@/components/dashboard/ReferralTreeSection';
 import TransactionHistorySection from '@/components/dashboard/TransactionHistorySection';
+import { CareerProgressSection } from '@/components/dashboard/CareerProgressSection';
 
 interface Profile {
   full_name: string;
@@ -203,6 +204,11 @@ export default function Dashboard() {
             </div>
           </CardContent>
         </Card>
+
+        {/* Career Progress Section - Full Width */}
+        <div className="mb-8">
+          <CareerProgressSection userId={user.id} />
+        </div>
 
         {/* Main Content - Grid Layout */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
