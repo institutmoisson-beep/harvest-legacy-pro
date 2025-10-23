@@ -16,6 +16,7 @@ Deno.serve(async (req) => {
   }
 
   try {
+    // User auth client for checking permissions
     const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_ANON_KEY') ?? '',
@@ -24,6 +25,12 @@ Deno.serve(async (req) => {
           headers: { Authorization: req.headers.get('Authorization')! },
         },
       }
+    );
+
+    // Service role client for database operations (bypasses RLS)
+    const supabaseAdmin = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
     // Check if user is admin
@@ -48,19 +55,22 @@ Deno.serve(async (req) => {
 
     console.log(`Admin ${user.id} is ${action}ing order ${orderId}`);
 
-    // Get order details
-    const { data: order, error: orderError } = await supabaseClient
+    // Get order details using admin client
+    const { data: order, error: orderError } = await supabaseAdmin
       .from('orders')
       .select('*')
       .eq('id', orderId)
       .single();
 
-    if (orderError) throw orderError;
+    if (orderError) {
+      console.error('Error fetching order:', orderError);
+      throw orderError;
+    }
     if (!order) throw new Error('Commande introuvable');
 
     if (action === 'approve') {
-      // Update order status to completed
-      const { error: updateError } = await supabaseClient
+      // Update order status to completed using admin client
+      const { error: updateError } = await supabaseAdmin
         .from('orders')
         .update({
           status: 'completed',
@@ -68,7 +78,10 @@ Deno.serve(async (req) => {
         })
         .eq('id', orderId);
 
-      if (updateError) throw updateError;
+      if (updateError) {
+        console.error('Error updating order:', updateError);
+        throw updateError;
+      }
 
       // Create commissions for the broker and referrers
       const profit = Number(order.profit);
@@ -76,7 +89,7 @@ Deno.serve(async (req) => {
 
       // Commission for the broker (direct seller)
       const brokerCommission = profit * 0.20; // 20%
-      await supabaseClient.from('commissions').insert({
+      const { error: brokerCommError } = await supabaseAdmin.from('commissions').insert({
         user_id: brokerId,
         order_id: orderId,
         source_user_id: brokerId,
@@ -86,23 +99,38 @@ Deno.serve(async (req) => {
         amount: brokerCommission,
       });
 
-      // Get wallet and update balance for broker
-      const { data: brokerWallet } = await supabaseClient
+      if (brokerCommError) {
+        console.error('Error creating broker commission:', brokerCommError);
+        throw brokerCommError;
+      }
+
+      console.log(`Created broker commission: ${brokerCommission} for user ${brokerId}`);
+
+      // Get wallet and update balance for broker using admin client
+      const { data: brokerWallet, error: walletError } = await supabaseAdmin
         .from('wallets')
         .select('balance')
         .eq('user_id', brokerId)
         .single();
 
+      if (walletError) {
+        console.error('Error fetching broker wallet:', walletError);
+      }
+
       if (brokerWallet) {
-        await supabaseClient
+        const { error: updateWalletError } = await supabaseAdmin
           .from('wallets')
           .update({
             balance: Number(brokerWallet.balance) + brokerCommission,
           })
           .eq('user_id', brokerId);
 
+        if (updateWalletError) {
+          console.error('Error updating broker wallet:', updateWalletError);
+        }
+
         // Create transaction record
-        await supabaseClient.from('wallet_transactions').insert({
+        const { error: transactionError } = await supabaseAdmin.from('wallet_transactions').insert({
           from_user_id: brokerId,
           to_user_id: brokerId,
           amount: brokerCommission,
@@ -110,6 +138,10 @@ Deno.serve(async (req) => {
           description: `Commission de vente pour commande ${order.customer_name}`,
           status: 'approved',
         });
+
+        if (transactionError) {
+          console.error('Error creating transaction:', transactionError);
+        }
       }
 
       // Referral commissions
@@ -121,8 +153,8 @@ Deno.serve(async (req) => {
         { level: 5, rate: 0.01 }, // 1% niveau 5
       ];
 
-      // Get all referrers up the chain
-      const { data: referrers, error: referrersError } = await supabaseClient
+      // Get all referrers up the chain using admin client
+      const { data: referrers, error: referrersError } = await supabaseAdmin
         .from('referrals')
         .select('referrer_id, level')
         .eq('referred_id', brokerId)
@@ -136,8 +168,8 @@ Deno.serve(async (req) => {
           if (rateConfig) {
             const commission = profit * rateConfig.rate;
 
-            // Create commission record
-            await supabaseClient.from('commissions').insert({
+            // Create commission record using admin client
+            const { error: commError } = await supabaseAdmin.from('commissions').insert({
               user_id: referrer.referrer_id,
               order_id: orderId,
               source_user_id: brokerId,
@@ -147,23 +179,37 @@ Deno.serve(async (req) => {
               amount: commission,
             });
 
+            if (commError) {
+              console.error(`Error creating commission for referrer ${referrer.referrer_id}:`, commError);
+            } else {
+              console.log(`Created level ${referrer.level} commission: ${commission} for user ${referrer.referrer_id}`);
+            }
+
             // Update wallet
-            const { data: wallet } = await supabaseClient
+            const { data: wallet, error: walletFetchError } = await supabaseAdmin
               .from('wallets')
               .select('balance')
               .eq('user_id', referrer.referrer_id)
               .single();
 
+            if (walletFetchError) {
+              console.error(`Error fetching wallet for referrer ${referrer.referrer_id}:`, walletFetchError);
+            }
+
             if (wallet) {
-              await supabaseClient
+              const { error: walletUpdateError } = await supabaseAdmin
                 .from('wallets')
                 .update({
                   balance: Number(wallet.balance) + commission,
                 })
                 .eq('user_id', referrer.referrer_id);
 
+              if (walletUpdateError) {
+                console.error(`Error updating wallet for referrer ${referrer.referrer_id}:`, walletUpdateError);
+              }
+
               // Create transaction record
-              await supabaseClient.from('wallet_transactions').insert({
+              const { error: transError } = await supabaseAdmin.from('wallet_transactions').insert({
                 from_user_id: referrer.referrer_id,
                 to_user_id: referrer.referrer_id,
                 amount: commission,
@@ -171,6 +217,10 @@ Deno.serve(async (req) => {
                 description: `Commission niveau ${referrer.level} pour commande ${order.customer_name}`,
                 status: 'approved',
               });
+
+              if (transError) {
+                console.error(`Error creating transaction for referrer ${referrer.referrer_id}:`, transError);
+              }
             }
           }
         }
@@ -178,15 +228,18 @@ Deno.serve(async (req) => {
 
       console.log(`Order ${orderId} approved and commissions distributed`);
     } else if (action === 'reject') {
-      // Update order status to rejected
-      const { error: updateError } = await supabaseClient
+      // Update order status to rejected using admin client
+      const { error: updateError } = await supabaseAdmin
         .from('orders')
         .update({
           status: 'rejected',
         })
         .eq('id', orderId);
 
-      if (updateError) throw updateError;
+      if (updateError) {
+        console.error('Error rejecting order:', updateError);
+        throw updateError;
+      }
 
       console.log(`Order ${orderId} rejected`);
     }

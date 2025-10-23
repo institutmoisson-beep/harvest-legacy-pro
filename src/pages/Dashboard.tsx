@@ -23,11 +23,17 @@ interface WalletData {
   balance: number;
 }
 
+interface Stats {
+  directReferrals: number;
+  totalCommissions: number;
+}
+
 export default function Dashboard() {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [wallet, setWallet] = useState<WalletData | null>(null);
+  const [stats, setStats] = useState<Stats>({ directReferrals: 0, totalCommissions: 0 });
   const [loading, setLoading] = useState(true);
   const [hasAdminAccess, setHasAdminAccess] = useState(false);
 
@@ -68,6 +74,9 @@ export default function Dashboard() {
         const hasAccess = roles?.some(r => r.role === 'admin' || r.role === 'financier');
         setHasAdminAccess(hasAccess || false);
 
+        // Fetch stats
+        await fetchStats();
+
       } catch (error: any) {
         toast({
           title: "Erreur",
@@ -89,6 +98,30 @@ export default function Dashboard() {
       .eq('user_id', user.id)
       .single();
     if (data) setWallet(data);
+  };
+
+  const fetchStats = async () => {
+    if (!user) return;
+
+    // Count direct referrals
+    const { count: referralCount } = await supabase
+      .from('referrals')
+      .select('*', { count: 'exact', head: true })
+      .eq('referrer_id', user.id)
+      .eq('level', 1);
+
+    // Sum total commissions
+    const { data: commissionsData } = await supabase
+      .from('commissions')
+      .select('amount')
+      .eq('user_id', user.id);
+
+    const totalCommissions = commissionsData?.reduce((sum, c) => sum + Number(c.amount), 0) || 0;
+
+    setStats({
+      directReferrals: referralCount || 0,
+      totalCommissions: totalCommissions,
+    });
   };
 
   const copyReferralCode = () => {
@@ -165,7 +198,7 @@ export default function Dashboard() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-3xl font-bold">0</p>
+              <p className="text-3xl font-bold">{stats.directReferrals}</p>
               <p className="text-sm text-muted-foreground">Filleuls directs</p>
             </CardContent>
           </Card>
@@ -178,8 +211,10 @@ export default function Dashboard() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-3xl font-bold">0 FCFA</p>
-              <p className="text-sm text-muted-foreground">Total gagné</p>
+              <p className="text-3xl font-bold">{stats.totalCommissions.toFixed(2)} MSN</p>
+              <p className="text-sm text-muted-foreground mt-1">
+                {(stats.totalCommissions * 750).toLocaleString()} FCFA
+              </p>
             </CardContent>
           </Card>
         </div>
