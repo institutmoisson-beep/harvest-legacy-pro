@@ -45,6 +45,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     try {
       const redirectUrl = `${window.location.origin}/`;
       
+      // Normalize referral code (uppercase, trim whitespace) for consistency
+      const normalizedCode = referralCode ? referralCode.trim().toUpperCase() : undefined;
+      
       const { error } = await supabase.auth.signUp({
         email,
         password,
@@ -53,7 +56,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           data: {
             full_name: fullName,
             phone: phone,
-            referred_by_code: referralCode,
+            referred_by_code: normalizedCode,
           }
         }
       });
@@ -62,7 +65,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
       toast({
         title: "Inscription réussie !",
-        description: "Vérifiez votre email pour confirmer votre compte.",
+        description: normalizedCode 
+          ? `Vérifiez votre email. Code parrain: ${normalizedCode}` 
+          : "Vérifiez votre email pour confirmer votre compte.",
       });
       
       navigate('/');

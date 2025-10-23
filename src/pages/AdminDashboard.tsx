@@ -318,19 +318,30 @@ export default function AdminDashboard() {
                               variant="default"
                               onClick={async () => {
                                 try {
-                                  const { error } = await supabase.functions.invoke('approve-order', {
+                                  const { data, error } = await supabase.functions.invoke('approve-order', {
                                     body: { orderId: order.id, action: 'approve' }
                                   });
-                                  if (error) throw error;
+                                  
+                                  if (error) {
+                                    console.error('Edge function error:', error);
+                                    throw new Error(error.message || 'Erreur lors de l\'approbation');
+                                  }
+                                  
+                                  if (data?.error) {
+                                    console.error('Function returned error:', data.error);
+                                    throw new Error(data.error);
+                                  }
+
                                   toast({
                                     title: "Commande approuvée",
                                     description: "Les commissions ont été distribuées",
                                   });
-                                  fetchData();
+                                  await fetchData();
                                 } catch (error: any) {
+                                  console.error('Approve order error:', error);
                                   toast({
-                                    title: "Erreur",
-                                    description: error.message,
+                                    title: "Erreur d'approbation",
+                                    description: error.message || "Impossible d'approuver la commande",
                                     variant: "destructive",
                                   });
                                 }
@@ -343,18 +354,29 @@ export default function AdminDashboard() {
                               variant="destructive"
                               onClick={async () => {
                                 try {
-                                  const { error } = await supabase.functions.invoke('approve-order', {
+                                  const { data, error } = await supabase.functions.invoke('approve-order', {
                                     body: { orderId: order.id, action: 'reject' }
                                   });
-                                  if (error) throw error;
+                                  
+                                  if (error) {
+                                    console.error('Edge function error:', error);
+                                    throw new Error(error.message || 'Erreur lors du rejet');
+                                  }
+                                  
+                                  if (data?.error) {
+                                    console.error('Function returned error:', data.error);
+                                    throw new Error(data.error);
+                                  }
+
                                   toast({
                                     title: "Commande rejetée",
                                   });
-                                  fetchData();
+                                  await fetchData();
                                 } catch (error: any) {
+                                  console.error('Reject order error:', error);
                                   toast({
-                                    title: "Erreur",
-                                    description: error.message,
+                                    title: "Erreur de rejet",
+                                    description: error.message || "Impossible de rejeter la commande",
                                     variant: "destructive",
                                   });
                                 }

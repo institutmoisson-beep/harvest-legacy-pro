@@ -286,10 +286,7 @@ export type Database = {
         Args: { p_user_id: string }
         Returns: Database["public"]["Enums"]["career_level"]
       }
-      generate_referral_code: {
-        Args: Record<PropertyKey, never>
-        Returns: string
-      }
+      generate_referral_code: { Args: never; Returns: string }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
