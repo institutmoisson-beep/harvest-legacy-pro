@@ -51,7 +51,7 @@ Deno.serve(async (req) => {
     // Get order details
     const { data: order, error: orderError } = await supabaseClient
       .from('orders')
-      .select('*, profiles:broker_id(referred_by, referral_code)')
+      .select('*')
       .eq('id', orderId)
       .single();
 
@@ -198,10 +198,13 @@ Deno.serve(async (req) => {
         status: 200,
       }
     );
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error:', error);
+    const message = typeof error?.message === 'string'
+      ? error.message
+      : (typeof error === 'object' ? JSON.stringify(error) : 'Une erreur est survenue');
     return new Response(
-      JSON.stringify({ error: error instanceof Error ? error.message : 'Une erreur est survenue' }),
+      JSON.stringify({ error: message }),
       {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         status: 400,
