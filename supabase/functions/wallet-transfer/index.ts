@@ -50,18 +50,61 @@ serve(async (req) => {
       throw new Error('Insufficient balance');
     }
 
-    // Find recipient
-    const { data: recipient, error: recipientError } = await supabase
+    // Find recipient by ID, referral code, phone number, or email
+    let recipientId: string | null = null;
+    
+    console.log('Searching for recipient:', recipientIdentifier);
+    
+    // Try to find by UUID (direct user ID)
+    const { data: directUser } = await supabase
       .from('profiles')
       .select('id')
-      .or(`id.eq.${recipientIdentifier},referral_code.eq.${recipientIdentifier},phone.eq.${recipientIdentifier}`)
-      .single();
+      .eq('id', recipientIdentifier)
+      .maybeSingle();
+    
+    if (directUser) {
+      recipientId = directUser.id;
+      console.log('Found recipient by ID:', recipientId);
+    } else {
+      // Try to find by referral code (case-insensitive)
+      const { data: byReferralCode } = await supabase
+        .from('profiles')
+        .select('id, referral_code')
+        .ilike('referral_code', recipientIdentifier)
+        .maybeSingle();
+      
+      if (byReferralCode) {
+        recipientId = byReferralCode.id;
+        console.log('Found recipient by referral code:', recipientId);
+      } else {
+        // Try to find by phone number
+        const { data: byPhone } = await supabase
+          .from('profiles')
+          .select('id')
+          .eq('phone', recipientIdentifier)
+          .maybeSingle();
+        
+        if (byPhone) {
+          recipientId = byPhone.id;
+          console.log('Found recipient by phone:', recipientId);
+        } else {
+          // Try to find by email using auth.users
+          const { data: authData } = await supabase.auth.admin.listUsers();
+          const userByEmail = authData.users.find(u => u.email === recipientIdentifier);
+          
+          if (userByEmail) {
+            recipientId = userByEmail.id;
+            console.log('Found recipient by email:', recipientId);
+          }
+        }
+      }
+    }
 
-    if (recipientError || !recipient) {
+    if (!recipientId) {
       throw new Error('Recipient not found');
     }
 
-    if (recipient.id === user.id) {
+    if (recipientId === user.id) {
       throw new Error('Cannot transfer to yourself');
     }
 
@@ -79,14 +122,14 @@ serve(async (req) => {
     const { data: recipientWallet } = await supabase
       .from('wallets')
       .select('balance')
-      .eq('user_id', recipient.id)
+      .eq('user_id', recipientId)
       .single();
 
     if (recipientWallet) {
       await supabase
         .from('wallets')
         .update({ balance: recipientWallet.balance + amount })
-        .eq('user_id', recipient.id);
+        .eq('user_id', recipientId);
     }
 
     // Create transaction record
@@ -94,7 +137,7 @@ serve(async (req) => {
       .from('wallet_transactions')
       .insert({
         from_user_id: user.id,
-        to_user_id: recipient.id,
+        to_user_id: recipientId,
         amount,
         transaction_type: 'transfer',
         status: 'approved',

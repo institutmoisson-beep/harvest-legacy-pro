@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -7,6 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAuth } from '@/hooks/useAuth';
 import { Loader2 } from 'lucide-react';
 import { z } from 'zod';
+import { useSearchParams } from 'react-router-dom';
 
 const signUpSchema = z.object({
   email: z.string().email({ message: "Email invalide" }),
@@ -23,6 +24,7 @@ const signInSchema = z.object({
 
 export default function Auth() {
   const { signUp, signIn, resetPassword } = useAuth();
+  const [searchParams] = useSearchParams();
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [showResetPassword, setShowResetPassword] = useState(false);
@@ -42,6 +44,14 @@ export default function Auth() {
     email: '',
     password: '',
   });
+
+  // Extract referral code from URL on component mount
+  useEffect(() => {
+    const refCode = searchParams.get('ref');
+    if (refCode) {
+      setSignUpForm(prev => ({ ...prev, referralCode: refCode }));
+    }
+  }, [searchParams]);
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();

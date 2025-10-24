@@ -106,6 +106,48 @@ export type Database = {
         }
         Relationships: []
       }
+      product_listings: {
+        Row: {
+          brand: string
+          created_at: string
+          id: string
+          images: string[] | null
+          location: string
+          price: number
+          product_name: string
+          quantity: number
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          brand: string
+          created_at?: string
+          id?: string
+          images?: string[] | null
+          location: string
+          price: number
+          product_name: string
+          quantity: number
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          brand?: string
+          created_at?: string
+          id?: string
+          images?: string[] | null
+          location?: string
+          price?: number
+          product_name?: string
+          quantity?: number
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           binary_parent_id: string | null

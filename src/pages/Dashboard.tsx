@@ -149,6 +149,13 @@ export default function Dashboard() {
         {/* Header */}
         <div className="flex justify-between items-center mb-8">
           <div>
+            <Button 
+              onClick={() => navigate('/')} 
+              variant="link" 
+              className="p-0 mb-2 text-3xl font-bold gradient-text-cosmic hover:no-underline"
+            >
+              Les Moissonneurs
+            </Button>
             <h1 className="text-4xl font-bold gradient-text-cosmic">
               Bienvenue, {profile?.full_name}
             </h1>
@@ -158,6 +165,9 @@ export default function Dashboard() {
             <Button onClick={() => navigate('/profile')} variant="outline">
               <User className="h-4 w-4 mr-2" />
               Profil
+            </Button>
+            <Button onClick={() => navigate('/proposer')} variant="default">
+              Mettre à disposition
             </Button>
             {hasAdminAccess && (
               <Button onClick={() => navigate('/admin')} variant="cosmic">
