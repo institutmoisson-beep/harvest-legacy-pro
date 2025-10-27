@@ -125,6 +125,17 @@ export default function Dashboard() {
     });
   };
 
+  useEffect(() => {
+    if (!user) return;
+    const channel = supabase
+      .channel('dashboard-realtime')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'wallets', filter: `user_id=eq.${user.id}` }, () => fetchWalletBalance())
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'commissions', filter: `user_id=eq.${user.id}` }, () => fetchStats())
+      .subscribe();
+
+    return () => { supabase.removeChannel(channel); };
+  }, [user?.id]);
+
   const copyReferralCode = () => {
     if (profile?.referral_code) {
       const referralLink = `${window.location.origin}/auth?ref=${profile.referral_code}`;
