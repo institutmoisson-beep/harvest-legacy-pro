@@ -119,52 +119,67 @@ export default function AdminDashboard() {
       // Fetch all wallets with user info
       const { data: walletsData, error: walletsError } = await supabase
         .from('wallets')
-        .select(`
-          user_id,
-          balance,
-          profiles(
-            full_name,
-            referral_code
-          )
-        `);
+        .select('user_id, balance');
 
       if (walletsError) throw walletsError;
-      
-      const formattedWallets = walletsData?.map((w: any) => ({
+
+      const walletUserIds = (walletsData || []).map((w: any) => w.user_id).filter(Boolean);
+      const uniqueWalletUserIds = Array.from(new Set(walletUserIds));
+
+      let profilesMap: Record<string, { full_name: string; referral_code: string }> = {};
+      if (uniqueWalletUserIds.length > 0) {
+        const { data: profilesData, error: profilesError } = await supabase
+          .from('profiles')
+          .select('id, full_name, referral_code')
+          .in('id', uniqueWalletUserIds);
+        if (profilesError) throw profilesError;
+        profilesMap = Object.fromEntries(
+          (profilesData || []).map((p: any) => [p.id, { full_name: p.full_name, referral_code: p.referral_code }])
+        );
+      }
+
+      const formattedWallets = (walletsData || []).map((w: any) => ({
         user_id: w.user_id,
-        balance: w.balance,
-        full_name: w.profiles?.full_name || 'Utilisateur',
-        referral_code: w.profiles?.referral_code || 'N/A',
-      })) || [];
-      
+        balance: Number(w.balance) || 0,
+        full_name: profilesMap[w.user_id]?.full_name || 'Utilisateur',
+        referral_code: profilesMap[w.user_id]?.referral_code || 'N/A',
+      }));
+
       setWallets(formattedWallets);
 
       // Fetch all transactions
       const { data: transactionsData, error: transactionsError } = await supabase
         .from('wallet_transactions')
-        .select(`
-          id,
-          amount,
-          transaction_type,
-          description,
-          created_at,
-          from_profile:from_user_id (full_name),
-          to_profile:to_user_id (full_name)
-        `)
+        .select('id, amount, transaction_type, description, created_at, from_user_id, to_user_id')
         .order('created_at', { ascending: false })
         .limit(50);
 
       if (transactionsError) throw transactionsError;
 
-      const formattedTransactions = transactionsData?.map((t: any) => ({
+      const txUserIds = (transactionsData || [])
+        .flatMap((t: any) => [t.from_user_id, t.to_user_id])
+        .filter(Boolean);
+      const uniqueTxUserIds = Array.from(new Set(txUserIds));
+
+      let txProfilesMap: Record<string, { full_name: string }> = {};
+      if (uniqueTxUserIds.length > 0) {
+        const { data: txProfiles, error: txProfilesError } = await supabase
+          .from('profiles')
+          .select('id, full_name')
+          .in('id', uniqueTxUserIds);
+        if (txProfilesError) throw txProfilesError;
+        txProfilesMap = Object.fromEntries((txProfiles || []).map((p: any) => [p.id, { full_name: p.full_name }]));
+      }
+
+      const formattedTransactions = (transactionsData || []).map((t: any) => ({
         id: t.id,
-        amount: t.amount,
+        amount: Number(t.amount) || 0,
         transaction_type: t.transaction_type,
         description: t.description,
         created_at: t.created_at,
-        from_user_name: t.from_profile?.full_name,
-        to_user_name: t.to_profile?.full_name,
-      })) || [];
+        from_user_name: t.from_user_id ? txProfilesMap[t.from_user_id]?.full_name : undefined,
+        to_user_name: t.to_user_id ? txProfilesMap[t.to_user_id]?.full_name : undefined,
+      }));
 
       setTransactions(formattedTransactions);
 
