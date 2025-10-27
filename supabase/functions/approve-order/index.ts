@@ -1,5 +1,7 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.75.1';
 
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.75.1';
+
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
@@ -142,6 +144,27 @@ Deno.serve(async (req) => {
         if (transactionError) {
           console.error('Error creating transaction:', transactionError);
         }
+      } else {
+        const { error: insertWalletError } = await supabaseAdmin
+          .from('wallets')
+          .insert({ user_id: brokerId, balance: brokerCommission });
+
+        if (insertWalletError) {
+          console.error('Error creating broker wallet:', insertWalletError);
+        } else {
+          const { error: transactionError } = await supabaseAdmin.from('wallet_transactions').insert({
+            from_user_id: brokerId,
+            to_user_id: brokerId,
+            amount: brokerCommission,
+            transaction_type: 'commission',
+            description: `Commission de vente pour commande ${order.customer_name}`,
+            status: 'approved',
+          });
+
+          if (transactionError) {
+            console.error('Error creating transaction:', transactionError);
+          }
+        }
       }
 
       // Referral commissions
@@ -220,6 +243,27 @@ Deno.serve(async (req) => {
 
               if (transError) {
                 console.error(`Error creating transaction for referrer ${referrer.referrer_id}:`, transError);
+              }
+            } else {
+              const { error: insertWalletError } = await supabaseAdmin
+                .from('wallets')
+                .insert({ user_id: referrer.referrer_id, balance: commission });
+
+              if (insertWalletError) {
+                console.error(`Error creating wallet for referrer ${referrer.referrer_id}:`, insertWalletError);
+              } else {
+                const { error: transError } = await supabaseAdmin.from('wallet_transactions').insert({
+                  from_user_id: referrer.referrer_id,
+                  to_user_id: referrer.referrer_id,
+                  amount: commission,
+                  transaction_type: 'commission',
+                  description: `Commission niveau ${referrer.level} pour commande ${order.customer_name}`,
+                  status: 'approved',
+                });
+
+                if (transError) {
+                  console.error(`Error creating transaction for referrer ${referrer.referrer_id}:`, transError);
+                }
               }
             }
           }
