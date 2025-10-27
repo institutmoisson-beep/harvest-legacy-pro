@@ -8,6 +8,7 @@ import { toast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
 import WalletSection from '@/components/dashboard/WalletSection';
 import OrdersSection from '@/components/dashboard/OrdersSection';
+import UserOrdersList from '@/components/dashboard/UserOrdersList';
 import ShareButtons from '@/components/dashboard/ShareButtons';
 import ReferralTreeSection from '@/components/dashboard/ReferralTreeSection';
 import TransactionHistorySection from '@/components/dashboard/TransactionHistorySection';
@@ -279,6 +280,11 @@ export default function Dashboard() {
 
           {/* Referral Tree */}
           <ReferralTreeSection userId={user.id} />
+        </div>
+
+        {/* User Orders - Full Width */}
+        <div className="mb-8">
+          <UserOrdersList userId={user.id} />
         </div>
 
         {/* Transaction History - Full Width */}
