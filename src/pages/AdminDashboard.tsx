@@ -15,6 +15,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import AdminTransactionsSection from '@/components/dashboard/AdminTransactionsSection';
+import VisitsAnalyticsSection from '@/components/dashboard/VisitsAnalyticsSection';
 
 interface Order {
   id: string;
@@ -187,6 +188,19 @@ export default function AdminDashboard() {
     }
   };
 
+  useEffect(() => {
+    const channel = supabase
+      .channel('admin-dashboard')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'orders' }, () => fetchData())
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'wallets' }, () => fetchData())
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'wallet_transactions' }, () => fetchData())
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, []);
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -265,6 +279,11 @@ export default function AdminDashboard() {
               </p>
             </CardContent>
           </Card>
+        </div>
+
+        {/* Visits Analytics */}
+        <div className="mb-8">
+          <VisitsAnalyticsSection />
         </div>
 
         {/* Orders Table */}
