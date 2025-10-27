@@ -1,7 +1,5 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.75.1';
 
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.75.1';
-
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
@@ -54,6 +52,10 @@ Deno.serve(async (req) => {
     }
 
     const { orderId, action }: ApproveOrderRequest = await req.json();
+
+    if (!orderId || !['approve', 'reject'].includes(action)) {
+      throw new Error('Paramètres invalides');
+    }
 
     console.log(`Admin ${user.id} is ${action}ing order ${orderId}`);
 
