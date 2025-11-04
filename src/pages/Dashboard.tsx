@@ -3,7 +3,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Loader2, Copy, TrendingUp, Users, Wallet, Shield, User } from 'lucide-react';
+import { Loader2, Copy, TrendingUp, Users, Wallet, Shield, User, MessageCircle, Coins } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
 import WalletSection from '@/components/dashboard/WalletSection';
@@ -173,21 +173,29 @@ export default function Dashboard() {
             </h1>
             <p className="text-muted-foreground mt-2">Votre tableau de bord Moissonneur</p>
           </div>
-          <div className="flex gap-2">
-            <Button onClick={() => navigate('/profile')} variant="outline">
+          <div className="flex gap-2 flex-wrap">
+            <Button onClick={() => navigate('/profile')} variant="outline" size="sm">
               <User className="h-4 w-4 mr-2" />
               Profil
             </Button>
-            <Button onClick={() => navigate('/proposer')} variant="default">
+            <Button onClick={() => navigate('/messages')} variant="outline" size="sm">
+              <MessageCircle className="h-4 w-4 mr-2" />
+              Messages
+            </Button>
+            <Button onClick={() => navigate('/tontines')} variant="outline" size="sm">
+              <Coins className="h-4 w-4 mr-2" />
+              Tontines
+            </Button>
+            <Button onClick={() => navigate('/proposer')} variant="default" size="sm">
               Mettre à disposition
             </Button>
             {hasAdminAccess && (
-              <Button onClick={() => navigate('/admin')} variant="cosmic">
+              <Button onClick={() => navigate('/admin')} variant="cosmic" size="sm">
                 <Shield className="h-4 w-4 mr-2" />
                 Super Dashboard
               </Button>
             )}
-            <Button onClick={signOut} variant="outline">
+            <Button onClick={signOut} variant="outline" size="sm">
               Déconnexion
             </Button>
           </div>

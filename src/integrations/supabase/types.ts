@@ -58,6 +58,33 @@ export type Database = {
           },
         ]
       }
+      messages: {
+        Row: {
+          content: string
+          created_at: string | null
+          from_user_id: string
+          id: string
+          read: boolean | null
+          to_user_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string | null
+          from_user_id: string
+          id?: string
+          read?: boolean | null
+          to_user_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string | null
+          from_user_id?: string
+          id?: string
+          read?: boolean | null
+          to_user_id?: string
+        }
+        Relationships: []
+      }
       orders: {
         Row: {
           broker_code: string
@@ -232,6 +259,197 @@ export type Database = {
           level?: number
           referred_id?: string
           referrer_id?: string
+        }
+        Relationships: []
+      }
+      tontine_drawings: {
+        Row: {
+          amount_won: number
+          cycle_number: number
+          drawn_at: string | null
+          id: string
+          tontine_id: string
+          winner_id: string
+        }
+        Insert: {
+          amount_won: number
+          cycle_number: number
+          drawn_at?: string | null
+          id?: string
+          tontine_id: string
+          winner_id: string
+        }
+        Update: {
+          amount_won?: number
+          cycle_number?: number
+          drawn_at?: string | null
+          id?: string
+          tontine_id?: string
+          winner_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tontine_drawings_tontine_id_fkey"
+            columns: ["tontine_id"]
+            isOneToOne: false
+            referencedRelation: "tontines"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tontine_messages: {
+        Row: {
+          content: string
+          created_at: string | null
+          id: string
+          tontine_id: string
+          user_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string | null
+          id?: string
+          tontine_id: string
+          user_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string | null
+          id?: string
+          tontine_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tontine_messages_tontine_id_fkey"
+            columns: ["tontine_id"]
+            isOneToOne: false
+            referencedRelation: "tontines"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tontine_participants: {
+        Row: {
+          has_received: boolean | null
+          id: string
+          is_paid_current_cycle: boolean | null
+          joined_at: string | null
+          received_at: string | null
+          tontine_id: string
+          user_id: string
+        }
+        Insert: {
+          has_received?: boolean | null
+          id?: string
+          is_paid_current_cycle?: boolean | null
+          joined_at?: string | null
+          received_at?: string | null
+          tontine_id: string
+          user_id: string
+        }
+        Update: {
+          has_received?: boolean | null
+          id?: string
+          is_paid_current_cycle?: boolean | null
+          joined_at?: string | null
+          received_at?: string | null
+          tontine_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tontine_participants_tontine_id_fkey"
+            columns: ["tontine_id"]
+            isOneToOne: false
+            referencedRelation: "tontines"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tontine_payments: {
+        Row: {
+          amount: number
+          created_at: string | null
+          cycle_number: number
+          id: string
+          payment_contact: string | null
+          payment_method: string | null
+          status: string | null
+          tontine_id: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string | null
+          cycle_number: number
+          id?: string
+          payment_contact?: string | null
+          payment_method?: string | null
+          status?: string | null
+          tontine_id: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string | null
+          cycle_number?: number
+          id?: string
+          payment_contact?: string | null
+          payment_method?: string | null
+          status?: string | null
+          tontine_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tontine_payments_tontine_id_fkey"
+            columns: ["tontine_id"]
+            isOneToOne: false
+            referencedRelation: "tontines"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tontines: {
+        Row: {
+          amount: number
+          created_at: string | null
+          creator_id: string
+          current_cycle: number | null
+          frequency: string
+          id: string
+          max_participants: number
+          name: string
+          start_date: string
+          status: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          amount: number
+          created_at?: string | null
+          creator_id: string
+          current_cycle?: number | null
+          frequency: string
+          id?: string
+          max_participants: number
+          name: string
+          start_date: string
+          status?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          amount?: number
+          created_at?: string | null
+          creator_id?: string
+          current_cycle?: number | null
+          frequency?: string
+          id?: string
+          max_participants?: number
+          name?: string
+          start_date?: string
+          status?: string | null
+          updated_at?: string | null
         }
         Relationships: []
       }
