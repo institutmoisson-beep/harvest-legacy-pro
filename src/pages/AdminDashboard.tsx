@@ -209,6 +209,7 @@ export default function AdminDashboard() {
       .on('postgres_changes', { event: '*', schema: 'public', table: 'orders' }, () => fetchData())
       .on('postgres_changes', { event: '*', schema: 'public', table: 'wallets' }, () => fetchData())
       .on('postgres_changes', { event: '*', schema: 'public', table: 'wallet_transactions' }, () => fetchData())
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'commissions' }, () => fetchData())
       .subscribe();
 
     return () => {
@@ -335,7 +336,7 @@ export default function AdminDashboard() {
                       <TableCell className="font-mono text-sm">{order.broker_code}</TableCell>
                       <TableCell>
                         <span className={`px-2 py-1 rounded text-xs ${
-                          order.status === 'completed' ? 'bg-secondary/20 text-secondary' :
+                          order.status === 'validated' ? 'bg-secondary/20 text-secondary' :
                           order.status === 'pending' ? 'bg-accent/20 text-accent' :
                           order.status === 'rejected' ? 'bg-destructive/20 text-destructive' :
                           'bg-muted text-muted-foreground'

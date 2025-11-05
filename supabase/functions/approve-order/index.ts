@@ -73,11 +73,11 @@ Deno.serve(async (req) => {
     if (!order) throw new Error('Commande introuvable');
 
     if (action === 'approve') {
-      // Update order status to completed using admin client
+      // Update order status to validated using admin client
       const { error: updateError } = await supabaseAdmin
         .from('orders')
         .update({
-          status: 'completed',
+          status: 'validated',
           validated_at: new Date().toISOString(),
         })
         .eq('id', orderId);
@@ -92,14 +92,14 @@ Deno.serve(async (req) => {
       const brokerId = order.broker_id;
 
       // Commission for the broker (direct seller)
-      const brokerCommission = profit * 0.20; // 20%
+      const brokerCommission = profit * 0.30; // 30% du bénéfice
       const { error: brokerCommError } = await supabaseAdmin.from('commissions').insert({
         user_id: brokerId,
         order_id: orderId,
         source_user_id: brokerId,
         commission_type: 'order',
         level: 1,
-        commission_rate: 0.20,
+        commission_rate: 0.30,
         amount: brokerCommission,
       });
 
