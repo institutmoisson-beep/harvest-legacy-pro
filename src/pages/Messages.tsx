@@ -146,6 +146,10 @@ export default function Messages() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5 py-8 px-4">
       <div className="container mx-auto max-w-6xl">
+        <Button variant="ghost" onClick={() => navigate('/dashboard')} className="mb-4">
+          <ArrowLeft className="h-4 w-4 mr-2" />
+          Retour au tableau de bord
+        </Button>
         <h1 className="text-3xl font-bold gradient-text-cosmic mb-6 flex items-center gap-2">
           <MessageCircle className="h-8 w-8" />
           Messagerie Moissonneurs

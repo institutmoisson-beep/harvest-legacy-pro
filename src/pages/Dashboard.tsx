@@ -3,7 +3,9 @@ import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Loader2, Copy, TrendingUp, Users, Wallet, Shield, User, MessageCircle, Coins } from 'lucide-react';
+import { Loader2, Copy, TrendingUp, Users, Wallet, Shield, User, MessageCircle, Coins, Phone, MapPin } from 'lucide-react';
+import VoiceCall from '@/components/VoiceCall';
+import LocationSharing from '@/components/LocationSharing';
 import { toast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
 import WalletSection from '@/components/dashboard/WalletSection';
@@ -182,6 +184,8 @@ export default function Dashboard() {
               <MessageCircle className="h-4 w-4 mr-2" />
               Messages
             </Button>
+            <VoiceCall />
+            <LocationSharing />
             <Button onClick={() => navigate('/tontines')} variant="outline" size="sm">
               <Coins className="h-4 w-4 mr-2" />
               Tontines

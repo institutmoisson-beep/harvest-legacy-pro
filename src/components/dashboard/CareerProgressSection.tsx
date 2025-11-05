@@ -83,7 +83,7 @@ export const CareerProgressSection = ({ userId }: CareerProgressSectionProps) =>
           .from("orders")
           .select("*", { count: "exact", head: true })
           .eq("broker_id", userId)
-          .eq("status", "validated");
+          .in("status", ["validated", "completed"]);
 
         // Fetch monthly sales
         const thirtyDaysAgo = new Date();
@@ -93,7 +93,7 @@ export const CareerProgressSection = ({ userId }: CareerProgressSectionProps) =>
           .from("orders")
           .select("purchase_price, quantity")
           .eq("broker_id", userId)
-          .eq("status", "validated")
+          .in("status", ["validated", "completed"])
           .gte("created_at", thirtyDaysAgo.toISOString());
 
         const totalSales = salesData?.reduce(

@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Coins, Plus, Users, Calendar, TrendingUp } from 'lucide-react';
+import { Coins, Plus, Users, Calendar, TrendingUp, ArrowLeft } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
 
@@ -138,6 +138,10 @@ export default function Tontines() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5 py-8 px-4">
       <div className="container mx-auto max-w-7xl">
+        <Button variant="ghost" onClick={() => navigate('/dashboard')} className="mb-4">
+          <ArrowLeft className="h-4 w-4 mr-2" />
+          Retour
+        </Button>
         <div className="flex justify-between items-center mb-8">
           <h1 className="text-3xl font-bold gradient-text-cosmic flex items-center gap-2">
             <Coins className="h-8 w-8" />

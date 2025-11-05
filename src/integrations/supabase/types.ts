@@ -14,6 +14,42 @@ export type Database = {
   }
   public: {
     Tables: {
+      call_sessions: {
+        Row: {
+          answer: Json | null
+          callee_id: string
+          caller_id: string
+          created_at: string | null
+          ice_candidates: Json | null
+          id: string
+          offer: Json | null
+          status: string
+          updated_at: string | null
+        }
+        Insert: {
+          answer?: Json | null
+          callee_id: string
+          caller_id: string
+          created_at?: string | null
+          ice_candidates?: Json | null
+          id?: string
+          offer?: Json | null
+          status?: string
+          updated_at?: string | null
+        }
+        Update: {
+          answer?: Json | null
+          callee_id?: string
+          caller_id?: string
+          created_at?: string | null
+          ice_candidates?: Json | null
+          id?: string
+          offer?: Json | null
+          status?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       commissions: {
         Row: {
           amount: number
@@ -450,6 +486,45 @@ export type Database = {
           start_date?: string
           status?: string | null
           updated_at?: string | null
+        }
+        Relationships: []
+      }
+      user_locations: {
+        Row: {
+          accuracy: number | null
+          created_at: string | null
+          expires_at: string | null
+          id: string
+          is_active: boolean | null
+          latitude: number
+          longitude: number
+          shared_with_user_id: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          accuracy?: number | null
+          created_at?: string | null
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          latitude: number
+          longitude: number
+          shared_with_user_id?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          accuracy?: number | null
+          created_at?: string | null
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          latitude?: number
+          longitude?: number
+          shared_with_user_id?: string | null
+          updated_at?: string | null
+          user_id?: string
         }
         Relationships: []
       }
