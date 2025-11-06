@@ -16,6 +16,7 @@ import {
 } from '@/components/ui/table';
 import AdminTransactionsSection from '@/components/dashboard/AdminTransactionsSection';
 import VisitsAnalyticsSection from '@/components/dashboard/VisitsAnalyticsSection';
+import PaymentContactsManager from '@/components/dashboard/PaymentContactsManager';
 
 interface Order {
   id: string;

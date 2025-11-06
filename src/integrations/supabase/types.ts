@@ -94,6 +94,110 @@ export type Database = {
           },
         ]
       }
+      fund_contributions: {
+        Row: {
+          amount: number
+          created_at: string | null
+          id: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string | null
+          id?: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string | null
+          id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      investment_products: {
+        Row: {
+          created_at: string | null
+          id: string
+          investment_amount: number
+          investor_earnings: number | null
+          investor_id: string
+          investor_share_percentage: number | null
+          last_payout_at: string | null
+          payout_frequency: string
+          product_name: string
+          profit_percentage: number | null
+          status: string | null
+          total_profit: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          investment_amount: number
+          investor_earnings?: number | null
+          investor_id: string
+          investor_share_percentage?: number | null
+          last_payout_at?: string | null
+          payout_frequency: string
+          product_name: string
+          profit_percentage?: number | null
+          status?: string | null
+          total_profit?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          investment_amount?: number
+          investor_earnings?: number | null
+          investor_id?: string
+          investor_share_percentage?: number | null
+          last_payout_at?: string | null
+          payout_frequency?: string
+          product_name?: string
+          profit_percentage?: number | null
+          status?: string | null
+          total_profit?: number | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      investment_sales: {
+        Row: {
+          created_at: string | null
+          id: string
+          investment_id: string
+          investor_earnings: number
+          profit_amount: number
+          sale_amount: number
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          investment_id: string
+          investor_earnings: number
+          profit_amount: number
+          sale_amount: number
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          investment_id?: string
+          investor_earnings?: number
+          profit_amount?: number
+          sale_amount?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "investment_sales_investment_id_fkey"
+            columns: ["investment_id"]
+            isOneToOne: false
+            referencedRelation: "investment_products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       messages: {
         Row: {
           content: string
@@ -118,6 +222,24 @@ export type Database = {
           id?: string
           read?: boolean | null
           to_user_id?: string
+        }
+        Relationships: []
+      }
+      moissonneur_fund: {
+        Row: {
+          id: string
+          total_amount: number
+          updated_at: string | null
+        }
+        Insert: {
+          id?: string
+          total_amount?: number
+          updated_at?: string | null
+        }
+        Update: {
+          id?: string
+          total_amount?: number
+          updated_at?: string | null
         }
         Relationships: []
       }
@@ -166,6 +288,36 @@ export type Database = {
           status?: Database["public"]["Enums"]["order_status"] | null
           updated_at?: string | null
           validated_at?: string | null
+        }
+        Relationships: []
+      }
+      payment_contacts: {
+        Row: {
+          contact_name: string | null
+          contact_number: string
+          created_at: string | null
+          id: string
+          is_active: boolean | null
+          payment_method: string
+          updated_at: string | null
+        }
+        Insert: {
+          contact_name?: string | null
+          contact_number: string
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          payment_method: string
+          updated_at?: string | null
+        }
+        Update: {
+          contact_name?: string | null
+          contact_number?: string
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          payment_method?: string
+          updated_at?: string | null
         }
         Relationships: []
       }
@@ -647,9 +799,18 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      auto_update_career_level: { Args: never; Returns: undefined }
       calculate_career_level: {
         Args: { p_user_id: string }
         Returns: Database["public"]["Enums"]["career_level"]
+      }
+      calculate_investment_earnings: {
+        Args: {
+          p_investor_share_percentage: number
+          p_profit_percentage: number
+          p_sale_amount: number
+        }
+        Returns: number
       }
       generate_referral_code: { Args: never; Returns: string }
       has_role: {

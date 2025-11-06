@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -23,25 +23,32 @@ export default function WalletSection({ balance, userId, onBalanceUpdate }: Wall
   const [recipientIdentifier, setRecipientIdentifier] = useState('');
   const [paymentMethod, setPaymentMethod] = useState('');
   const [paymentContact, setPaymentContact] = useState('');
+  const [transactionId, setTransactionId] = useState('');
   const [loading, setLoading] = useState(false);
+  const [paymentContacts, setPaymentContacts] = useState<any[]>([]);
 
-  const paymentMethods = [
-    'Orange Money',
-    'MTN Money',
-    'Wave',
-    'Push CI',
-    'Bitcoin',
-    'Ethereum'
-  ];
+  useEffect(() => {
+    fetchPaymentContacts();
+  }, []);
+
+  const fetchPaymentContacts = async () => {
+    const { data } = await supabase
+      .from('payment_contacts')
+      .select('*')
+      .eq('is_active', true)
+      .order('payment_method');
+    
+    if (data) setPaymentContacts(data);
+  };
 
   const convertToFCFA = (msn: number) => msn * MSN_TO_FCFA;
   const convertToMSN = (fcfa: number) => fcfa / MSN_TO_FCFA;
 
   const handleDeposit = async () => {
-    if (!depositAmount || parseFloat(depositAmount) <= 0) {
+    if (!depositAmount || parseFloat(depositAmount) <= 0 || !transactionId) {
       toast({
-        title: "Montant invalide",
-        description: "Veuillez entrer un montant valide",
+        title: "Informations manquantes",
+        description: "Veuillez remplir tous les champs",
         variant: "destructive",
       });
       return;
@@ -52,17 +59,18 @@ export default function WalletSection({ balance, userId, onBalanceUpdate }: Wall
       const amount = parseFloat(depositAmount);
       
       const { error } = await supabase.functions.invoke('wallet-deposit', {
-        body: { amount }
+        body: { amount, transactionId }
       });
 
       if (error) throw error;
 
       toast({
         title: "Demande de dépôt créée",
-        description: "Votre demande est en attente de validation par un administrateur",
+        description: "Votre demande est en attente de validation. Nous vérifions l'ID de transaction.",
       });
 
       setDepositAmount('');
+      setTransactionId('');
       onBalanceUpdate();
     } catch (error: any) {
       toast({
@@ -204,6 +212,22 @@ export default function WalletSection({ balance, userId, onBalanceUpdate }: Wall
           </TabsList>
 
           <TabsContent value="deposit" className="space-y-4">
+            {/* Payment Contacts Display */}
+            {paymentContacts.length > 0 && (
+              <div className="p-4 bg-primary/5 border border-primary/20 rounded-lg space-y-2">
+                <p className="font-semibold text-sm mb-2">Numéros pour le rechargement:</p>
+                {paymentContacts.map(contact => (
+                  <div key={contact.id} className="flex justify-between items-center p-2 bg-background rounded">
+                    <div>
+                      <p className="font-medium text-sm">{contact.payment_method}</p>
+                      <p className="text-xs text-muted-foreground">{contact.contact_name}</p>
+                    </div>
+                    <p className="font-mono text-sm">{contact.contact_number}</p>
+                  </div>
+                ))}
+              </div>
+            )}
+
             <div className="space-y-2">
               <Label htmlFor="deposit">Montant (MSN)</Label>
               <Input
@@ -221,6 +245,20 @@ export default function WalletSection({ balance, userId, onBalanceUpdate }: Wall
                 </p>
               )}
             </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="transactionId">ID de la transaction</Label>
+              <Input
+                id="transactionId"
+                placeholder="Ex: 1234567890"
+                value={transactionId}
+                onChange={(e) => setTransactionId(e.target.value)}
+              />
+              <p className="text-xs text-muted-foreground">
+                Entrez l'ID de transaction après avoir effectué le paiement
+              </p>
+            </div>
+
             <Button onClick={handleDeposit} disabled={loading} className="w-full">
               <ArrowDownLeft className="h-4 w-4 mr-2" />
               Effectuer un dépôt
@@ -237,7 +275,7 @@ export default function WalletSection({ balance, userId, onBalanceUpdate }: Wall
                 className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               >
                 <option value="">Sélectionner un moyen</option>
-                {paymentMethods.map((method) => (
+                {['Orange Money', 'MTN Money', 'Wave', 'Push CI', 'Moov Money'].map((method) => (
                   <option key={method} value={method}>
                     {method}
                   </option>

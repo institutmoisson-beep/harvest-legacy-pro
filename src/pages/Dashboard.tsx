@@ -9,6 +9,7 @@ import LocationSharing from '@/components/LocationSharing';
 import { toast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
 import WalletSection from '@/components/dashboard/WalletSection';
+import MoissonneurFund from '@/components/dashboard/MoissonneurFund';
 import OrdersSection from '@/components/dashboard/OrdersSection';
 import UserOrdersList from '@/components/dashboard/UserOrdersList';
 import ShareButtons from '@/components/dashboard/ShareButtons';

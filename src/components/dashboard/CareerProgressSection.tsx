@@ -46,7 +46,32 @@ export const CareerProgressSection = ({ userId }: CareerProgressSectionProps) =>
 
   useEffect(() => {
     fetchCareerData();
+    
+    // Subscribe to orders changes to auto-update career level
+    const ordersChannel = supabase
+      .channel('orders-career-updates')
+      .on('postgres_changes', {
+        event: 'UPDATE',
+        schema: 'public',
+        table: 'orders',
+        filter: `broker_id=eq.${userId}`
+      }, () => {
+        // Trigger career level recalculation
+        updateCareerLevel();
+      })
+      .subscribe();
+
+    return () => { supabase.removeChannel(ordersChannel); };
   }, [userId]);
+
+  const updateCareerLevel = async () => {
+    try {
+      await supabase.rpc('update_user_career_level', { p_user_id: userId });
+      fetchCareerData();
+    } catch (error) {
+      console.error('Error updating career level:', error);
+    }
+  };
 
   const fetchCareerData = async () => {
     try {
