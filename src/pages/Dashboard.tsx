@@ -3,7 +3,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Loader2, Copy, TrendingUp, Users, Wallet, Shield, User, MessageCircle, Coins, Phone, MapPin } from 'lucide-react';
+import { Loader2, Copy, TrendingUp, Users, Wallet, Shield, User, MessageCircle, Coins, Phone, MapPin, ShoppingBag } from 'lucide-react';
 import VoiceCall from '@/components/VoiceCall';
 import LocationSharing from '@/components/LocationSharing';
 import { toast } from '@/hooks/use-toast';
@@ -284,6 +284,19 @@ export default function Dashboard() {
           <CareerProgressSection userId={user.id} />
         </div>
 
+        {/* Investment Button */}
+        <div className="mb-8">
+          <Button 
+            onClick={() => navigate('/investments')} 
+            className="w-full" 
+            size="lg"
+            variant="default"
+          >
+            <ShoppingBag className="h-5 w-5 mr-2" />
+            J'achète, Vous vendez pour moi
+          </Button>
+        </div>
+
         {/* Main Content - Grid Layout */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
           {/* Wallet Section */}
@@ -292,6 +305,9 @@ export default function Dashboard() {
             userId={user.id}
             onBalanceUpdate={fetchWalletBalance}
           />
+
+          {/* Moissonneur Fund */}
+          <MoissonneurFund />
 
           {/* Orders Section */}
           <OrdersSection 

@@ -303,6 +303,11 @@ export default function AdminDashboard() {
           <VisitsAnalyticsSection />
         </div>
 
+        {/* Payment Contacts Manager */}
+        <div className="mb-8">
+          <PaymentContactsManager />
+        </div>
+
         {/* Orders Table */}
         <Card className="glass-card mb-8">
           <CardHeader>

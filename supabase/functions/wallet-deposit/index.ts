@@ -25,10 +25,14 @@ serve(async (req) => {
       throw new Error('Unauthorized');
     }
 
-    const { amount } = await req.json();
+    const { amount, transactionId } = await req.json();
 
     if (!amount || amount <= 0) {
       throw new Error('Invalid amount');
+    }
+
+    if (!transactionId) {
+      throw new Error('Transaction ID is required');
     }
 
     // Create transaction record with pending status
@@ -40,7 +44,7 @@ serve(async (req) => {
         amount,
         transaction_type: 'deposit',
         status: 'pending',
-        description: 'Dépôt en attente de validation'
+        description: `Dépôt en attente - ID: ${transactionId}`
       })
       .select()
       .single();
