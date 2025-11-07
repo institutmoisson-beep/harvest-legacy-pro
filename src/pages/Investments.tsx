@@ -79,6 +79,34 @@ export default function Investments() {
 
     setLoading(true);
     try {
+      // Check wallet balance first
+      const { data: wallet, error: walletError } = await supabase
+        .from('wallets')
+        .select('balance')
+        .eq('user_id', user?.id)
+        .single();
+
+      if (walletError) throw walletError;
+
+      if (!wallet || wallet.balance < amount) {
+        toast({ 
+          title: 'Solde insuffisant', 
+          description: 'Veuillez recharger votre portefeuille', 
+          variant: 'destructive' 
+        });
+        setLoading(false);
+        return;
+      }
+
+      // Deduct from wallet
+      const { error: deductError } = await supabase
+        .from('wallets')
+        .update({ balance: wallet.balance - amount })
+        .eq('user_id', user?.id);
+
+      if (deductError) throw deductError;
+
+      // Create investment
       const { error } = await supabase
         .from('investment_products')
         .insert({
@@ -91,7 +119,14 @@ export default function Investments() {
           status: 'active'
         });
 
-      if (error) throw error;
+      if (error) {
+        // Rollback wallet deduction if investment creation fails
+        await supabase
+          .from('wallets')
+          .update({ balance: wallet.balance })
+          .eq('user_id', user?.id);
+        throw error;
+      }
 
       toast({ title: 'Succès', description: 'Investissement créé avec succès' });
       setProductName('');
@@ -232,9 +267,10 @@ export default function Investments() {
                         <p className="font-semibold text-green-600">{inv.investor_earnings?.toLocaleString() || 0} FCFA</p>
                       </div>
                     </div>
-                    <p className="text-xs text-muted-foreground">
-                      Créé le {new Date(inv.created_at).toLocaleDateString()}
-                    </p>
+                    <div className="text-xs text-muted-foreground space-y-1">
+                      <p>Créé le {new Date(inv.created_at).toLocaleDateString('fr-FR')}</p>
+                      <p className="font-semibold">à {new Date(inv.created_at).toLocaleTimeString('fr-FR')}</p>
+                    </div>
                   </div>
                 ))}
               </div>

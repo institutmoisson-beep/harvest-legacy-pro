@@ -16,6 +16,7 @@ import ShareButtons from '@/components/dashboard/ShareButtons';
 import ReferralTreeSection from '@/components/dashboard/ReferralTreeSection';
 import TransactionHistorySection from '@/components/dashboard/TransactionHistorySection';
 import { CareerProgressSection } from '@/components/dashboard/CareerProgressSection';
+import UserQRCode from '@/components/dashboard/UserQRCode';
 
 interface Profile {
   full_name: string;
@@ -194,6 +195,10 @@ export default function Dashboard() {
             <Button onClick={() => navigate('/proposer')} variant="default" size="sm">
               Mettre à disposition
             </Button>
+            <Button onClick={() => navigate('/agent')} variant="outline" size="sm">
+              <Users className="h-4 w-4 mr-2" />
+              Agent Dashboard
+            </Button>
             {hasAdminAccess && (
               <Button onClick={() => navigate('/admin')} variant="cosmic" size="sm">
                 <Shield className="h-4 w-4 mr-2" />
@@ -317,6 +322,9 @@ export default function Dashboard() {
 
           {/* Share Buttons */}
           <ShareButtons referralCode={profile?.referral_code || ''} />
+
+          {/* QR Code */}
+          <UserQRCode />
 
           {/* Referral Tree */}
           <ReferralTreeSection userId={user.id} />

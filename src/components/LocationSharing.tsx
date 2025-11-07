@@ -225,7 +225,12 @@ export default function LocationSharing() {
 
   return (
     <>
-      <Button onClick={() => setIsOpen(true)} variant="outline" size="sm">
+      <Button 
+        onClick={() => setIsOpen(true)} 
+        variant="outline" 
+        size="sm"
+        className="w-full sm:w-auto"
+      >
         <MapPin className="h-4 w-4 mr-2" />
         Localisation
       </Button>

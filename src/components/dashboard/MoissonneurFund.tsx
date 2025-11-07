@@ -76,12 +76,13 @@ export default function MoissonneurFund() {
 
       if (!wallet || wallet.balance < amount) {
         toast({ title: 'Erreur', description: 'Solde insuffisant', variant: 'destructive' });
+        setLoading(false);
         return;
       }
 
-      // Create deposit transaction that will trigger fund update
-      const { error } = await supabase.functions.invoke('wallet-deposit', {
-        body: { amount, isFundContribution: true }
+      // Use fund-contribute edge function
+      const { data, error } = await supabase.functions.invoke('fund-contribute', {
+        body: { amount }
       });
 
       if (error) throw error;
