@@ -17,6 +17,7 @@ import {
 import AdminTransactionsSection from '@/components/dashboard/AdminTransactionsSection';
 import VisitsAnalyticsSection from '@/components/dashboard/VisitsAnalyticsSection';
 import PaymentContactsManager from '@/components/dashboard/PaymentContactsManager';
+import MemberManagement from '@/components/dashboard/MemberManagement';
 
 interface Order {
   id: string;
@@ -306,6 +307,11 @@ export default function AdminDashboard() {
         {/* Payment Contacts Manager */}
         <div className="mb-8">
           <PaymentContactsManager />
+        </div>
+
+        {/* Member Management */}
+        <div className="mb-8">
+          <MemberManagement />
         </div>
 
         {/* Orders Table */}

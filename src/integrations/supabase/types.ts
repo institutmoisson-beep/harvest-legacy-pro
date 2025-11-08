@@ -14,6 +14,42 @@ export type Database = {
   }
   public: {
     Tables: {
+      agent_transactions: {
+        Row: {
+          agent_id: string
+          amount: number
+          created_at: string | null
+          description: string | null
+          id: string
+          member_id: string
+          status: string | null
+          transaction_type: string
+          updated_at: string | null
+        }
+        Insert: {
+          agent_id: string
+          amount: number
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          member_id: string
+          status?: string | null
+          transaction_type: string
+          updated_at?: string | null
+        }
+        Update: {
+          agent_id?: string
+          amount?: number
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          member_id?: string
+          status?: string | null
+          transaction_type?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       call_sessions: {
         Row: {
           answer: Json | null
@@ -680,6 +716,30 @@ export type Database = {
         }
         Relationships: []
       }
+      user_qr_codes: {
+        Row: {
+          created_at: string | null
+          id: string
+          qr_code_data: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          qr_code_data: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          qr_code_data?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string | null
@@ -812,6 +872,10 @@ export type Database = {
         }
         Returns: number
       }
+      decrement_wallet_balance: {
+        Args: { p_amount: number; p_user_id: string }
+        Returns: undefined
+      }
       generate_referral_code: { Args: never; Returns: string }
       has_role: {
         Args: {
@@ -819,6 +883,10 @@ export type Database = {
           _user_id: string
         }
         Returns: boolean
+      }
+      increment_wallet_balance: {
+        Args: { p_amount: number; p_user_id: string }
+        Returns: undefined
       }
       update_user_career_level: {
         Args: { p_user_id: string }

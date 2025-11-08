@@ -12,6 +12,7 @@ import Dashboard from "./pages/Dashboard";
 import AdminDashboard from "./pages/AdminDashboard";
 import Profile from "./pages/Profile";
 import ProposerProduit from "./pages/ProposerProduit";
+import AgentDashboard from "./pages/AgentDashboard";
 import Messages from "./pages/Messages";
 import Tontines from "./pages/Tontines";
 import TontineDetail from "./pages/TontineDetail";
@@ -58,6 +59,7 @@ const App = () => {
               <Route path="/admin" element={<AdminDashboard />} />
               <Route path="/profile" element={<Profile />} />
               <Route path="/proposer" element={<ProposerProduit />} />
+              <Route path="/agent" element={<AgentDashboard />} />
               <Route path="/messages" element={<Messages />} />
               <Route path="/tontines" element={<Tontines />} />
               <Route path="/tontines/:id" element={<TontineDetail />} />
