@@ -247,16 +247,35 @@ export default function TontineDetail() {
 
               <TabsContent value="participants">
                 <CardContent>
-                  <ScrollArea className="h-[500px]">
-                    {participants.map(p => (
-                      <div key={p.id} className="flex items-center justify-between p-3 rounded-lg bg-accent/5 mb-2">
-                        <div>
-                          <p className="font-medium">{p.profile?.full_name}</p>
-                          <p className="text-xs text-muted-foreground">{p.profile?.referral_code}</p>
+                  <div className="mb-4 p-4 bg-primary/5 rounded-lg border border-primary/20">
+                    <h4 className="font-semibold mb-2">Transparence totale</h4>
+                    <p className="text-sm text-muted-foreground">
+                      Tous les participants avec leurs codes Moissonneur pour une transparence complète
+                    </p>
+                  </div>
+                  <ScrollArea className="h-[400px]">
+                    {participants.map((p, index) => (
+                      <div key={p.id} className="flex items-center justify-between p-4 rounded-lg bg-accent/5 mb-2 border border-border/50">
+                        <div className="flex items-center gap-3">
+                          <div className="flex items-center justify-center w-8 h-8 rounded-full bg-primary/10 text-primary font-bold">
+                            {index + 1}
+                          </div>
+                          <div>
+                            <p className="font-medium">{p.profile?.full_name}</p>
+                            <p className="text-xs font-mono text-primary font-semibold">{p.profile?.referral_code}</p>
+                            <p className="text-xs text-muted-foreground">
+                              {p.is_paid_current_cycle ? '✓ Payé ce cycle' : '○ En attente de paiement'}
+                            </p>
+                          </div>
                         </div>
-                        {p.has_received && (
-                          <Trophy className="h-5 w-5 text-accent" />
-                        )}
+                        <div className="flex items-center gap-2">
+                          {p.has_received && (
+                            <div className="flex items-center gap-1">
+                              <Trophy className="h-5 w-5 text-accent" />
+                              <span className="text-xs text-accent font-medium">Gagnant</span>
+                            </div>
+                          )}
+                        </div>
                       </div>
                     ))}
                   </ScrollArea>

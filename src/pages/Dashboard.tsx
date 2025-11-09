@@ -17,6 +17,7 @@ import ReferralTreeSection from '@/components/dashboard/ReferralTreeSection';
 import TransactionHistorySection from '@/components/dashboard/TransactionHistorySection';
 import { CareerProgressSection } from '@/components/dashboard/CareerProgressSection';
 import UserQRCode from '@/components/dashboard/UserQRCode';
+import CryptoPaymentOptions from '@/components/dashboard/CryptoPaymentOptions';
 
 interface Profile {
   full_name: string;
@@ -41,6 +42,7 @@ export default function Dashboard() {
   const [stats, setStats] = useState<Stats>({ directReferrals: 0, totalCommissions: 0 });
   const [loading, setLoading] = useState(true);
   const [hasAdminAccess, setHasAdminAccess] = useState(false);
+  const [hasMerchantRole, setHasMerchantRole] = useState(false);
 
   useEffect(() => {
     if (!user) {
@@ -78,6 +80,9 @@ export default function Dashboard() {
 
         const hasAccess = roles?.some(r => r.role === 'admin' || r.role === 'financier');
         setHasAdminAccess(hasAccess || false);
+
+        const isMerchant = roles?.some(r => (r as any).role === 'merchant');
+        setHasMerchantRole(isMerchant || false);
 
         // Fetch stats
         await fetchStats();
@@ -290,7 +295,7 @@ export default function Dashboard() {
         </div>
 
         {/* Investment Button */}
-        <div className="mb-8">
+        <div className="mb-8 grid grid-cols-1 md:grid-cols-2 gap-4">
           <Button 
             onClick={() => navigate('/investments')} 
             className="w-full" 
@@ -300,6 +305,28 @@ export default function Dashboard() {
             <ShoppingBag className="h-5 w-5 mr-2" />
             J'achète, Vous vendez pour moi
           </Button>
+          
+          <Button 
+            onClick={() => navigate('/my-shop')} 
+            className="w-full" 
+            size="lg"
+            variant="secondary"
+          >
+            <ShoppingBag className="h-5 w-5 mr-2" />
+            Ma Boutique
+          </Button>
+
+          {hasMerchantRole && (
+            <Button 
+              onClick={() => navigate('/merchant')} 
+              className="w-full md:col-span-2" 
+              size="lg"
+              variant="cosmic"
+            >
+              <Users className="h-5 w-5 mr-2" />
+              Tableau de bord Marchand
+            </Button>
+          )}
         </div>
 
         {/* Main Content - Grid Layout */}
@@ -310,6 +337,9 @@ export default function Dashboard() {
             userId={user.id}
             onBalanceUpdate={fetchWalletBalance}
           />
+
+          {/* Crypto Payment Options */}
+          <CryptoPaymentOptions />
 
           {/* Moissonneur Fund */}
           <MoissonneurFund />

@@ -106,7 +106,7 @@ Deno.serve(async (req) => {
       .update({ is_paid_current_cycle: false })
       .eq('tontine_id', tontineId);
 
-    // Add winner to wallet (if using MSN wallet)
+    // Credit winner wallet automatically
     const { data: wallet } = await supabaseAdmin
       .from('wallets')
       .select('balance')
@@ -127,9 +127,11 @@ Deno.serve(async (req) => {
         to_user_id: winner.user_id,
         amount: msnAmount,
         transaction_type: 'order_profit',
-        description: `Gain tontine cycle ${nextCycle}`,
-        status: 'approved',
+        description: `🎉 Gain tontine ${tontine.name} - Cycle ${nextCycle}`,
+        status: 'completed',
       });
+
+      console.log(`Winner ${winner.user_id} credited with ${msnAmount} MSN`);
     }
 
     // Send notification message to tontine group

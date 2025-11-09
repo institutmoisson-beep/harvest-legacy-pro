@@ -17,6 +17,8 @@ import Messages from "./pages/Messages";
 import Tontines from "./pages/Tontines";
 import TontineDetail from "./pages/TontineDetail";
 import Investments from "./pages/Investments";
+import MerchantDashboard from "./pages/MerchantDashboard";
+import MyShop from "./pages/MyShop";
 import NotFound from "./pages/NotFound";
 import { supabase } from '@/integrations/supabase/client';
 
@@ -64,6 +66,8 @@ const App = () => {
               <Route path="/tontines" element={<Tontines />} />
               <Route path="/tontines/:id" element={<TontineDetail />} />
               <Route path="/investments" element={<Investments />} />
+              <Route path="/merchant" element={<MerchantDashboard />} />
+              <Route path="/my-shop" element={<MyShop />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>

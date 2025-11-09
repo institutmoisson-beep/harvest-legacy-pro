@@ -117,21 +117,31 @@ export default function Tontines() {
   };
 
   const joinTontine = async (tontineId: string) => {
+    // Check if already a participant
+    const { data: existing } = await supabase
+      .from('tontine_participants')
+      .select('id')
+      .eq('tontine_id', tontineId)
+      .eq('user_id', user?.id)
+      .single();
+
+    if (existing) {
+      toast({ title: 'Déjà inscrit', description: 'Vous participez déjà à cette tontine' });
+      return;
+    }
+
     const { error } = await supabase.from('tontine_participants').insert({
       tontine_id: tontineId,
       user_id: user?.id,
     });
 
     if (error) {
-      if (error.code === '23505') {
-        toast({ title: 'Déjà inscrit', description: 'Vous participez déjà à cette tontine' });
-      } else {
-        toast({ title: 'Erreur', description: error.message, variant: 'destructive' });
-      }
+      toast({ title: 'Erreur', description: error.message, variant: 'destructive' });
     } else {
-      toast({ title: 'Succès', description: 'Vous avez rejoint la tontine' });
-      fetchTontines();
-      fetchMyTontines();
+      toast({ title: 'Succès', description: 'Vous avez rejoint la tontine avec succès!' });
+      // Force refresh
+      await fetchTontines();
+      await fetchMyTontines();
     }
   };
 
