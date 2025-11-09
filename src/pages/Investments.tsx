@@ -11,18 +11,18 @@ import { useAuth } from '@/hooks/useAuth';
 import { ArrowLeft, TrendingUp, DollarSign, Package } from 'lucide-react';
 
 const PRODUCTS = [
-  { name: 'Manioc', profitRate: 25 },
-  { name: 'Igname', profitRate: 25 },
-  { name: 'Maïs', profitRate: 25 },
-  { name: 'Mil', profitRate: 25 },
-  { name: 'Piment sec', profitRate: 25 },
-  { name: 'Piment frais', profitRate: 25 },
-  { name: 'Aubergine', profitRate: 25 },
-  { name: 'Boeuf', profitRate: 25 },
-  { name: 'Arachides', profitRate: 25 },
-  { name: 'Attieké', profitRate: 25 },
-  { name: 'Riz local', profitRate: 25 },
-  { name: 'Huile 25L', profitRate: 25 }
+  { name: 'Manioc', profitRate: 16 },
+  { name: 'Igname', profitRate: 16 },
+  { name: 'Maïs', profitRate: 16 },
+  { name: 'Mil', profitRate: 16 },
+  { name: 'Piment sec', profitRate: 16 },
+  { name: 'Piment frais', profitRate: 16 },
+  { name: 'Aubergine', profitRate: 16 },
+  { name: 'Boeuf', profitRate: 16 },
+  { name: 'Arachides', profitRate: 16 },
+  { name: 'Attieké', profitRate: 16 },
+  { name: 'Riz local', profitRate: 16 },
+  { name: 'Huile 25L', profitRate: 16 }
 ];
 
 const PAYOUT_FREQUENCIES = [
@@ -60,7 +60,7 @@ export default function Investments() {
 
   const calculateExpectedEarnings = () => {
     const amount = parseFloat(investmentAmount) || 0;
-    const profit = amount * 0.25; // 25% profit
+    const profit = amount * 0.16; // 16% profit
     const investorShare = profit * 0.46; // 46% of profit
     return investorShare;
   };
@@ -113,7 +113,7 @@ export default function Investments() {
           investor_id: user?.id,
           product_name: productName,
           investment_amount: amount,
-          profit_percentage: 25,
+          profit_percentage: 16,
           investor_share_percentage: 46,
           payout_frequency: payoutFrequency,
           status: 'active'
@@ -214,9 +214,9 @@ export default function Investments() {
               <ul className="text-xs space-y-1 text-muted-foreground">
                 <li>• Vous investissez dans un produit en gros</li>
                 <li>• Nous le vendons pour vous</li>
-                <li>• Bénéfice = 25% du prix (1/4 du prix)</li>
-                <li>• Vous recevez 46% du bénéfice</li>
-                <li>• Paiements selon votre fréquence choisie</li>
+                <li>• Bénéfice = 16% du prix</li>
+                <li>• Vous recevez 46% du bénéfice (46% de 16%)</li>
+                <li>• Capital + gains versés automatiquement après période choisie</li>
               </ul>
             </div>
 

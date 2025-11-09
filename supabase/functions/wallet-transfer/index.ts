@@ -108,10 +108,33 @@ serve(async (req) => {
       throw new Error('Cannot transfer to yourself');
     }
 
-    // Update sender wallet
+    // Calculate fees (0.50%)
+    const feePercentage = 0.005; // 0.50%
+    const feeAmount = amount * feePercentage;
+    const totalDeduction = amount + feeAmount;
+
+    if (senderWallet.balance < totalDeduction) {
+      throw new Error('Insufficient balance (including fees)');
+    }
+
+    // Check if user is an agent
+    const { data: agentRole } = await supabase
+      .from('user_roles')
+      .select('role')
+      .eq('user_id', user.id)
+      .eq('role', 'agent')
+      .single();
+
+    let commissionAmount = 0;
+    if (agentRole) {
+      // Agent gets 40% commission
+      commissionAmount = feeAmount * 0.40;
+    }
+
+    // Update sender wallet (deduct amount + fee - commission if agent)
     const { error: senderUpdateError } = await supabase
       .from('wallets')
-      .update({ balance: senderWallet.balance - amount })
+      .update({ balance: senderWallet.balance - totalDeduction + commissionAmount })
       .eq('user_id', user.id);
 
     if (senderUpdateError) {
@@ -141,7 +164,7 @@ serve(async (req) => {
         amount,
         transaction_type: 'transfer',
         status: 'approved',
-        description: 'Transfert instantané'
+        description: `Transfert - Frais: ${feeAmount.toFixed(4)} MSN (0.50%)`
       })
       .select()
       .single();
@@ -149,6 +172,34 @@ serve(async (req) => {
     if (txError) {
       console.error('Transaction error:', txError);
       throw txError;
+    }
+
+    // Update treasury with fees
+    const { data: treasury } = await supabase
+      .from('treasury')
+      .select('*')
+      .single();
+
+    if (treasury) {
+      await supabase
+        .from('treasury')
+        .update({
+          transfer_fees: Number(treasury.transfer_fees) + feeAmount,
+          total_balance: Number(treasury.total_balance) + feeAmount,
+        })
+        .eq('id', treasury.id);
+    }
+
+    // Record agent commission if applicable
+    if (agentRole && commissionAmount > 0) {
+      await supabase.from('agent_commissions').insert({
+        agent_id: user.id,
+        transaction_id: transaction.id,
+        commission_type: 'transfer',
+        transaction_fee: feeAmount,
+        commission_amount: commissionAmount,
+        commission_rate: 40,
+      });
     }
 
     return new Response(

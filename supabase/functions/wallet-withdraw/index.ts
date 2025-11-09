@@ -46,8 +46,13 @@ serve(async (req) => {
       throw new Error('Wallet not found');
     }
 
-    if (wallet.balance < amount) {
-      throw new Error('Insufficient balance');
+    // Calculate fees (0.60%)
+    const feePercentage = 0.006; // 0.60%
+    const feeAmount = amount * feePercentage;
+    const totalDeduction = amount + feeAmount;
+
+    if (wallet.balance < totalDeduction) {
+      throw new Error('Insufficient balance (including fees)');
     }
 
     // Create withdrawal transaction with pending status
@@ -60,7 +65,7 @@ serve(async (req) => {
         status: 'pending',
         payment_method: paymentMethod,
         payment_contact: paymentContact,
-        description: 'Retrait en attente de validation'
+        description: `Retrait en attente - Frais: ${feeAmount.toFixed(4)} MSN (0.60%)`
       })
       .select()
       .single();
@@ -68,6 +73,45 @@ serve(async (req) => {
     if (txError) {
       console.error('Transaction error:', txError);
       throw txError;
+    }
+
+    // Update treasury with fees
+    const { data: treasury } = await supabase
+      .from('treasury')
+      .select('*')
+      .single();
+
+    if (treasury) {
+      await supabase
+        .from('treasury')
+        .update({
+          withdrawal_fees: Number(treasury.withdrawal_fees) + feeAmount,
+          total_balance: Number(treasury.total_balance) + feeAmount,
+        })
+        .eq('id', treasury.id);
+    }
+
+    // Check if user is an agent and give commission
+    const { data: agentRole } = await supabase
+      .from('user_roles')
+      .select('role')
+      .eq('user_id', user.id)
+      .eq('role', 'agent')
+      .single();
+
+    if (agentRole) {
+      // Agent gets 40% commission
+      const commissionAmount = feeAmount * 0.40;
+      
+      // Record commission
+      await supabase.from('agent_commissions').insert({
+        agent_id: user.id,
+        transaction_id: transaction.id,
+        commission_type: 'withdrawal',
+        transaction_fee: feeAmount,
+        commission_amount: commissionAmount,
+        commission_rate: 40,
+      });
     }
 
     return new Response(
