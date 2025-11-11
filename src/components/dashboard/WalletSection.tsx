@@ -237,6 +237,26 @@ export default function WalletSection({ balance, userId, onBalanceUpdate }: Wall
               <ArrowDownLeft className="h-4 w-4 mr-2" />
               Effectuer un dépôt
             </Button>
+
+            <div className="mt-6 space-y-3">
+              <p className="text-sm font-semibold">Moyens de dépôt disponibles</p>
+              <div className="grid md:grid-cols-2 gap-3">
+                {providers.filter(p=>p.type==='mobile').map(p => (
+                  <div key={p.id} className="p-3 border rounded">
+                    <div className="text-sm font-medium">{p.name}</div>
+                    <div className="text-xs text-muted-foreground break-all">{(p as any).details?.number || (p as any).details?.contact || '—'}</div>
+                    <Button variant="outline" size="sm" className="mt-2" onClick={() => { navigator.clipboard.writeText((p as any).details?.number || (p as any).details?.contact || ''); toast({ title:'Copié !' }); }}>Copier</Button>
+                  </div>
+                ))}
+                {addresses.map(a => (
+                  <div key={a.id} className="p-3 border rounded">
+                    <div className="text-sm font-medium">Crypto {a.currency}{a.network?` • ${a.network}`:''}</div>
+                    <div className="text-xs text-muted-foreground break-all">{a.address}</div>
+                    <Button variant="outline" size="sm" className="mt-2" onClick={() => { navigator.clipboard.writeText(a.address); toast({ title:'Adresse copiée !' }); }}>Copier</Button>
+                  </div>
+                ))}
+              </div>
+            </div>
           </TabsContent>
 
           <TabsContent value="withdraw" className="space-y-4">
