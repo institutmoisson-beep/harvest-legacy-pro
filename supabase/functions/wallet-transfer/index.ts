@@ -46,7 +46,12 @@ serve(async (req) => {
       throw new Error('Wallet not found');
     }
 
-    if (senderWallet.balance < amount) {
+    // Apply transfer fee (0.50%)
+    const feeRate = 0.005;
+    const feeAmount = Math.round(amount * feeRate * 100) / 100;
+    const totalDebit = amount + feeAmount;
+
+    if (senderWallet.balance < totalDebit) {
       throw new Error('Insufficient balance');
     }
 
@@ -108,10 +113,10 @@ serve(async (req) => {
       throw new Error('Cannot transfer to yourself');
     }
 
-    // Update sender wallet
+    // Update sender wallet (amount + fee)
     const { error: senderUpdateError } = await supabase
       .from('wallets')
-      .update({ balance: senderWallet.balance - amount })
+      .update({ balance: senderWallet.balance - totalDebit })
       .eq('user_id', user.id);
 
     if (senderUpdateError) {
@@ -139,9 +144,11 @@ serve(async (req) => {
         from_user_id: user.id,
         to_user_id: recipientId,
         amount,
+        fee_amount: feeAmount,
+        acted_by: actedBy || null,
         transaction_type: 'transfer',
         status: 'approved',
-        description: 'Transfert instantané'
+        description: `Transfert instantané (frais: ${feeAmount})`
       })
       .select()
       .single();
@@ -151,11 +158,51 @@ serve(async (req) => {
       throw txError;
     }
 
+    // Ledger the fee and distribute agent commission if applicable (40% of fee)
+    const agentCommission = actedBy ? Math.round(feeAmount * 0.4 * 100) / 100 : 0;
+    const platformFee = Math.round((feeAmount - agentCommission) * 100) / 100;
+
+    await supabase.from('fees_ledger').insert({
+      transaction_id: transaction.id,
+      user_id: user.id,
+      agent_id: actedBy || null,
+      operation: 'transfer',
+      base_amount: amount,
+      fee_rate: feeRate,
+      fee_amount: feeAmount,
+      agent_commission: agentCommission,
+      platform_fee: platformFee,
+    });
+
+    if (actedBy && agentCommission > 0) {
+      // Credit agent wallet
+      const { data: agentWallet } = await supabase
+        .from('wallets')
+        .select('balance')
+        .eq('user_id', actedBy)
+        .single();
+      if (agentWallet) {
+        await supabase
+          .from('wallets')
+          .update({ balance: agentWallet.balance + agentCommission })
+          .eq('user_id', actedBy);
+      }
+      // Record commission transaction
+      await supabase.from('wallet_transactions').insert({
+        from_user_id: actedBy,
+        to_user_id: actedBy,
+        amount: agentCommission,
+        transaction_type: 'commission',
+        status: 'approved',
+        description: `Commission agent (transfert) ${agentCommission}`,
+      });
+    }
+
     return new Response(
-      JSON.stringify({ 
-        success: true, 
+      JSON.stringify({
+        success: true,
         message: 'Transfer completed successfully',
-        transaction 
+        transaction
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
