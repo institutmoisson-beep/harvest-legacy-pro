@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Menu, User, LogIn, LogOut } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
+import { Button } from "@/components/ui/button";
 import logo from "@/assets/logo.png";
 
 export const Navbar = () => {
@@ -31,6 +32,12 @@ export const Navbar = () => {
             <a href="#commissions" className="text-foreground/80 hover:text-primary transition-colors">
               Commissions
             </a>
+            <Link to="/tontines" className="text-foreground/80 hover:text-primary transition-colors">
+              Tontines
+            </Link>
+            <Link to="/shop" className="text-foreground/80 hover:text-primary transition-colors">
+              Ma Boutique
+            </Link>
             <a href="#contact" className="text-foreground/80 hover:text-primary transition-colors">
               Contact
             </a>

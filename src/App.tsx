@@ -12,6 +12,9 @@ import Dashboard from "./pages/Dashboard";
 import AdminDashboard from "./pages/AdminDashboard";
 import Profile from "./pages/Profile";
 import ProposerProduit from "./pages/ProposerProduit";
+import Tontines from "./pages/Tontines";
+import ShopDashboard from "./pages/ShopDashboard";
+import ShopPublic from "./pages/ShopPublic";
 import NotFound from "./pages/NotFound";
 import { supabase } from '@/integrations/supabase/client';
 
@@ -54,6 +57,9 @@ const App = () => {
               <Route path="/admin" element={<AdminDashboard />} />
               <Route path="/profile" element={<Profile />} />
               <Route path="/proposer" element={<ProposerProduit />} />
+              <Route path="/tontines" element={<Tontines />} />
+              <Route path="/shop" element={<ShopDashboard />} />
+              <Route path="/shop/:slug" element={<ShopPublic />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>
