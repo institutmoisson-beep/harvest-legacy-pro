@@ -25,7 +25,7 @@ serve(async (req) => {
       throw new Error('Unauthorized');
     }
 
-    const { amount, recipientIdentifier } = await req.json();
+    const { amount, recipientIdentifier, actedBy } = await req.json();
 
     if (!amount || amount <= 0) {
       throw new Error('Invalid amount');
