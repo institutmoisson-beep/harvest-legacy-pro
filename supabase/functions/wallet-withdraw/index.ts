@@ -25,7 +25,7 @@ serve(async (req) => {
       throw new Error('Unauthorized');
     }
 
-    const { amount, paymentMethod, paymentContact } = await req.json();
+    const { amount, paymentMethod, paymentContact, actedBy } = await req.json();
 
     if (!amount || amount <= 0) {
       throw new Error('Invalid amount');
@@ -50,17 +50,23 @@ serve(async (req) => {
       throw new Error('Insufficient balance');
     }
 
-    // Create withdrawal transaction with pending status
+    // Estimate withdrawal fee (0.60%)
+    const feeRate = 0.006;
+    const feeAmount = Math.round(amount * feeRate * 100) / 100;
+
+    // Create withdrawal transaction with pending status (store fee + actedBy)
     const { data: transaction, error: txError } = await supabase
       .from('wallet_transactions')
       .insert({
         from_user_id: user.id,
         amount,
+        fee_amount: feeAmount,
+        acted_by: actedBy || null,
         transaction_type: 'withdrawal',
         status: 'pending',
         payment_method: paymentMethod,
         payment_contact: paymentContact,
-        description: 'Retrait en attente de validation'
+        description: `Retrait en attente (frais estimés: ${feeAmount})`
       })
       .select()
       .single();
