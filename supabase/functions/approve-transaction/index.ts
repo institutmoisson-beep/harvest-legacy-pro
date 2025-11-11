@@ -79,6 +79,11 @@ serve(async (req) => {
             .eq('user_id', transaction.from_user_id);
         }
       } else if (transaction.transaction_type === 'withdrawal') {
+        // Apply withdrawal fee (0.60%)
+        const feeRate = 0.006;
+        const feeAmount = transaction.fee_amount ?? Math.round(Number(transaction.amount) * feeRate * 100) / 100;
+        const totalDebit = Number(transaction.amount) + Number(feeAmount);
+
         // Deduct from wallet
         const { data: wallet } = await supabase
           .from('wallets')
@@ -89,8 +94,45 @@ serve(async (req) => {
         if (wallet) {
           await supabase
             .from('wallets')
-            .update({ balance: wallet.balance - transaction.amount })
+            .update({ balance: wallet.balance - totalDebit })
             .eq('user_id', transaction.from_user_id);
+        }
+
+        // Ledger recording and optional agent commission (40% of fee)
+        const agentCommission = transaction.acted_by ? Math.round(Number(feeAmount) * 0.4 * 100) / 100 : 0;
+        const platformFee = Math.round((Number(feeAmount) - agentCommission) * 100) / 100;
+        await supabase.from('fees_ledger').insert({
+          transaction_id: transaction.id,
+          user_id: transaction.from_user_id,
+          agent_id: transaction.acted_by || null,
+          operation: 'withdraw',
+          base_amount: transaction.amount,
+          fee_rate: feeRate,
+          fee_amount: feeAmount,
+          agent_commission: agentCommission,
+          platform_fee: platformFee,
+        });
+
+        if (transaction.acted_by && agentCommission > 0) {
+          const { data: agentWallet } = await supabase
+            .from('wallets')
+            .select('balance')
+            .eq('user_id', transaction.acted_by)
+            .single();
+          if (agentWallet) {
+            await supabase
+              .from('wallets')
+              .update({ balance: agentWallet.balance + agentCommission })
+              .eq('user_id', transaction.acted_by);
+          }
+          await supabase.from('wallet_transactions').insert({
+            from_user_id: transaction.acted_by,
+            to_user_id: transaction.acted_by,
+            amount: agentCommission,
+            transaction_type: 'commission',
+            status: 'approved',
+            description: `Commission agent (retrait) ${agentCommission}`,
+          });
         }
       }
     }
