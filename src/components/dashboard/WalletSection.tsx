@@ -24,6 +24,18 @@ export default function WalletSection({ balance, userId, onBalanceUpdate }: Wall
   const [paymentMethod, setPaymentMethod] = useState('');
   const [paymentContact, setPaymentContact] = useState('');
   const [loading, setLoading] = useState(false);
+  const [providers, setProviders] = useState<any[]>([]);
+  const [addresses, setAddresses] = useState<any[]>([]);
+
+  useEffect(() => {
+    const load = async () => {
+      const { data: p } = await supabase.from('payment_providers').select('*').eq('is_active', true);
+      setProviders(p || []);
+      const { data: a } = await supabase.from('crypto_addresses').select('*').eq('is_active', true);
+      setAddresses(a || []);
+    };
+    load();
+  }, []);
 
   const paymentMethods = [
     'Orange Money',
