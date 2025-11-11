@@ -30,7 +30,7 @@ interface Stats {
 }
 
 export default function Dashboard() {
-  const { user, signOut } = useAuth();
+  const { user, signOut, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [wallet, setWallet] = useState<WalletData | null>(null);
@@ -39,6 +39,7 @@ export default function Dashboard() {
   const [hasAdminAccess, setHasAdminAccess] = useState(false);
 
   useEffect(() => {
+    if (authLoading) return;
     if (!user) {
       navigate('/auth');
       return;
@@ -90,7 +91,7 @@ export default function Dashboard() {
     };
 
     fetchUserData();
-  }, [user, navigate]);
+  }, [user, authLoading, navigate]);
 
   const fetchWalletBalance = async () => {
     const { data } = await supabase
