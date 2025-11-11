@@ -11,7 +11,7 @@ import { useNavigate } from "react-router-dom";
 import { ArrowLeft, User, Lock, FileText } from "lucide-react";
 
 export default function Profile() {
-  const { user, updatePassword } = useAuth();
+  const { user, updatePassword, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [profile, setProfile] = useState({
@@ -25,12 +25,13 @@ export default function Profile() {
   });
 
   useEffect(() => {
+    if (authLoading) return;
     if (!user) {
       navigate("/auth");
       return;
     }
     loadProfile();
-  }, [user, navigate]);
+  }, [user, authLoading, navigate]);
 
   const loadProfile = async () => {
     try {
