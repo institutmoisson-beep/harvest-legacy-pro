@@ -46,7 +46,7 @@ interface Transaction {
 }
 
 export default function AdminDashboard() {
-  const { user, signOut } = useAuth();
+  const { user, signOut, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
@@ -61,6 +61,7 @@ export default function AdminDashboard() {
   });
 
   useEffect(() => {
+    if (authLoading) return;
     if (!user) {
       navigate('/auth');
       return;
@@ -103,7 +104,7 @@ export default function AdminDashboard() {
     };
 
     checkAdminAccess();
-  }, [user, navigate]);
+  }, [user, authLoading, navigate]);
 
   const fetchData = async () => {
     try {
