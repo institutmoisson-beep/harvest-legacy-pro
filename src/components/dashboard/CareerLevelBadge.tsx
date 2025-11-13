@@ -29,7 +29,7 @@ export function CareerLevelBadge({ agentId }: CareerLevelBadgeProps) {
   const fetchBadges = async () => {
     try {
       const { data, error } = await supabase
-        .from('agent_earned_badges')
+        .from('agent_earned_badges' as any)
         .select(`
           earned_at,
           agent_badges:badge_id (
@@ -45,7 +45,7 @@ export function CareerLevelBadge({ agentId }: CareerLevelBadgeProps) {
 
       if (error) throw error;
 
-      const formattedBadges = (data || [])
+      const formattedBadges = ((data || []) as any[])
         .filter((item: any) => item.agent_badges)
         .map((item: any) => ({
           ...item.agent_badges,

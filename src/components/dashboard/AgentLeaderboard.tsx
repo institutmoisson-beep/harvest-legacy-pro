@@ -30,12 +30,12 @@ export default function AgentLeaderboard() {
   const fetchLeaderboard = async () => {
     try {
       const { data, error } = await supabase
-        .from('agent_leaderboard')
+        .from('agent_leaderboard' as any)
         .select('*')
         .limit(10);
 
       if (error) throw error;
-      setLeaderboard(data || []);
+      setLeaderboard((data || []) as unknown as LeaderboardEntry[]);
     } catch (error) {
       console.error('Error fetching leaderboard:', error);
     } finally {
