@@ -21,6 +21,12 @@ verify_jwt = true
 [functions.tontine-auto-debit]
 verify_jwt = false
 
+[functions.tontine-auto-reminder]
+verify_jwt = false
+
+[functions.tontine-payment-reminder]
+verify_jwt = false
+
 [functions.investment-payout]
 verify_jwt = false
 

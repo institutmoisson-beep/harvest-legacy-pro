@@ -3,7 +3,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Loader2, Copy, TrendingUp, Users, Wallet, Shield, User, MessageCircle, Coins, Phone, MapPin, ShoppingBag, Store } from 'lucide-react';
+import { Loader2, Copy, TrendingUp, Users, Wallet, Shield, User, MessageCircle, Coins, Phone, MapPin, ShoppingBag, Store, Bell } from 'lucide-react';
 import VoiceCall from '@/components/VoiceCall';
 import LocationSharing from '@/components/LocationSharing';
 import GroupVoiceCall from '@/components/GroupVoiceCall';
@@ -193,6 +193,10 @@ export default function Dashboard() {
             <Button onClick={() => navigate('/support')} variant="outline" size="sm">
               <MessageCircle className="w-4 h-4 mr-2" />
               Support
+            </Button>
+            <Button onClick={() => navigate('/notifications')} variant="outline" size="sm">
+              <Bell className="w-4 h-4 mr-2" />
+              Notifications
             </Button>
             <Button onClick={() => navigate('/messages')} variant="outline" size="sm">
               <MessageCircle className="w-4 h-4 mr-2" />

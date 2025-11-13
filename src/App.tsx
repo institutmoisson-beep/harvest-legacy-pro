@@ -24,6 +24,7 @@ import ShopsDashboard from "./pages/ShopsDashboard";
 import PublicShop from "./pages/PublicShop";
 import SupportChat from "./pages/SupportChat";
 import TontineDashboard from "./pages/TontineDashboard";
+import NotificationsCenter from "./pages/NotificationsCenter";
 import NotFound from "./pages/NotFound";
 import { supabase } from '@/integrations/supabase/client';
 
@@ -77,6 +78,7 @@ const App = () => {
               <Route path="/shops-dashboard" element={<ShopsDashboard />} />
               <Route path="/shop/:shopSlug" element={<PublicShop />} />
               <Route path="/tontine-dashboard" element={<TontineDashboard />} />
+              <Route path="/notifications" element={<NotificationsCenter />} />
               <Route path="/support" element={<SupportChat />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
