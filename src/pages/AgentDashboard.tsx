@@ -15,6 +15,9 @@ import AgentAnalytics from '@/components/dashboard/AgentAnalytics';
 import AgentCommissions from '@/components/dashboard/AgentCommissions';
 import AgentCommissionTiers from '@/components/dashboard/AgentCommissionTiers';
 import AgentMonthlyReport from '@/components/dashboard/AgentMonthlyReport';
+import AgentBonusSystem from '@/components/dashboard/AgentBonusSystem';
+import AgentLeaderboard from '@/components/dashboard/AgentLeaderboard';
+import AgentPerformanceComparison from '@/components/dashboard/AgentPerformanceComparison';
 
 interface Transaction {
   id: string;
@@ -219,6 +222,15 @@ export default function AgentDashboard() {
             </CardContent>
           </Card>
         </div>
+
+        {/* Bonus System */}
+        <AgentBonusSystem agentId={user?.id || ''} />
+
+        {/* Leaderboard */}
+        <AgentLeaderboard />
+
+        {/* Performance Comparison */}
+        <AgentPerformanceComparison currentAgentId={user?.id || ''} />
 
         {/* Commission Tiers */}
         <AgentCommissionTiers agentId={user?.id || ''} />
