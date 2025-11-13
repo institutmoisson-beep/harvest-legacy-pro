@@ -145,7 +145,7 @@ export default function AchievementBadges({ userId }: AchievementBadgesProps) {
 
   const checkBadges = async () => {
     try {
-      const { error } = await supabase.rpc('check_and_award_achievement_badges', {
+      const { error } = await (supabase.rpc as any)('check_and_award_achievement_badges', {
         p_user_id: userId
       });
 
