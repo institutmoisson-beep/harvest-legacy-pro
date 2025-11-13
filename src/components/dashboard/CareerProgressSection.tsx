@@ -2,8 +2,6 @@ import { useEffect, useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { supabase } from "@/integrations/supabase/client";
-import { CareerLevelBadge, CAREER_LEVELS } from "./CareerLevelBadge";
-import type { CareerLevel } from "./CareerLevelBadge";
 import { Users, ShoppingCart, TrendingUp, Calendar } from "lucide-react";
 
 interface CareerMetrics {
@@ -18,6 +16,8 @@ interface CareerMetrics {
 interface CareerProgressSectionProps {
   userId: string;
 }
+
+type CareerLevel = "novice" | "actif" | "zonal" | "principal" | "gouverneur" | "comte" | "general" | "royal_8" | "royal_9" | "guide";
 
 const LEVEL_REQUIREMENTS: Record<CareerLevel, { referrals: number; orders: number; teamSize?: number; sales?: number; accountAge?: number }> = {
   novice: { referrals: 0, orders: 0, accountAge: 0 },
@@ -209,8 +209,9 @@ export const CareerProgressSection = ({ userId }: CareerProgressSectionProps) =>
       </CardHeader>
       <CardContent className="space-y-6">
         {/* Current Level Badge */}
-        <div className="flex items-center justify-center p-6 bg-gradient-to-br from-primary/10 to-primary/5 rounded-lg">
-          <CareerLevelBadge level={careerLevel} size="lg" showLabel={true} />
+        <div className="flex flex-col items-center justify-center p-6 bg-gradient-to-br from-primary/10 to-primary/5 rounded-lg">
+          <div className="text-4xl mb-2">🏆</div>
+          <h3 className="text-xl font-bold capitalize">{careerLevel}</h3>
         </div>
 
         {/* Metrics Grid */}
@@ -242,7 +243,7 @@ export const CareerProgressSection = ({ userId }: CareerProgressSectionProps) =>
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <span className="text-sm font-medium">Prochain niveau</span>
-              <CareerLevelBadge level={nextLevel} size="sm" showLabel={false} />
+              <span className="text-lg font-bold capitalize">{nextLevel}</span>
             </div>
             
             <Progress value={calculateProgress()} className="h-2" />

@@ -18,6 +18,7 @@ import AgentMonthlyReport from '@/components/dashboard/AgentMonthlyReport';
 import AgentBonusSystem from '@/components/dashboard/AgentBonusSystem';
 import AgentLeaderboard from '@/components/dashboard/AgentLeaderboard';
 import AgentPerformanceComparison from '@/components/dashboard/AgentPerformanceComparison';
+import { CareerLevelBadge } from '@/components/dashboard/CareerLevelBadge';
 
 interface Transaction {
   id: string;
@@ -222,6 +223,9 @@ export default function AgentDashboard() {
             </CardContent>
           </Card>
         </div>
+
+        {/* Badges */}
+        <CareerLevelBadge agentId={user?.id || ''} />
 
         {/* Bonus System */}
         <AgentBonusSystem agentId={user?.id || ''} />
