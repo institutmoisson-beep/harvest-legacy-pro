@@ -10,6 +10,7 @@ import { toast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
 import MemberManagement from '@/components/dashboard/MemberManagement';
 import AgentTransactionHistory from '@/components/dashboard/AgentTransactionHistory';
+import AgentAnalytics from '@/components/dashboard/AgentAnalytics';
 
 interface Transaction {
   id: string;
@@ -211,6 +212,9 @@ export default function AgentDashboard() {
             </CardContent>
           </Card>
         </div>
+
+        {/* Analytics Dashboard */}
+        <AgentAnalytics agentId={user?.id || ''} />
 
         {/* Transaction History */}
         <AgentTransactionHistory agentId={user?.id || ''} />
