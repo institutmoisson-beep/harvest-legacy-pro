@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
-import { Phone, Trash2, Plus } from 'lucide-react';
+import { Phone, Trash2, Plus, Copy, CheckCircle } from 'lucide-react';
 
 const PAYMENT_METHODS = [
   'Orange Money',
@@ -22,6 +22,7 @@ export default function PaymentContactsManager() {
   const [newContact, setNewContact] = useState('');
   const [newName, setNewName] = useState('');
   const [loading, setLoading] = useState(false);
+  const [copiedId, setCopiedId] = useState<string | null>(null);
 
   useEffect(() => {
     fetchContacts();
@@ -95,6 +96,13 @@ export default function PaymentContactsManager() {
       toast({ title: 'Succès', description: 'Contact supprimé' });
       fetchContacts();
     }
+  };
+
+  const copyContact = (contact: string, id: string) => {
+    navigator.clipboard.writeText(contact);
+    setCopiedId(id);
+    toast({ title: 'Copié!', description: 'Numéro copié dans le presse-papier' });
+    setTimeout(() => setCopiedId(null), 2000);
   };
 
   return (

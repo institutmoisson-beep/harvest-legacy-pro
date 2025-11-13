@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Users, Loader2 } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 
@@ -44,10 +45,9 @@ export default function MemberManagement() {
 
         if (profiles) {
           // Get roles for each member
-          const { data: roles } = await supabase
-            .from('user_roles')
-            .select('user_id, role')
-            .in('user_id', referredIds);
+        const { data: roles } = await (supabase.from as any)('user_roles')
+          .select('user_id, role')
+          .in('user_id', referredIds);
 
           const membersWithRoles = profiles.map(profile => ({
             ...profile,
@@ -68,18 +68,32 @@ export default function MemberManagement() {
     }
   };
 
-  const handleChangeRole = async (memberId: string, newRole: 'admin' | 'financier' | 'moderator' | 'user') => {
+  const handleChangeRole = async (memberId: string, newRole: string) => {
     try {
-      const { error } = await supabase
-        .from('user_roles')
-        .update({ role: newRole })
-        .eq('user_id', memberId);
+      // Check if user already has a role
+      const { data: existingRole } = await (supabase.from as any)('user_roles')
+        .select('id')
+        .eq('user_id', memberId)
+        .single();
 
-      if (error) throw error;
+      if (existingRole) {
+        // Update existing role
+        const { error } = await (supabase.from as any)('user_roles')
+          .update({ role: newRole })
+          .eq('user_id', memberId);
+
+        if (error) throw error;
+      } else {
+        // Insert new role
+        const { error } = await (supabase.from as any)('user_roles')
+          .insert({ user_id: memberId, role: newRole });
+
+        if (error) throw error;
+      }
 
       toast({
         title: "Succès",
-        description: "Rôle mis à jour avec succès",
+        description: `Rôle changé en ${newRole}`,
       });
 
       fetchMembers();

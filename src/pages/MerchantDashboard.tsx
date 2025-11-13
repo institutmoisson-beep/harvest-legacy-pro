@@ -54,61 +54,64 @@ export default function MerchantDashboard() {
   };
 
   const fetchAgents = async () => {
-    const { data: merchantAgents } = await (supabase.from as any)('merchant_agents')
-      .select('*')
-      .eq('merchant_id', user?.id);
+    try {
+      const { data: merchant } = await (supabase.from as any)('merchants')
+        .select('id')
+        .eq('user_id', user?.id)
+        .single();
 
-    if (merchantAgents && merchantAgents.length > 0) {
-      const agentIds = merchantAgents.map((ma: any) => ma.agent_id);
-      const { data: profiles } = await supabase
-        .from('profiles')
+      if (!merchant || !merchant.id) return;
+
+      const { data: merchantAgents } = await (supabase.from as any)('merchant_agents')
         .select('*')
-        .in('id', agentIds);
+        .eq('merchant_id', merchant.id);
 
-      const { data: wallets } = await supabase
-        .from('wallets')
-        .select('*')
-        .in('user_id', agentIds);
+      if (merchantAgents && merchantAgents.length > 0) {
+        const { data: allProfiles } = await supabase.from('profiles').select('*');
+        const { data: { users: authUsers } } = await supabase.auth.admin.listUsers();
+        
+        const agentProfiles = allProfiles?.filter((p: any) => {
+          const authUser = authUsers?.find((u: any) => u.id === p.id);
+          return merchantAgents.some((ma: any) => ma.email === authUser?.email);
+        }) || [];
 
-      const agentsWithData = merchantAgents.map((ma: any) => ({
-        ...ma,
-        profile: profiles?.find((p: any) => p.id === ma.agent_id),
-        wallet: wallets?.find((w: any) => w.user_id === ma.agent_id),
-      }));
+        const agentIds = agentProfiles.map((p: any) => p.id);
+        const { data: wallets } = await supabase.from('wallets').select('*').in('user_id', agentIds);
 
-      setAgents(agentsWithData);
+        const agentsWithData = merchantAgents.map((ma: any) => {
+          const profile = agentProfiles.find((p: any) => {
+            const authUser = authUsers?.find((u: any) => u.id === p.id);
+            return authUser?.email === ma.email;
+          });
+          return { ...ma, profile, wallet: wallets?.find((w: any) => w.user_id === profile?.id) };
+        });
+
+        setAgents(agentsWithData);
+      }
+    } catch (error) {
+      console.error('Fetch agents error:', error);
     }
   };
 
   const fetchCommissions = async () => {
-    const { data: merchantAgents } = await (supabase.from as any)('merchant_agents')
-      .select('agent_id')
-      .eq('merchant_id', user?.id);
-
-    if (merchantAgents && merchantAgents.length > 0) {
-      const agentIds = merchantAgents.map((ma: any) => ma.agent_id);
-      const { data } = await (supabase.from as any)('agent_commissions')
-        .select('*')
-        .in('agent_id', agentIds)
-        .order('created_at', { ascending: false });
-
+    try {
+      const { data: merchant } = await (supabase.from as any)('merchants').select('id').eq('user_id', user?.id).single();
+      if (!merchant) return;
+      const { data } = await (supabase.from as any)('agent_commissions').select('*').order('created_at', { ascending: false }).limit(50);
       setCommissions(data || []);
+    } catch (error) {
+      console.error('Fetch commissions error:', error);
     }
   };
 
   const fetchTransactions = async () => {
-    const { data: merchantAgents } = await (supabase.from as any)('merchant_agents')
-      .select('agent_id')
-      .eq('merchant_id', user?.id);
-
-    if (merchantAgents && merchantAgents.length > 0) {
-      const agentIds = merchantAgents.map((ma: any) => ma.agent_id);
-      const { data } = await (supabase.from as any)('agent_transactions')
-        .select('*')
-        .in('agent_id', agentIds)
-        .order('created_at', { ascending: false });
-
+    try {
+      const { data: merchant } = await (supabase.from as any)('merchants').select('id').eq('user_id', user?.id).single();
+      if (!merchant) return;
+      const { data } = await (supabase.from as any)('agent_transactions').select('*').order('created_at', { ascending: false }).limit(100);
       setTransactions(data || []);
+    } catch (error) {
+      console.error('Fetch transactions error:', error);
     }
   };
 

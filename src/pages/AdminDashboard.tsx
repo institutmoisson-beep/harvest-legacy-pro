@@ -3,7 +3,9 @@ import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Loader2, Shield, TrendingUp, Users, Wallet } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Badge } from '@/components/ui/badge';
+import { Loader2, Shield, TrendingUp, Users, Wallet, UserCog } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -21,6 +23,7 @@ import MemberManagement from '@/components/dashboard/MemberManagement';
 import TreasurySection from '@/components/dashboard/TreasurySection';
 import FundWithdrawalsHistory from '@/components/dashboard/FundWithdrawalsHistory';
 import MoissonneurFund from '@/components/dashboard/MoissonneurFund';
+import CryptoPaymentOptions from '@/components/dashboard/CryptoPaymentOptions';
 
 interface Order {
   id: string;
