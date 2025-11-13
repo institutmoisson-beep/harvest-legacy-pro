@@ -253,27 +253,28 @@ export default function VoiceCall() {
 
   return (
     <>
-      <Button onClick={() => setIsOpen(true)} variant="outline" size="sm">
+      <Button onClick={() => setIsOpen(true)} variant="outline" size="sm" className="w-full sm:w-auto">
         <Phone className="h-4 w-4 mr-2" />
         Appel
       </Button>
 
       <Dialog open={isOpen} onOpenChange={setIsOpen}>
-        <DialogContent>
+        <DialogContent className="w-[95vw] max-w-md">
           <DialogHeader>
-            <DialogTitle>Appel Moissonneur</DialogTitle>
+            <DialogTitle className="text-lg">Appel Moissonneur</DialogTitle>
           </DialogHeader>
 
-          <div className="space-y-4">
+          <div className="space-y-4 p-2">
             {callStatus === 'idle' && (
               <>
                 <Input
                   placeholder="Code Moissonneur"
                   value={calleeCode}
                   onChange={(e) => setCalleeCode(e.target.value.toUpperCase())}
+                  className="text-base"
                 />
-                <Button onClick={initiateCall} className="w-full">
-                  <Phone className="h-4 w-4 mr-2" />
+                <Button onClick={initiateCall} className="w-full h-12">
+                  <Phone className="h-5 w-5 mr-2" />
                   Appeler
                 </Button>
               </>

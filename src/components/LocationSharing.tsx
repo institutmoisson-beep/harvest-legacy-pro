@@ -3,6 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { MapPin, Share2, X } from 'lucide-react';
@@ -236,68 +237,70 @@ export default function LocationSharing() {
       </Button>
 
       <Dialog open={isOpen} onOpenChange={setIsOpen}>
-        <DialogContent className="max-w-4xl max-h-[90vh]">
-          <DialogHeader>
-            <DialogTitle>Partage de localisation</DialogTitle>
+        <DialogContent className="w-[95vw] h-[85vh] sm:h-[80vh] max-w-4xl p-3 sm:p-6">
+          <DialogHeader className="pb-2">
+            <DialogTitle className="text-lg sm:text-xl">Partage de localisation</DialogTitle>
           </DialogHeader>
 
-          <div className="space-y-4">
+          <div className="flex flex-col gap-3 h-full overflow-hidden">
             {/* Map showing all active Moissonneurs */}
-            <div ref={mapContainer} className="w-full h-[500px] rounded-lg border-2 border-primary/20" />
+            <div ref={mapContainer} className="flex-1 rounded-lg border-2 border-primary/20 min-h-[250px]" />
 
-            <div className="p-3 bg-primary/10 border border-primary/20 rounded text-sm">
+            <div className="p-2 sm:p-3 bg-primary/10 border border-primary/20 rounded text-xs sm:text-sm flex-shrink-0">
               <p className="font-semibold mb-1">🗺️ Carte des Moissonneurs</p>
               <p className="text-xs text-muted-foreground">
-                Tous les Moissonneurs actifs sont visibles sur la carte. Activez votre position pour être visible par les autres.
+                Tous les Moissonneurs actifs sont visibles. Activez votre position pour être visible.
               </p>
             </div>
 
             {!isSharing ? (
-              <Button onClick={startSharing} className="w-full" size="lg">
-                <Share2 className="h-4 w-4 mr-2" />
+              <Button onClick={startSharing} className="w-full h-11 text-base" size="lg">
+                <Share2 className="h-5 w-5 mr-2" />
                 Activer ma position
               </Button>
             ) : (
-              <div className="space-y-4">
-                <div className="p-4 bg-green-500/10 border border-green-500/20 rounded-lg">
+              <div className="space-y-2 flex-shrink-0">
+                <div className="p-3 bg-green-500/10 border border-green-500/20 rounded-lg">
                   <p className="text-sm font-semibold text-green-600 dark:text-green-400">
                     ✓ Votre position est active
                   </p>
                   {currentLocation && (
                     <p className="text-xs text-muted-foreground mt-1">
-                      Lat: {currentLocation.lat.toFixed(6)}, Lng: {currentLocation.lng.toFixed(6)}
+                      Lat: {currentLocation.lat.toFixed(4)}, Lng: {currentLocation.lng.toFixed(4)}
                     </p>
                   )}
                 </div>
-                <Button onClick={stopSharing} variant="destructive" className="w-full">
-                  <X className="h-4 w-4 mr-2" />
+                <Button onClick={stopSharing} variant="destructive" className="w-full h-11 text-base">
+                  <X className="h-5 w-5 mr-2" />
                   Désactiver ma position
                 </Button>
               </div>
             )}
 
             {allActiveLocations.length > 0 && (
-              <div className="border-t pt-4">
-                <h3 className="font-semibold mb-2 flex items-center gap-2">
+              <div className="border-t pt-2 flex-shrink-0">
+                <h3 className="font-semibold mb-2 text-sm flex items-center gap-2">
                   <MapPin className="h-4 w-4" />
                   Moissonneurs actifs ({allActiveLocations.length})
                 </h3>
-                <div className="space-y-2 max-h-[200px] overflow-y-auto">
-                  {allActiveLocations.map(loc => {
-                    const profile = loc.profiles as any;
-                    return (
-                      <div key={loc.id} className="p-3 bg-accent/10 rounded-lg flex justify-between items-center">
-                        <div>
-                          <p className="text-sm font-semibold">{profile?.full_name || 'Moissonneur'}</p>
-                          <p className="text-xs text-muted-foreground">{profile?.referral_code}</p>
+                <ScrollArea className="h-24 sm:h-32">
+                  <div className="space-y-1.5">
+                    {allActiveLocations.map(loc => {
+                      const profile = loc.profiles as any;
+                      return (
+                        <div key={loc.id} className="p-2 bg-accent/10 rounded-lg flex justify-between items-center text-xs sm:text-sm">
+                          <div className="min-w-0 flex-1">
+                            <p className="font-semibold truncate">{profile?.full_name || 'Moissonneur'}</p>
+                            <p className="text-xs text-muted-foreground">{profile?.referral_code}</p>
+                          </div>
+                          <p className="text-xs text-muted-foreground ml-2 flex-shrink-0">
+                            {new Date(loc.updated_at).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
+                          </p>
                         </div>
-                        <p className="text-xs text-muted-foreground">
-                          {new Date(loc.updated_at).toLocaleTimeString()}
-                        </p>
-                      </div>
-                    );
-                  })}
-                </div>
+                      );
+                    })}
+                  </div>
+                </ScrollArea>
               </div>
             )}
           </div>
