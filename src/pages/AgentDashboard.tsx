@@ -74,49 +74,21 @@ export default function AgentDashboard() {
 
     setLoading(true);
     try {
-      // Find member by QR code
-      const { data: qrData } = await supabase
-        .from('user_qr_codes')
-        .select('user_id')
-        .eq('qr_code_data', memberCode)
-        .single();
+      const functionName = transactionType === 'deposit' ? 'agent-deposit' : 'agent-withdrawal';
+      
+      const { data, error } = await supabase.functions.invoke(functionName, {
+        body: {
+          memberCode,
+          amount: parseFloat(amount)
+        }
+      });
 
-      if (!qrData) {
-        throw new Error('Code QR invalide');
-      }
-
-      // Create transaction
-      const { error: transError } = await supabase
-        .from('agent_transactions')
-        .insert({
-          agent_id: user.id,
-          member_id: qrData.user_id,
-          transaction_type: transactionType,
-          amount: parseFloat(amount),
-          status: 'completed',
-          description: `${transactionType === 'deposit' ? 'Dépôt' : 'Retrait'} via agent`
-        });
-
-      if (transError) throw transError;
-
-      // Update member wallet
-      if (transactionType === 'deposit') {
-        const { error: walletError } = await supabase.rpc('increment_wallet_balance', {
-          p_user_id: qrData.user_id,
-          p_amount: parseFloat(amount)
-        });
-        if (walletError) throw walletError;
-      } else {
-        const { error: walletError } = await supabase.rpc('decrement_wallet_balance', {
-          p_user_id: qrData.user_id,
-          p_amount: parseFloat(amount)
-        });
-        if (walletError) throw walletError;
-      }
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
 
       toast({
         title: "Succès",
-        description: "Transaction effectuée avec succès",
+        description: data?.message || "Transaction effectuée avec succès",
       });
 
       setMemberCode('');
@@ -125,7 +97,7 @@ export default function AgentDashboard() {
     } catch (error: any) {
       toast({
         title: "Erreur",
-        description: error.message,
+        description: error.message || "Erreur lors de la transaction",
         variant: "destructive",
       });
     } finally {

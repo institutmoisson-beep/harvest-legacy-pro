@@ -32,3 +32,9 @@ verify_jwt = true
 
 [functions.send-notification]
 verify_jwt = true
+
+[functions.agent-deposit]
+verify_jwt = true
+
+[functions.agent-withdrawal]
+verify_jwt = true
