@@ -14,6 +14,41 @@ export type Database = {
   }
   public: {
     Tables: {
+      agent_commissions: {
+        Row: {
+          agent_id: number | null
+          commission_amount: number | null
+          created_at: string | null
+          fee_type: string | null
+          id: number
+          order_id: number | null
+        }
+        Insert: {
+          agent_id?: number | null
+          commission_amount?: number | null
+          created_at?: string | null
+          fee_type?: string | null
+          id?: number
+          order_id?: number | null
+        }
+        Update: {
+          agent_id?: number | null
+          commission_amount?: number | null
+          created_at?: string | null
+          fee_type?: string | null
+          id?: number
+          order_id?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agent_commissions_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "merchant_agents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       agent_transactions: {
         Row: {
           agent_id: string
@@ -130,6 +165,78 @@ export type Database = {
           },
         ]
       }
+      crypto_addresses: {
+        Row: {
+          address: string
+          coin: string
+          created_at: string | null
+          id: number
+          owner_id: string | null
+        }
+        Insert: {
+          address: string
+          coin: string
+          created_at?: string | null
+          id?: number
+          owner_id?: string | null
+        }
+        Update: {
+          address?: string
+          coin?: string
+          created_at?: string | null
+          id?: number
+          owner_id?: string | null
+        }
+        Relationships: []
+      }
+      crypto_payment_settings: {
+        Row: {
+          api_endpoint: string
+          api_key: string | null
+          created_at: string | null
+          id: number
+          provider: string
+        }
+        Insert: {
+          api_endpoint: string
+          api_key?: string | null
+          created_at?: string | null
+          id?: number
+          provider: string
+        }
+        Update: {
+          api_endpoint?: string
+          api_key?: string | null
+          created_at?: string | null
+          id?: number
+          provider?: string
+        }
+        Relationships: []
+      }
+      delivery_providers: {
+        Row: {
+          api_key: string | null
+          created_at: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+        }
+        Insert: {
+          api_key?: string | null
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+        }
+        Update: {
+          api_key?: string | null
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+        }
+        Relationships: []
+      }
       fund_contributions: {
         Row: {
           amount: number
@@ -148,6 +255,33 @@ export type Database = {
           created_at?: string | null
           id?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      fund_withdrawals: {
+        Row: {
+          admin_id: string
+          amount: number
+          created_at: string | null
+          description: string | null
+          id: string
+          reason: string
+        }
+        Insert: {
+          admin_id: string
+          amount: number
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          reason: string
+        }
+        Update: {
+          admin_id?: string
+          amount?: number
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          reason?: string
         }
         Relationships: []
       }
@@ -233,6 +367,74 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      merchant_agents: {
+        Row: {
+          active: boolean | null
+          created_at: string | null
+          email: string | null
+          id: number
+          merchant_id: number | null
+          name: string | null
+          password_hash: string | null
+        }
+        Insert: {
+          active?: boolean | null
+          created_at?: string | null
+          email?: string | null
+          id?: number
+          merchant_id?: number | null
+          name?: string | null
+          password_hash?: string | null
+        }
+        Update: {
+          active?: boolean | null
+          created_at?: string | null
+          email?: string | null
+          id?: number
+          merchant_id?: number | null
+          name?: string | null
+          password_hash?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "merchant_agents_merchant_id_fkey"
+            columns: ["merchant_id"]
+            isOneToOne: false
+            referencedRelation: "merchants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      merchants: {
+        Row: {
+          active: boolean | null
+          balance: number | null
+          created_at: string | null
+          description: string | null
+          id: number
+          name: string | null
+          user_id: string
+        }
+        Insert: {
+          active?: boolean | null
+          balance?: number | null
+          created_at?: string | null
+          description?: string | null
+          id?: number
+          name?: string | null
+          user_id: string
+        }
+        Update: {
+          active?: boolean | null
+          balance?: number | null
+          created_at?: string | null
+          description?: string | null
+          id?: number
+          name?: string | null
+          user_id?: string
+        }
+        Relationships: []
       }
       messages: {
         Row: {
@@ -486,6 +688,187 @@ export type Database = {
         }
         Relationships: []
       }
+      shop_orders: {
+        Row: {
+          buyer_id: string | null
+          buyer_name: string | null
+          buyer_phone: string | null
+          created_at: string | null
+          crypto_address: string | null
+          id: number
+          order_status: string | null
+          payment_mode: string | null
+          product_id: number | null
+          quantity: number | null
+          shop_id: number | null
+          total_amount: number
+          tx_hash: string | null
+        }
+        Insert: {
+          buyer_id?: string | null
+          buyer_name?: string | null
+          buyer_phone?: string | null
+          created_at?: string | null
+          crypto_address?: string | null
+          id?: number
+          order_status?: string | null
+          payment_mode?: string | null
+          product_id?: number | null
+          quantity?: number | null
+          shop_id?: number | null
+          total_amount?: number
+          tx_hash?: string | null
+        }
+        Update: {
+          buyer_id?: string | null
+          buyer_name?: string | null
+          buyer_phone?: string | null
+          created_at?: string | null
+          crypto_address?: string | null
+          id?: number
+          order_status?: string | null
+          payment_mode?: string | null
+          product_id?: number | null
+          quantity?: number | null
+          shop_id?: number | null
+          total_amount?: number
+          tx_hash?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "shop_orders_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "shop_products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shop_orders_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "shop_settings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      shop_products: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          file_url: string | null
+          id: number
+          image_url: string | null
+          is_active: boolean | null
+          is_approved: boolean | null
+          price: number
+          product_name: string
+          product_type: string | null
+          shop_id: number | null
+          stock: number | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          file_url?: string | null
+          id?: number
+          image_url?: string | null
+          is_active?: boolean | null
+          is_approved?: boolean | null
+          price: number
+          product_name: string
+          product_type?: string | null
+          shop_id?: number | null
+          stock?: number | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          file_url?: string | null
+          id?: number
+          image_url?: string | null
+          is_active?: boolean | null
+          is_approved?: boolean | null
+          price?: number
+          product_name?: string
+          product_type?: string | null
+          shop_id?: number | null
+          stock?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "shop_products_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "shop_settings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      shop_qr_codes: {
+        Row: {
+          created_at: string | null
+          id: number
+          qr_url: string
+          shop_id: number | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: number
+          qr_url: string
+          shop_id?: number | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: number
+          qr_url?: string
+          shop_id?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "shop_qr_codes_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "shop_settings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      shop_settings: {
+        Row: {
+          active: boolean | null
+          banner_url: string | null
+          created_at: string | null
+          description: string | null
+          id: number
+          logo_url: string | null
+          shop_name: string
+          shop_url_slug: string | null
+          user_id: string | null
+        }
+        Insert: {
+          active?: boolean | null
+          banner_url?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: number
+          logo_url?: string | null
+          shop_name: string
+          shop_url_slug?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          active?: boolean | null
+          banner_url?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: number
+          logo_url?: string | null
+          shop_name?: string
+          shop_url_slug?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       tontine_drawings: {
         Row: {
           amount_won: number
@@ -674,6 +1057,54 @@ export type Database = {
           start_date?: string
           status?: string | null
           updated_at?: string | null
+        }
+        Relationships: []
+      }
+      treasury: {
+        Row: {
+          amount: number | null
+          id: number
+          last_updated: string | null
+          name: string | null
+        }
+        Insert: {
+          amount?: number | null
+          id?: number
+          last_updated?: string | null
+          name?: string | null
+        }
+        Update: {
+          amount?: number | null
+          id?: number
+          last_updated?: string | null
+          name?: string | null
+        }
+        Relationships: []
+      }
+      treasury_withdrawals: {
+        Row: {
+          admin_id: string | null
+          amount: number | null
+          created_at: string | null
+          details: string | null
+          id: number
+          reason: string | null
+        }
+        Insert: {
+          admin_id?: string | null
+          amount?: number | null
+          created_at?: string | null
+          details?: string | null
+          id?: number
+          reason?: string | null
+        }
+        Update: {
+          admin_id?: string | null
+          amount?: number | null
+          created_at?: string | null
+          details?: string | null
+          id?: number
+          reason?: string | null
         }
         Relationships: []
       }
@@ -894,7 +1325,13 @@ export type Database = {
       }
     }
     Enums: {
-      app_role: "admin" | "moderator" | "user" | "financier"
+      app_role:
+        | "admin"
+        | "moderator"
+        | "user"
+        | "financier"
+        | "merchant"
+        | "agent"
       career_level:
         | "novice"
         | "actif"
@@ -1040,7 +1477,14 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["admin", "moderator", "user", "financier"],
+      app_role: [
+        "admin",
+        "moderator",
+        "user",
+        "financier",
+        "merchant",
+        "agent",
+      ],
       career_level: [
         "novice",
         "actif",

@@ -17,3 +17,18 @@ verify_jwt = true
 
 [functions.tontine-draw]
 verify_jwt = true
+
+[functions.tontine-auto-debit]
+verify_jwt = false
+
+[functions.investment-payout]
+verify_jwt = false
+
+[functions.fund-withdraw]
+verify_jwt = true
+
+[functions.fund-contribute]
+verify_jwt = true
+
+[functions.send-notification]
+verify_jwt = true

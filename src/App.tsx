@@ -19,6 +19,7 @@ import TontineDetail from "./pages/TontineDetail";
 import Investments from "./pages/Investments";
 import MerchantDashboard from "./pages/MerchantDashboard";
 import MyShop from "./pages/MyShop";
+import PublicShop from "./pages/PublicShop";
 import NotFound from "./pages/NotFound";
 import { supabase } from '@/integrations/supabase/client';
 
@@ -68,6 +69,7 @@ const App = () => {
               <Route path="/investments" element={<Investments />} />
               <Route path="/merchant" element={<MerchantDashboard />} />
               <Route path="/my-shop" element={<MyShop />} />
+              <Route path="/shop/:shopSlug" element={<PublicShop />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>

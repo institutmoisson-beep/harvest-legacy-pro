@@ -18,6 +18,9 @@ import AdminTransactionsSection from '@/components/dashboard/AdminTransactionsSe
 import VisitsAnalyticsSection from '@/components/dashboard/VisitsAnalyticsSection';
 import PaymentContactsManager from '@/components/dashboard/PaymentContactsManager';
 import MemberManagement from '@/components/dashboard/MemberManagement';
+import TreasurySection from '@/components/dashboard/TreasurySection';
+import FundWithdrawalsHistory from '@/components/dashboard/FundWithdrawalsHistory';
+import MoissonneurFund from '@/components/dashboard/MoissonneurFund';
 
 interface Order {
   id: string;
@@ -312,6 +315,17 @@ export default function AdminDashboard() {
         {/* Member Management */}
         <div className="mb-8">
           <MemberManagement />
+        </div>
+
+        {/* Moissonneur Fund & Treasury */}
+        <div className="grid gap-6 md:grid-cols-2 mb-8">
+          <MoissonneurFund />
+          <TreasurySection />
+        </div>
+
+        {/* Fund Withdrawals History */}
+        <div className="mb-8">
+          <FundWithdrawalsHistory />
         </div>
 
         {/* Orders Table */}
