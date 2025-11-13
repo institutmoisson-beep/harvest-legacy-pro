@@ -3,7 +3,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Loader2, Copy, TrendingUp, Users, Wallet, Shield, User, MessageCircle, Coins, Phone, MapPin, ShoppingBag } from 'lucide-react';
+import { Loader2, Copy, TrendingUp, Users, Wallet, Shield, User, MessageCircle, Coins, Phone, MapPin, ShoppingBag, Store } from 'lucide-react';
 import VoiceCall from '@/components/VoiceCall';
 import LocationSharing from '@/components/LocationSharing';
 import GroupVoiceCall from '@/components/GroupVoiceCall';
@@ -19,6 +19,8 @@ import TransactionHistorySection from '@/components/dashboard/TransactionHistory
 import { CareerProgressSection } from '@/components/dashboard/CareerProgressSection';
 import UserQRCode from '@/components/dashboard/UserQRCode';
 import CryptoPaymentOptions from '@/components/dashboard/CryptoPaymentOptions';
+import PromoCodesWidget from '@/components/dashboard/PromoCodesWidget';
+import NotificationsPanel from '@/components/dashboard/NotificationsPanel';
 
 interface Profile {
   full_name: string;
@@ -195,9 +197,21 @@ export default function Dashboard() {
             <VoiceCall />
             <LocationSharing />
             <GroupVoiceCall />
+            <Button onClick={() => navigate('/investments')} variant="outline" size="sm">
+              <Coins className="h-4 w-4 mr-2" />
+              Investissements
+            </Button>
+            <Button onClick={() => navigate('/investor-dashboard')} variant="outline" size="sm">
+              <TrendingUp className="h-4 w-4 mr-2" />
+              Tableau Investisseur
+            </Button>
             <Button onClick={() => navigate('/tontines')} variant="outline" size="sm">
               <Coins className="h-4 w-4 mr-2" />
               Tontines
+            </Button>
+            <Button onClick={() => navigate('/shops-dashboard')} variant="outline" size="sm">
+              <ShoppingBag className="h-4 w-4 mr-2" />
+              Ma Boutique
             </Button>
             <Button onClick={() => navigate('/proposer')} variant="default" size="sm">
               Mettre à disposition
@@ -270,6 +284,11 @@ export default function Dashboard() {
               </p>
             </CardContent>
           </Card>
+        </div>
+
+        {/* Promo Codes Widget */}
+        <div className="mb-8">
+          <PromoCodesWidget />
         </div>
 
         {/* Referral Section */}
