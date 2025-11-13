@@ -512,6 +512,8 @@ export default function AdminDashboard() {
         
         <FundWithdrawalsHistory />
 
+        <AdminPromoCodesManager />
+
         {/* Transactions Table */}
         <Card className="glass-card mb-8">
           <CardHeader>
