@@ -10,8 +10,9 @@ import { Textarea } from '@/components/ui/textarea';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ArrowLeft, Send, Trophy, Wallet, MessageCircle } from 'lucide-react';
+import { ArrowLeft, Send, Trophy, Wallet, MessageCircle, Users, Calendar, DollarSign, Download } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
+import TontineExportButton from '@/components/dashboard/TontineExportButton';
 
 export default function TontineDetail() {
   const { id } = useParams();
@@ -168,7 +169,10 @@ export default function TontineDetail() {
           Retour
         </Button>
 
-        <h1 className="text-3xl font-bold gradient-text-cosmic mb-6">{tontine.name}</h1>
+        <h1 className="text-3xl font-bold gradient-text-cosmic mb-6 flex items-center justify-between">
+          <span>{tontine.name}</span>
+          <TontineExportButton userId={user?.id || ''} />
+        </h1>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Info & Actions */}
@@ -248,10 +252,23 @@ export default function TontineDetail() {
               <TabsContent value="participants">
                 <CardContent>
                   <div className="mb-4 p-4 bg-primary/5 rounded-lg border border-primary/20">
-                    <h4 className="font-semibold mb-2">Transparence totale</h4>
+                    <h4 className="font-semibold mb-2 flex items-center gap-2">
+                      <Users className="h-4 w-4" />
+                      Transparence totale
+                    </h4>
                     <p className="text-sm text-muted-foreground">
                       Tous les participants avec leurs codes Moissonneur pour une transparence complète
                     </p>
+                  </div>
+                  <div className="mb-4 grid grid-cols-2 gap-2 text-xs">
+                    <div className="p-2 bg-accent/5 rounded">
+                      <span className="text-muted-foreground">Total participants:</span>
+                      <span className="font-bold ml-2">{participants.length}/{tontine.max_participants}</span>
+                    </div>
+                    <div className="p-2 bg-accent/5 rounded">
+                      <span className="text-muted-foreground">Payés ce cycle:</span>
+                      <span className="font-bold ml-2">{participants.filter(p => p.is_paid_current_cycle).length}</span>
+                    </div>
                   </div>
                   <ScrollArea className="h-[400px]">
                     {participants.map((p, index) => (
