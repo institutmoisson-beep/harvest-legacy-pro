@@ -16,13 +16,29 @@ Deno.serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
-    console.log('Starting investment payout check...');
+    let requestBody;
+    try {
+      requestBody = await req.json();
+    } catch {
+      requestBody = {};
+    }
+
+    const { frequency } = requestBody;
+
+    console.log('Starting investment payout check...', frequency ? `for ${frequency}` : 'for all');
 
     // Get all active investments
-    const { data: investments, error: investmentsError } = await supabaseAdmin
+    let query = supabaseAdmin
       .from('investment_products')
       .select('*')
       .eq('status', 'active');
+
+    // Filter by frequency if provided (for cron jobs)
+    if (frequency) {
+      query = query.eq('payout_frequency', frequency);
+    }
+
+    const { data: investments, error: investmentsError } = await query;
 
     if (investmentsError) {
       throw investmentsError;
@@ -40,13 +56,13 @@ Deno.serve(async (req) => {
 
     for (const investment of investments) {
       const lastPayout = investment.last_payout_at ? new Date(investment.last_payout_at) : new Date(investment.created_at);
-      const frequency = investment.payout_frequency;
+      const freq = investment.payout_frequency;
       
       let shouldPayout = false;
       const hoursSinceLastPayout = (now.getTime() - lastPayout.getTime()) / (1000 * 60 * 60);
 
       // Check if payout is due based on frequency
-      switch (frequency) {
+      switch (freq) {
         case 'daily':
           shouldPayout = hoursSinceLastPayout >= 24;
           break;
@@ -71,12 +87,13 @@ Deno.serve(async (req) => {
       }
 
       if (shouldPayout) {
+        console.log(`Processing payout for investment ${investment.id}`);
+        
         // Calculate earnings (16% profit, investor gets 46% of that)
         const profit = investment.investment_amount * 0.16;
         const investorEarnings = profit * 0.46;
-        const totalPayout = investment.investment_amount + investorEarnings;
 
-        // Update investor wallet
+        // Get wallet
         const { data: wallet } = await supabaseAdmin
           .from('wallets')
           .select('balance')
@@ -84,8 +101,9 @@ Deno.serve(async (req) => {
           .single();
 
         if (wallet) {
-          const msnAmount = totalPayout / 750; // Convert to MSN
+          const msnAmount = investorEarnings / 750; // Convert earnings to MSN
 
+          // Update wallet
           await supabaseAdmin
             .from('wallets')
             .update({
@@ -99,8 +117,16 @@ Deno.serve(async (req) => {
             to_user_id: investment.investor_id,
             amount: msnAmount,
             transaction_type: 'order_profit',
-            description: `Gain investissement ${investment.product_name}`,
+            description: `Gains investissement ${investment.product_name} (${freq})`,
             status: 'completed',
+          });
+
+          // Create investment sale record
+          await supabaseAdmin.from('investment_sales').insert({
+            investment_id: investment.id,
+            sale_amount: investment.investment_amount,
+            profit_amount: profit,
+            investor_earnings: investorEarnings,
           });
 
           // Update investment
@@ -110,12 +136,12 @@ Deno.serve(async (req) => {
               investor_earnings: Number(investment.investor_earnings || 0) + investorEarnings,
               total_profit: Number(investment.total_profit || 0) + profit,
               last_payout_at: now.toISOString(),
-              status: 'completed', // Mark as completed after payout
+              updated_at: now.toISOString(),
             })
             .eq('id', investment.id);
 
           payoutsProcessed++;
-          console.log(`Processed payout for investment ${investment.id}: ${totalPayout} FCFA`);
+          console.log(`Payout completed: ${investorEarnings} FCFA (${msnAmount} MSN) to user ${investment.investor_id}`);
         }
       }
     }
@@ -123,16 +149,17 @@ Deno.serve(async (req) => {
     return new Response(
       JSON.stringify({
         success: true,
-        payouts_processed: payoutsProcessed,
         message: `Processed ${payoutsProcessed} investment payouts`,
+        payoutsProcessed,
+        totalInvestments: investments.length,
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
     );
   } catch (error: any) {
-    console.error('Error:', error);
+    console.error('Error in investment payout:', error);
     return new Response(
       JSON.stringify({ error: error.message }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
     );
   }
 });

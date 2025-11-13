@@ -16,55 +16,87 @@ Deno.serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
-    const { tontineId } = await req.json();
-
-    if (!tontineId) {
-      throw new Error('Tontine ID requis');
+    let tontineId;
+    try {
+      const body = await req.json();
+      tontineId = body.tontineId;
+    } catch {
+      // No body, process all tontines
     }
 
-    console.log(`Auto-debiting participants for tontine ${tontineId}`);
+    console.log('Starting tontine auto-debit...', tontineId ? `for tontine ${tontineId}` : 'for all tontines');
 
-    // Get tontine details
-    const { data: tontine, error: tontineError } = await supabaseAdmin
+    // Get active tontines
+    let query = supabaseAdmin
       .from('tontines')
       .select('*')
-      .eq('id', tontineId)
-      .single();
+      .eq('status', 'active')
+      .lte('start_date', new Date().toISOString());
 
-    if (tontineError || !tontine) {
-      throw new Error('Tontine introuvable');
+    if (tontineId) {
+      query = query.eq('id', tontineId);
     }
 
-    // Get all participants
-    const { data: participants, error: partsError } = await supabaseAdmin
-      .from('tontine_participants')
-      .select('*')
-      .eq('tontine_id', tontineId)
-      .eq('has_received', false);
+    const { data: tontines, error: tontinesError } = await query;
 
-    if (partsError) {
-      throw new Error('Erreur lors de la récupération des participants');
+    if (tontinesError) {
+      throw tontinesError;
     }
 
-    if (!participants || participants.length === 0) {
-      throw new Error('Aucun participant trouvé');
+    if (!tontines || tontines.length === 0) {
+      return new Response(
+        JSON.stringify({ message: 'No active tontines found' }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
+      );
     }
 
-    let successCount = 0;
-    let failCount = 0;
+    let totalDebited = 0;
+    let totalFailed = 0;
 
-    // Debit each participant
-    for (const participant of participants) {
-      const { data: wallet } = await supabaseAdmin
-        .from('wallets')
-        .select('balance')
-        .eq('user_id', participant.user_id)
-        .single();
+    for (const tontine of tontines) {
+      console.log(`Processing tontine ${tontine.id}: ${tontine.name}`);
 
-      if (wallet) {
-        const msnAmount = tontine.amount / 750; // Convert FCFA to MSN
+      // Get participants who haven't paid for current cycle
+      const { data: participants, error: partsError } = await supabaseAdmin
+        .from('tontine_participants')
+        .select('*')
+        .eq('tontine_id', tontine.id)
+        .eq('is_paid_current_cycle', false)
+        .eq('has_received', false);
 
-        if (Number(wallet.balance) >= msnAmount) {
+      if (partsError) {
+        console.error('Error fetching participants:', partsError);
+        continue;
+      }
+
+      if (!participants || participants.length === 0) {
+        console.log(`No participants to debit for tontine ${tontine.id}`);
+        continue;
+      }
+
+      // Debit each participant
+      for (const participant of participants) {
+        try {
+          const { data: wallet } = await supabaseAdmin
+            .from('wallets')
+            .select('balance')
+            .eq('user_id', participant.user_id)
+            .single();
+
+          if (!wallet) {
+            console.log(`No wallet found for user ${participant.user_id}`);
+            totalFailed++;
+            continue;
+          }
+
+          const msnAmount = tontine.amount / 750; // Convert FCFA to MSN
+
+          if (Number(wallet.balance) < msnAmount) {
+            console.log(`Insufficient balance for user ${participant.user_id}: has ${wallet.balance} MSN, needs ${msnAmount} MSN`);
+            totalFailed++;
+            continue;
+          }
+
           // Deduct from wallet
           await supabaseAdmin
             .from('wallets')
@@ -78,7 +110,7 @@ Deno.serve(async (req) => {
             from_user_id: participant.user_id,
             to_user_id: participant.user_id,
             amount: msnAmount,
-            transaction_type: 'order_profit',
+            transaction_type: 'withdrawal',
             description: `Cotisation tontine ${tontine.name} - Cycle ${tontine.current_cycle + 1}`,
             status: 'completed',
           });
@@ -91,7 +123,7 @@ Deno.serve(async (req) => {
 
           // Create payment record
           await supabaseAdmin.from('tontine_payments').insert({
-            tontine_id: tontineId,
+            tontine_id: tontine.id,
             user_id: participant.user_id,
             amount: tontine.amount,
             cycle_number: tontine.current_cycle + 1,
@@ -99,10 +131,11 @@ Deno.serve(async (req) => {
             status: 'completed',
           });
 
-          successCount++;
-        } else {
-          failCount++;
-          console.log(`Insufficient balance for user ${participant.user_id}`);
+          totalDebited++;
+          console.log(`Successfully debited ${tontine.amount} FCFA (${msnAmount} MSN) from user ${participant.user_id}`);
+        } catch (error) {
+          console.error(`Error debiting participant ${participant.id}:`, error);
+          totalFailed++;
         }
       }
     }
@@ -110,14 +143,15 @@ Deno.serve(async (req) => {
     return new Response(
       JSON.stringify({
         success: true,
-        debited: successCount,
-        failed: failCount,
-        message: `Debited ${successCount} participants, ${failCount} failed`,
+        message: `Processed ${tontines.length} tontines`,
+        tontinesProcessed: tontines.length,
+        participantsDebited: totalDebited,
+        participantsFailed: totalFailed,
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
     );
   } catch (error: any) {
-    console.error('Error:', error);
+    console.error('Error in tontine auto-debit:', error);
     return new Response(
       JSON.stringify({ error: error.message }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
