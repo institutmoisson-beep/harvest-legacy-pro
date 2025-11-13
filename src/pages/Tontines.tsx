@@ -118,15 +118,27 @@ export default function Tontines() {
 
   const joinTontine = async (tontineId: string) => {
     // Check if already a participant
-    const { data: existing } = await supabase
+    const { data: existing, error: checkError } = await supabase
       .from('tontine_participants')
       .select('id')
       .eq('tontine_id', tontineId)
       .eq('user_id', user?.id)
-      .single();
+      .maybeSingle();
+
+    if (checkError) {
+      toast({ title: 'Erreur', description: 'Impossible de vérifier votre participation', variant: 'destructive' });
+      return;
+    }
 
     if (existing) {
       toast({ title: 'Déjà inscrit', description: 'Vous participez déjà à cette tontine' });
+      return;
+    }
+
+    // Check if tontine is full
+    const tontine = tontines.find(t => t.id === tontineId);
+    if (tontine && tontine.participant_count && tontine.participant_count >= tontine.max_participants) {
+      toast({ title: 'Tontine complète', description: 'Cette tontine a atteint son nombre maximum de participants', variant: 'destructive' });
       return;
     }
 
@@ -136,7 +148,11 @@ export default function Tontines() {
     });
 
     if (error) {
-      toast({ title: 'Erreur', description: error.message, variant: 'destructive' });
+      if (error.code === '23505') {
+        toast({ title: 'Déjà inscrit', description: 'Vous participez déjà à cette tontine' });
+      } else {
+        toast({ title: 'Erreur', description: error.message, variant: 'destructive' });
+      }
     } else {
       toast({ title: 'Succès', description: 'Vous avez rejoint la tontine avec succès!' });
       // Force refresh
