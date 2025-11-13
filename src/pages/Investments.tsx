@@ -58,6 +58,43 @@ export default function Investments() {
     if (data) setMyInvestments(data);
   };
 
+  const handleProcessPayouts = async () => {
+    setLoading(true);
+    try {
+      const response = await fetch(
+        `https://swefwubntyyfqaerlwym.supabase.co/functions/v1/investment-payout`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InN3ZWZ3dWJudHl5ZnFhZXJsd3ltIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA3NjcxNDcsImV4cCI6MjA3NjM0MzE0N30.IBM6AP9C-45n4_rDLENNCJxcB6_A5Uxjqnuj0e0R16o`,
+          },
+          body: JSON.stringify({}),
+        }
+      );
+
+      const data = await response.json();
+      
+      if (response.ok) {
+        toast({
+          title: 'Succès',
+          description: `${data.payoutsProcessed} paiement(s) traité(s)`,
+        });
+        fetchInvestments();
+      } else {
+        throw new Error(data.error || 'Erreur lors du traitement');
+      }
+    } catch (error: any) {
+      toast({
+        title: 'Erreur',
+        description: error.message,
+        variant: 'destructive',
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const calculateExpectedEarnings = () => {
     const amount = parseFloat(investmentAmount) || 0;
     const profit = amount * 0.16; // 16% profit
@@ -142,10 +179,20 @@ export default function Investments() {
 
   return (
     <div className="container mx-auto p-4 max-w-6xl">
-      <Button onClick={() => navigate('/dashboard')} variant="ghost" className="mb-4">
-        <ArrowLeft className="h-4 w-4 mr-2" />
-        Retour au tableau de bord
-      </Button>
+      <div className="flex items-center justify-between mb-4">
+        <Button onClick={() => navigate('/dashboard')} variant="ghost">
+          <ArrowLeft className="h-4 w-4 mr-2" />
+          Retour au tableau de bord
+        </Button>
+        <Button 
+          onClick={handleProcessPayouts} 
+          disabled={loading}
+          variant="outline"
+          size="sm"
+        >
+          {loading ? 'Traitement...' : 'Traiter les paiements en attente'}
+        </Button>
+      </div>
 
       <h1 className="text-3xl font-bold mb-6 gradient-text-primary">J'achète, Vous vendez pour moi</h1>
 
