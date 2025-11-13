@@ -9,6 +9,7 @@ import { Loader2, ArrowLeft, Scan } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
 import MemberManagement from '@/components/dashboard/MemberManagement';
+import AgentTransactionHistory from '@/components/dashboard/AgentTransactionHistory';
 
 interface Transaction {
   id: string;
@@ -210,6 +211,9 @@ export default function AgentDashboard() {
             </CardContent>
           </Card>
         </div>
+
+        {/* Transaction History */}
+        <AgentTransactionHistory agentId={user?.id || ''} />
 
         {/* Member Management */}
         <MemberManagement />
