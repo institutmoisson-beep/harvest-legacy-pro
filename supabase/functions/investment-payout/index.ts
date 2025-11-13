@@ -87,11 +87,14 @@ Deno.serve(async (req) => {
       }
 
       if (shouldPayout) {
-        console.log(`Processing payout for investment ${investment.id}`);
+        console.log(`Processing final payout for investment ${investment.id}`);
         
-        // Calculate earnings (16% profit, investor gets 46% of that)
+        // Calculate total earnings (16% profit, investor gets 46% of that = 7.36% total return)
         const profit = investment.investment_amount * 0.16;
         const investorEarnings = profit * 0.46;
+        
+        // Total amount to return: capital + earnings
+        const totalReturn = investment.investment_amount + investorEarnings;
 
         // Get wallet
         const { data: wallet } = await supabaseAdmin
@@ -101,9 +104,9 @@ Deno.serve(async (req) => {
           .single();
 
         if (wallet) {
-          const msnAmount = investorEarnings / 750; // Convert earnings to MSN
+          const msnAmount = totalReturn / 750; // Convert total return to MSN
 
-          // Update wallet
+          // Update wallet with capital + earnings
           await supabaseAdmin
             .from('wallets')
             .update({
@@ -111,13 +114,13 @@ Deno.serve(async (req) => {
             })
             .eq('user_id', investment.investor_id);
 
-          // Create transaction record
+          // Create transaction record for total return
           await supabaseAdmin.from('wallet_transactions').insert({
             from_user_id: investment.investor_id,
             to_user_id: investment.investor_id,
             amount: msnAmount,
             transaction_type: 'order_profit',
-            description: `Gains investissement ${investment.product_name} (${freq})`,
+            description: `Retour investissement ${investment.product_name} - Capital: ${investment.investment_amount.toFixed(0)} FCFA + Gains: ${investorEarnings.toFixed(0)} FCFA`,
             status: 'completed',
           });
 
@@ -129,19 +132,20 @@ Deno.serve(async (req) => {
             investor_earnings: investorEarnings,
           });
 
-          // Update investment
+          // Mark investment as completed and update totals
           await supabaseAdmin
             .from('investment_products')
             .update({
-              investor_earnings: Number(investment.investor_earnings || 0) + investorEarnings,
-              total_profit: Number(investment.total_profit || 0) + profit,
+              investor_earnings: investorEarnings,
+              total_profit: profit,
               last_payout_at: now.toISOString(),
               updated_at: now.toISOString(),
+              status: 'completed',
             })
             .eq('id', investment.id);
 
           payoutsProcessed++;
-          console.log(`Payout completed: ${investorEarnings} FCFA (${msnAmount} MSN) to user ${investment.investor_id}`);
+          console.log(`Final payout completed for investment ${investment.id}: ${totalReturn} FCFA (${msnAmount} MSN) - Capital + Gains returned, status: completed`);
         }
       }
     }
