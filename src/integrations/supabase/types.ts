@@ -14,6 +14,77 @@ export type Database = {
   }
   public: {
     Tables: {
+      agent_commission_earnings: {
+        Row: {
+          agent_id: string
+          commission_amount: number
+          commission_rate: number
+          created_at: string | null
+          id: string
+          transaction_amount: number
+          transaction_id: string
+          transaction_type: string
+        }
+        Insert: {
+          agent_id: string
+          commission_amount: number
+          commission_rate: number
+          created_at?: string | null
+          id?: string
+          transaction_amount: number
+          transaction_id: string
+          transaction_type: string
+        }
+        Update: {
+          agent_id?: string
+          commission_amount?: number
+          commission_rate?: number
+          created_at?: string | null
+          id?: string
+          transaction_amount?: number
+          transaction_id?: string
+          transaction_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agent_commission_earnings_transaction_id_fkey"
+            columns: ["transaction_id"]
+            isOneToOne: false
+            referencedRelation: "agent_transactions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      agent_commission_settings: {
+        Row: {
+          created_at: string | null
+          deposit_rate: number
+          id: string
+          is_active: boolean | null
+          min_transaction_amount: number | null
+          updated_at: string | null
+          withdrawal_rate: number
+        }
+        Insert: {
+          created_at?: string | null
+          deposit_rate?: number
+          id?: string
+          is_active?: boolean | null
+          min_transaction_amount?: number | null
+          updated_at?: string | null
+          withdrawal_rate?: number
+        }
+        Update: {
+          created_at?: string | null
+          deposit_rate?: number
+          id?: string
+          is_active?: boolean | null
+          min_transaction_amount?: number | null
+          updated_at?: string | null
+          withdrawal_rate?: number
+        }
+        Relationships: []
+      }
       agent_commissions: {
         Row: {
           agent_id: number | null

@@ -11,6 +11,7 @@ import { useNavigate } from 'react-router-dom';
 import MemberManagement from '@/components/dashboard/MemberManagement';
 import AgentTransactionHistory from '@/components/dashboard/AgentTransactionHistory';
 import AgentAnalytics from '@/components/dashboard/AgentAnalytics';
+import AgentCommissions from '@/components/dashboard/AgentCommissions';
 
 interface Transaction {
   id: string;
@@ -212,6 +213,9 @@ export default function AgentDashboard() {
             </CardContent>
           </Card>
         </div>
+
+        {/* Commissions */}
+        <AgentCommissions agentId={user?.id || ''} />
 
         {/* Analytics Dashboard */}
         <AgentAnalytics agentId={user?.id || ''} />
