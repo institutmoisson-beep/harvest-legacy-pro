@@ -190,8 +190,12 @@ export default function Dashboard() {
               <User className="h-4 w-4 mr-2" />
               Profil
             </Button>
+            <Button onClick={() => navigate('/support')} variant="outline" size="sm">
+              <MessageCircle className="w-4 h-4 mr-2" />
+              Support
+            </Button>
             <Button onClick={() => navigate('/messages')} variant="outline" size="sm">
-              <MessageCircle className="h-4 w-4 mr-2" />
+              <MessageCircle className="w-4 h-4 mr-2" />
               Messages
             </Button>
             <VoiceCall />

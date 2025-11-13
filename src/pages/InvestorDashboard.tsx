@@ -8,6 +8,9 @@ import { Button } from '@/components/ui/button';
 import { ArrowLeft, TrendingUp, Wallet, Calendar, DollarSign } from 'lucide-react';
 import InvestmentPaymentHistory from '@/components/dashboard/InvestmentPaymentHistory';
 import NotificationsPanel from '@/components/dashboard/NotificationsPanel';
+import InvestmentAnalytics from '@/components/dashboard/InvestmentAnalytics';
+import TontinePaymentCalendar from '@/components/dashboard/TontinePaymentCalendar';
+import AchievementBadges from '@/components/dashboard/AchievementBadges';
 import PromoCodesDisplay from '@/components/dashboard/PromoCodesDisplay';
 
 const MSN_TO_FCFA = 750;
@@ -123,57 +126,24 @@ export default function InvestorDashboard() {
           </Card>
         </div>
 
-        <Tabs defaultValue="investments" className="mt-6">
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="investments">Mes Investissements</TabsTrigger>
-            <TabsTrigger value="history">Historique Paiements</TabsTrigger>
+        <Tabs defaultValue="analytics" className="mt-6">
+          <TabsList className="grid w-full grid-cols-4">
+            <TabsTrigger value="analytics">Analytics</TabsTrigger>
+            <TabsTrigger value="calendar">Calendrier</TabsTrigger>
+            <TabsTrigger value="badges">Badges</TabsTrigger>
             <TabsTrigger value="notifications">Notifications</TabsTrigger>
           </TabsList>
 
-          <TabsContent value="investments" className="mt-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Liste des Investissements</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {investments.map((inv) => (
-                    <Card key={inv.id}>
-                      <CardContent className="p-4">
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <h3 className="font-semibold">{inv.product_name}</h3>
-                            <p className="text-sm text-muted-foreground">
-                              Investi: {inv.investment_amount} MSN
-                            </p>
-                            <p className="text-sm text-green-600">
-                              Gains: {inv.investor_earnings} MSN
-                            </p>
-                          </div>
-                          <div className="text-right">
-                            <div className={`inline-block px-2 py-1 rounded text-xs font-medium ${
-                              inv.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
-                            }`}>
-                              {inv.status === 'active' ? 'Actif' : 'Terminé'}
-                            </div>
-                            <p className="text-xs text-muted-foreground mt-1">
-                              {new Date(inv.created_at).toLocaleDateString('fr-FR')}
-                            </p>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
-                  {investments.length === 0 && (
-                    <p className="text-center text-muted-foreground py-8">Aucun investissement</p>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
+          <TabsContent value="analytics" className="mt-6">
+            <InvestmentAnalytics userId={user?.id || ''} />
           </TabsContent>
 
-          <TabsContent value="history" className="mt-6">
-            <InvestmentPaymentHistory userId={user?.id || ''} />
+          <TabsContent value="calendar" className="mt-6">
+            <TontinePaymentCalendar userId={user?.id || ''} />
+          </TabsContent>
+
+          <TabsContent value="badges" className="mt-6">
+            <AchievementBadges userId={user?.id || ''} />
           </TabsContent>
 
           <TabsContent value="notifications" className="mt-6">
