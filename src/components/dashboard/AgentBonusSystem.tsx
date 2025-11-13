@@ -44,23 +44,23 @@ export default function AgentBonusSystem({ agentId }: AgentBonusSystemProps) {
     try {
       // Fetch bonus tiers
       const { data: tiersData, error: tiersError } = await supabase
-        .from('agent_bonus_tiers')
+        .from('agent_bonus_tiers' as any)
         .select('*')
         .order('tier_level', { ascending: true });
 
       if (tiersError) throw tiersError;
-      setTiers(tiersData || []);
+      setTiers((tiersData || []) as unknown as BonusTier[]);
 
       // Fetch bonus awards
       const { data: awardsData, error: awardsError } = await supabase
-        .from('agent_monthly_bonus_awards')
+        .from('agent_monthly_bonus_awards' as any)
         .select('*')
         .eq('agent_id', agentId)
         .order('award_month', { ascending: false })
         .limit(6);
 
       if (awardsError) throw awardsError;
-      setAwards(awardsData || []);
+      setAwards((awardsData || []) as unknown as BonusAward[]);
 
       // Get current month transactions
       const startOfMonth = new Date();
@@ -68,7 +68,7 @@ export default function AgentBonusSystem({ agentId }: AgentBonusSystemProps) {
       startOfMonth.setHours(0, 0, 0, 0);
 
       const { data: transData, error: transError } = await supabase
-        .from('agent_transactions')
+        .from('agent_transactions' as any)
         .select('id', { count: 'exact' })
         .eq('agent_id', agentId)
         .eq('status', 'completed')
@@ -79,17 +79,18 @@ export default function AgentBonusSystem({ agentId }: AgentBonusSystemProps) {
       setMonthlyTransactions(count);
 
       // Determine current and next tier
-      if (tiersData && tiersData.length > 0) {
-        const current = tiersData.find(
+      const typedTiers = (tiersData || []) as unknown as BonusTier[];
+      if (typedTiers.length > 0) {
+        const current = typedTiers.find(
           t => count >= t.min_transactions && (!t.max_transactions || count <= t.max_transactions)
         );
         setCurrentTier(current || null);
 
         if (current) {
-          const next = tiersData.find(t => t.tier_level === current.tier_level + 1);
+          const next = typedTiers.find(t => t.tier_level === current.tier_level + 1);
           setNextTier(next || null);
         } else {
-          setNextTier(tiersData[0]);
+          setNextTier(typedTiers[0]);
         }
       }
     } catch (error) {

@@ -46,15 +46,16 @@ export default function AgentPerformanceComparison({ currentAgentId }: AgentPerf
     try {
       // Get all agents who have transactions
       const { data, error } = await supabase
-        .from('agent_performance_comparison')
+        .from('agent_performance_comparison' as any)
         .select('agent_id, agent_name')
         .neq('agent_id', currentAgentId);
 
       if (error) throw error;
 
       // Remove duplicates
+      const rawData = (data || []) as any[];
       const uniqueAgents = Array.from(
-        new Map(data?.map(item => [item.agent_id, { id: item.agent_id, name: item.agent_name }])).values()
+        new Map(rawData.map(item => [item.agent_id, { id: item.agent_id, name: item.agent_name }])).values()
       );
 
       setAgents(uniqueAgents);
@@ -73,14 +74,14 @@ export default function AgentPerformanceComparison({ currentAgentId }: AgentPerf
     try {
       // Fetch performance data for both agents (last 6 months)
       const { data: currentData, error: currentError } = await supabase
-        .from('agent_performance_comparison')
+        .from('agent_performance_comparison' as any)
         .select('*')
         .eq('agent_id', currentAgentId)
         .order('performance_month', { ascending: false })
         .limit(6);
 
       const { data: compareData, error: compareError } = await supabase
-        .from('agent_performance_comparison')
+        .from('agent_performance_comparison' as any)
         .select('*')
         .eq('agent_id', selectedAgent)
         .order('performance_month', { ascending: false })
@@ -92,7 +93,8 @@ export default function AgentPerformanceComparison({ currentAgentId }: AgentPerf
       // Merge data by month
       const monthMap = new Map<string, ComparisonData>();
 
-      currentData?.forEach(item => {
+      const currentDataTyped = (currentData || []) as any[];
+      currentDataTyped.forEach(item => {
         const month = new Date(item.performance_month).toLocaleDateString('fr-FR', {
           month: 'short',
           year: 'numeric'
@@ -106,7 +108,8 @@ export default function AgentPerformanceComparison({ currentAgentId }: AgentPerf
         });
       });
 
-      compareData?.forEach(item => {
+      const compareDataTyped = (compareData || []) as any[];
+      compareDataTyped.forEach(item => {
         const month = new Date(item.performance_month).toLocaleDateString('fr-FR', {
           month: 'short',
           year: 'numeric'

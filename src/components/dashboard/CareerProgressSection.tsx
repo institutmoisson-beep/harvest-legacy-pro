@@ -161,7 +161,7 @@ export const CareerProgressSection = ({ userId }: CareerProgressSectionProps) =>
   };
 
   const getNextLevel = (): CareerLevel | null => {
-    const levels: CareerLevel[] = Object.keys(CAREER_LEVELS) as CareerLevel[];
+    const levels: CareerLevel[] = ["novice", "actif", "zonal", "principal", "gouverneur", "comte", "general", "royal_8", "royal_9", "guide"];
     const currentIndex = levels.indexOf(careerLevel);
     return currentIndex < levels.length - 1 ? levels[currentIndex + 1] : null;
   };
