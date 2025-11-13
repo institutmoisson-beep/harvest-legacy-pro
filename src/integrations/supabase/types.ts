@@ -21,6 +21,8 @@ export type Database = {
           commission_rate: number
           created_at: string | null
           id: string
+          tier_level: number | null
+          tier_name: string | null
           transaction_amount: number
           transaction_id: string
           transaction_type: string
@@ -31,6 +33,8 @@ export type Database = {
           commission_rate: number
           created_at?: string | null
           id?: string
+          tier_level?: number | null
+          tier_name?: string | null
           transaction_amount: number
           transaction_id: string
           transaction_type: string
@@ -41,6 +45,8 @@ export type Database = {
           commission_rate?: number
           created_at?: string | null
           id?: string
+          tier_level?: number | null
+          tier_name?: string | null
           transaction_amount?: number
           transaction_id?: string
           transaction_type?: string
@@ -82,6 +88,39 @@ export type Database = {
           min_transaction_amount?: number | null
           updated_at?: string | null
           withdrawal_rate?: number
+        }
+        Relationships: []
+      }
+      agent_commission_tiers: {
+        Row: {
+          badge_color: string
+          commission_rate: number
+          created_at: string | null
+          id: string
+          max_monthly_transactions: number | null
+          min_monthly_transactions: number
+          tier_level: number
+          tier_name: string
+        }
+        Insert: {
+          badge_color: string
+          commission_rate: number
+          created_at?: string | null
+          id?: string
+          max_monthly_transactions?: number | null
+          min_monthly_transactions: number
+          tier_level: number
+          tier_name: string
+        }
+        Update: {
+          badge_color?: string
+          commission_rate?: number
+          created_at?: string | null
+          id?: string
+          max_monthly_transactions?: number | null
+          min_monthly_transactions?: number
+          tier_level?: number
+          tier_name?: string
         }
         Relationships: []
       }
@@ -1358,7 +1397,22 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      agent_monthly_commission_report: {
+        Row: {
+          agent_id: string | null
+          agent_name: string | null
+          avg_commission_rate: number | null
+          current_tier: string | null
+          deposit_count: number | null
+          report_month: string | null
+          tier_level: number | null
+          total_commission: number | null
+          total_transactions: number | null
+          total_volume: number | null
+          withdrawal_count: number | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       auto_update_career_level: { Args: never; Returns: undefined }
@@ -1379,6 +1433,15 @@ export type Database = {
         Returns: undefined
       }
       generate_referral_code: { Args: never; Returns: string }
+      get_agent_tier: {
+        Args: { p_agent_id: string }
+        Returns: {
+          badge_color: string
+          commission_rate: number
+          tier_level: number
+          tier_name: string
+        }[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]

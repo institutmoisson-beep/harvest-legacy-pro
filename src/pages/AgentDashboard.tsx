@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
+import { useCommissionNotifications } from '@/hooks/useCommissionNotifications';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -12,6 +13,8 @@ import MemberManagement from '@/components/dashboard/MemberManagement';
 import AgentTransactionHistory from '@/components/dashboard/AgentTransactionHistory';
 import AgentAnalytics from '@/components/dashboard/AgentAnalytics';
 import AgentCommissions from '@/components/dashboard/AgentCommissions';
+import AgentCommissionTiers from '@/components/dashboard/AgentCommissionTiers';
+import AgentMonthlyReport from '@/components/dashboard/AgentMonthlyReport';
 
 interface Transaction {
   id: string;
@@ -26,6 +29,9 @@ interface Transaction {
 export default function AgentDashboard() {
   const { user } = useAuth();
   const navigate = useNavigate();
+  
+  // Enable commission notifications
+  useCommissionNotifications(user?.id);
   const [loading, setLoading] = useState(false);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [memberCode, setMemberCode] = useState('');
@@ -213,6 +219,12 @@ export default function AgentDashboard() {
             </CardContent>
           </Card>
         </div>
+
+        {/* Commission Tiers */}
+        <AgentCommissionTiers agentId={user?.id || ''} />
+
+        {/* Monthly Report */}
+        <AgentMonthlyReport agentId={user?.id || ''} />
 
         {/* Commissions */}
         <AgentCommissions agentId={user?.id || ''} />
