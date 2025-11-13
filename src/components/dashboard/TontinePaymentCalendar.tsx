@@ -55,8 +55,7 @@ export default function TontinePaymentCalendar({ userId }: TontinePaymentCalenda
       setTontines(tontinesData || []);
 
       // Fetch payment schedule
-      const { data: scheduleData } = await supabase
-        .from('tontine_payment_schedule')
+      const { data: scheduleData } = await (supabase.from as any)('tontine_payment_schedule')
         .select('*')
         .in('tontine_id', tontineIds)
         .order('due_date', { ascending: true });
