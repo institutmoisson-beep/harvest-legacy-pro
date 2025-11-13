@@ -204,6 +204,12 @@ export default function Dashboard() {
               <Users className="h-4 w-4 mr-2" />
               Agent Dashboard
             </Button>
+            {hasMerchantRole && (
+              <Button onClick={() => navigate('/merchant')} variant="outline" size="sm">
+                <ShoppingBag className="h-4 w-4 mr-2" />
+                Marchand
+              </Button>
+            )}
             {hasAdminAccess && (
               <Button onClick={() => navigate('/admin')} variant="cosmic" size="sm">
                 <Shield className="h-4 w-4 mr-2" />

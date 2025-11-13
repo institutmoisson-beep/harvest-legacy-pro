@@ -494,8 +494,22 @@ export default function AdminDashboard() {
           </CardContent>
         </Card>
 
-        {/* Pending Transaction Approvals */}
+        {/* Sections de gestion */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+          <PaymentContactsManager />
+          <CryptoPaymentOptions />
+        </div>
+        
         <AdminTransactionsSection />
+        <VisitsAnalyticsSection />
+        <MemberManagement />
+        
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+          <MoissonneurFund />
+          <TreasurySection />
+        </div>
+        
+        <FundWithdrawalsHistory />
 
         {/* Transactions Table */}
         <Card className="glass-card mb-8">

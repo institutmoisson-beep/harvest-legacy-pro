@@ -39,7 +39,7 @@ export default function MerchantDashboard() {
       .select('role')
       .eq('user_id', user?.id)
       .eq('role', 'merchant')
-      .single();
+      .maybeSingle();
 
     if (!roles) {
       toast({ title: 'Accès refusé', description: 'Rôle marchand requis', variant: 'destructive' });
@@ -58,9 +58,9 @@ export default function MerchantDashboard() {
       const { data: merchant } = await (supabase.from as any)('merchants')
         .select('id')
         .eq('user_id', user?.id)
-        .single();
+        .maybeSingle();
 
-      if (!merchant || !merchant.id) return;
+      if (!merchant?.id) return;
 
       const { data: merchantAgents } = await (supabase.from as any)('merchant_agents')
         .select('*')
@@ -95,8 +95,8 @@ export default function MerchantDashboard() {
 
   const fetchCommissions = async () => {
     try {
-      const { data: merchant } = await (supabase.from as any)('merchants').select('id').eq('user_id', user?.id).single();
-      if (!merchant) return;
+      const { data: merchant } = await (supabase.from as any)('merchants').select('id').eq('user_id', user?.id).maybeSingle();
+      if (!merchant?.id) return;
       const { data } = await (supabase.from as any)('agent_commissions').select('*').order('created_at', { ascending: false }).limit(50);
       setCommissions(data || []);
     } catch (error) {
@@ -106,8 +106,8 @@ export default function MerchantDashboard() {
 
   const fetchTransactions = async () => {
     try {
-      const { data: merchant } = await (supabase.from as any)('merchants').select('id').eq('user_id', user?.id).single();
-      if (!merchant) return;
+      const { data: merchant } = await (supabase.from as any)('merchants').select('id').eq('user_id', user?.id).maybeSingle();
+      if (!merchant?.id) return;
       const { data } = await (supabase.from as any)('agent_transactions').select('*').order('created_at', { ascending: false }).limit(100);
       setTransactions(data || []);
     } catch (error) {
