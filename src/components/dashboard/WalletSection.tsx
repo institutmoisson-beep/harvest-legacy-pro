@@ -216,13 +216,29 @@ export default function WalletSection({ balance, userId, onBalanceUpdate }: Wall
             {paymentContacts.length > 0 && (
               <div className="p-4 bg-primary/5 border border-primary/20 rounded-lg space-y-2">
                 <p className="font-semibold text-sm mb-2">Numéros pour le rechargement:</p>
-                {paymentContacts.map(contact => (
-                  <div key={contact.id} className="flex justify-between items-center p-2 bg-background rounded">
+              {paymentContacts.map(contact => (
+                  <div key={contact.id} className="flex justify-between items-center p-3 bg-muted/50 rounded-lg">
                     <div>
                       <p className="font-medium text-sm">{contact.payment_method}</p>
                       <p className="text-xs text-muted-foreground">{contact.contact_name}</p>
                     </div>
-                    <p className="font-mono text-sm">{contact.contact_number}</p>
+                    <div className="flex items-center gap-2">
+                      <p className="font-mono text-sm font-semibold">{contact.contact_number}</p>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => {
+                          navigator.clipboard.writeText(contact.contact_number);
+                          toast({ title: 'Copié!', description: 'Numéro copié dans le presse-papier' });
+                        }}
+                        className="h-8 w-8 p-0"
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <rect width="14" height="14" x="8" y="8" rx="2" ry="2"/>
+                          <path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/>
+                        </svg>
+                      </Button>
+                    </div>
                   </div>
                 ))}
               </div>

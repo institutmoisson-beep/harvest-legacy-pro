@@ -115,13 +115,32 @@ Deno.serve(async (req) => {
             .eq('user_id', investment.investor_id);
 
           // Create transaction record for total return
-          await supabaseAdmin.from('wallet_transactions').insert({
-            from_user_id: investment.investor_id,
+          const { data: transaction } = await supabaseAdmin.from('wallet_transactions').insert({
+            from_user_id: null,
             to_user_id: investment.investor_id,
             amount: msnAmount,
-            transaction_type: 'order_profit',
-            description: `Retour investissement ${investment.product_name} - Capital: ${investment.investment_amount.toFixed(0)} FCFA + Gains: ${investorEarnings.toFixed(0)} FCFA`,
+            transaction_type: 'investment_payout',
             status: 'completed',
+            description: `Retour investissement ${investment.product_name} - Capital: ${investment.investment_amount.toFixed(0)} FCFA + Gains: ${investorEarnings.toFixed(0)} FCFA`,
+          }).select().single();
+
+          // Insert into investment payment history
+          await supabaseAdmin.from('investment_payment_history').insert({
+            investment_id: investment.id,
+            investor_id: investment.investor_id,
+            amount_paid: msnAmount,
+            payment_type: 'payout',
+            payment_status: 'completed',
+            transaction_id: transaction?.id
+          });
+
+          // Create notification for the investor
+          await supabaseAdmin.from('notifications').insert({
+            user_id: investment.investor_id,
+            title: 'Paiement d\'investissement reçu',
+            message: `Vous avez reçu ${msnAmount.toFixed(2)} MSN (capital + gains) pour votre investissement ${investment.product_name}`,
+            type: 'investment',
+            related_id: investment.id
           });
 
           // Create investment sale record

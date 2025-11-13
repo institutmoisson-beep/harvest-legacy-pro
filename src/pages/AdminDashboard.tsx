@@ -24,6 +24,7 @@ import TreasurySection from '@/components/dashboard/TreasurySection';
 import FundWithdrawalsHistory from '@/components/dashboard/FundWithdrawalsHistory';
 import MoissonneurFund from '@/components/dashboard/MoissonneurFund';
 import CryptoPaymentOptions from '@/components/dashboard/CryptoPaymentOptions';
+import AdminPromoCodesManager from '@/components/dashboard/AdminPromoCodesManager';
 
 interface Order {
   id: string;
