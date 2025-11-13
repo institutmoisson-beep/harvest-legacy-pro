@@ -213,6 +213,10 @@ export default function Dashboard() {
               <Coins className="h-4 w-4 mr-2" />
               Tontines
             </Button>
+            <Button onClick={() => navigate('/tontine-dashboard')} variant="outline" size="sm">
+              <TrendingUp className="h-4 w-4 mr-2" />
+              Dashboard Tontine
+            </Button>
             <Button onClick={() => navigate('/shops-dashboard')} variant="outline" size="sm">
               <ShoppingBag className="h-4 w-4 mr-2" />
               Ma Boutique
