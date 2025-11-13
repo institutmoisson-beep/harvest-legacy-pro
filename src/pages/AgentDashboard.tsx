@@ -19,6 +19,7 @@ import AgentBonusSystem from '@/components/dashboard/AgentBonusSystem';
 import AgentLeaderboard from '@/components/dashboard/AgentLeaderboard';
 import AgentPerformanceComparison from '@/components/dashboard/AgentPerformanceComparison';
 import { CareerLevelBadge } from '@/components/dashboard/CareerLevelBadge';
+import AgentKPICards from '@/components/dashboard/AgentKPICards';
 
 interface Transaction {
   id: string;
@@ -130,6 +131,9 @@ export default function AgentDashboard() {
             Tableau de Bord Agent
           </h1>
         </div>
+
+        {/* KPI Cards */}
+        <AgentKPICards agentId={user?.id || ''} />
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
           {/* Transaction Form */}
