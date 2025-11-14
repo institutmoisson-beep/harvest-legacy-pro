@@ -23,19 +23,45 @@ export default function OrdersLeaderboard() {
 
   const fetchLeaderboard = async () => {
     try {
-      const { data: orders } = await supabase
-        .from('orders')
-        .select('broker_id, status, profit, profiles!orders_broker_id_fkey(full_name)');
+      // Récupérer toutes les commandes validées
+      const { data: orders, error: ordersError } = await supabase
+        .from('orders' as any)
+        .select('broker_id, status, profit, quantity, purchase_price')
+        .in('status', ['completed', 'validated']);
 
-      if (!orders) return;
+      if (ordersError) {
+        console.error('Error fetching orders:', ordersError);
+        setLoading(false);
+        return;
+      }
 
-      // Group by broker
-      const brokerStats = orders.reduce((acc: any, order: any) => {
+      if (!orders || orders.length === 0) {
+        console.log('No orders found');
+        setLoading(false);
+        return;
+      }
+
+      // Récupérer les profils des brokers
+      const brokerIds = [...new Set((orders as any[]).map((o: any) => o.broker_id))];
+      const { data: profiles, error: profilesError } = await supabase
+        .from('profiles' as any)
+        .select('id, full_name')
+        .in('id', brokerIds);
+
+      if (profilesError) {
+        console.error('Error fetching profiles:', profilesError);
+      }
+
+      // Créer un map des profils
+      const profilesMap = new Map((profiles as any)?.map((p: any) => [p.id, p.full_name]) || []);
+
+      // Grouper par broker
+      const brokerStats = (orders as any[]).reduce((acc: any, order: any) => {
         const brokerId = order.broker_id;
         if (!acc[brokerId]) {
           acc[brokerId] = {
             broker_id: brokerId,
-            broker_name: order.profiles?.full_name || 'Inconnu',
+            broker_name: profilesMap.get(brokerId) || 'Inconnu',
             total_orders: 0,
             completed_orders: 0,
             total_profit: 0
@@ -43,15 +69,15 @@ export default function OrdersLeaderboard() {
         }
         
         acc[brokerId].total_orders++;
-        if (order.status === 'completed') {
+        if (order.status === 'completed' || order.status === 'validated') {
           acc[brokerId].completed_orders++;
-          acc[brokerId].total_profit += Number(order.profit);
+          acc[brokerId].total_profit += Number(order.profit || 0);
         }
         
         return acc;
       }, {});
 
-      // Convert to array and sort by total profit
+      // Convertir en array et trier par profit total
       const sortedBrokers = Object.values(brokerStats)
         .sort((a: any, b: any) => b.total_profit - a.total_profit)
         .slice(0, 10)
@@ -60,6 +86,7 @@ export default function OrdersLeaderboard() {
           rank: index + 1
         }));
 
+      console.log('Leaderboard data:', sortedBrokers);
       setLeaderboard(sortedBrokers);
     } catch (error) {
       console.error('Error fetching leaderboard:', error);
