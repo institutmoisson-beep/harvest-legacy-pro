@@ -9,6 +9,7 @@ import OrdersBadges from '@/components/dashboard/OrdersBadges';
 import OrdersLeaderboard from '@/components/dashboard/OrdersLeaderboard';
 import OrdersSection from '@/components/dashboard/OrdersSection';
 import UserOrdersList from '@/components/dashboard/UserOrdersList';
+import OrderMonthlyGoals from '@/components/dashboard/OrderMonthlyGoals';
 import { supabase } from '@/integrations/supabase/client';
 
 export default function OrdersDashboard() {
@@ -50,6 +51,9 @@ export default function OrdersDashboard() {
 
         {/* KPI Cards */}
         <OrdersKPICards userId={user?.id || ''} />
+
+        {/* Monthly Goals */}
+        <OrderMonthlyGoals userId={user?.id || ''} />
 
         {/* Create Order Section */}
         <div className="mb-8">

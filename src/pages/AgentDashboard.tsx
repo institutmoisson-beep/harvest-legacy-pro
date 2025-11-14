@@ -18,6 +18,8 @@ import AgentMonthlyReport from '@/components/dashboard/AgentMonthlyReport';
 import AgentBonusSystem from '@/components/dashboard/AgentBonusSystem';
 import AgentLeaderboard from '@/components/dashboard/AgentLeaderboard';
 import AgentPerformanceComparison from '@/components/dashboard/AgentPerformanceComparison';
+import AgentComparativeAnalysis from '@/components/dashboard/AgentComparativeAnalysis';
+import AgentMonthlyGoals from '@/components/dashboard/AgentMonthlyGoals';
 import { CareerLevelBadge } from '@/components/dashboard/CareerLevelBadge';
 import AgentKPICards from '@/components/dashboard/AgentKPICards';
 
@@ -231,6 +233,9 @@ export default function AgentDashboard() {
         {/* Badges */}
         <CareerLevelBadge agentId={user?.id || ''} />
 
+        {/* Monthly Goals */}
+        <AgentMonthlyGoals agentId={user?.id || ''} />
+
         {/* Bonus System */}
         <AgentBonusSystem agentId={user?.id || ''} />
 
@@ -239,6 +244,9 @@ export default function AgentDashboard() {
 
         {/* Performance Comparison */}
         <AgentPerformanceComparison currentAgentId={user?.id || ''} />
+
+        {/* Comparative Analysis */}
+        <AgentComparativeAnalysis currentAgentId={user?.id || ''} />
 
         {/* Commission Tiers */}
         <AgentCommissionTiers agentId={user?.id || ''} />
