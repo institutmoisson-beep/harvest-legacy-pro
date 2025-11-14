@@ -14,6 +14,185 @@ export type Database = {
   }
   public: {
     Tables: {
+      achievement_badges: {
+        Row: {
+          badge_color: string | null
+          badge_type: string
+          created_at: string | null
+          description: string
+          icon: string
+          id: string
+          name: string
+          requirement_type: string
+          requirement_value: number
+          reward_amount: number | null
+        }
+        Insert: {
+          badge_color?: string | null
+          badge_type: string
+          created_at?: string | null
+          description: string
+          icon: string
+          id?: string
+          name: string
+          requirement_type: string
+          requirement_value: number
+          reward_amount?: number | null
+        }
+        Update: {
+          badge_color?: string | null
+          badge_type?: string
+          created_at?: string | null
+          description?: string
+          icon?: string
+          id?: string
+          name?: string
+          requirement_type?: string
+          requirement_value?: number
+          reward_amount?: number | null
+        }
+        Relationships: []
+      }
+      admin_chat_conversations: {
+        Row: {
+          assigned_admin_id: string | null
+          created_at: string | null
+          id: string
+          last_message_at: string | null
+          priority: string | null
+          status: string | null
+          subject: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          assigned_admin_id?: string | null
+          created_at?: string | null
+          id?: string
+          last_message_at?: string | null
+          priority?: string | null
+          status?: string | null
+          subject: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          assigned_admin_id?: string | null
+          created_at?: string | null
+          id?: string
+          last_message_at?: string | null
+          priority?: string | null
+          status?: string | null
+          subject?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      admin_chat_messages: {
+        Row: {
+          conversation_id: string
+          created_at: string | null
+          id: string
+          is_admin: boolean | null
+          message: string
+          read_at: string | null
+          sender_id: string
+        }
+        Insert: {
+          conversation_id: string
+          created_at?: string | null
+          id?: string
+          is_admin?: boolean | null
+          message: string
+          read_at?: string | null
+          sender_id: string
+        }
+        Update: {
+          conversation_id?: string
+          created_at?: string | null
+          id?: string
+          is_admin?: boolean | null
+          message?: string
+          read_at?: string | null
+          sender_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "admin_chat_messages_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "admin_chat_conversations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      agent_badges: {
+        Row: {
+          badge_color: string | null
+          created_at: string | null
+          description: string | null
+          icon: string
+          id: string
+          name: string
+          requirement_type: string
+          requirement_value: number
+        }
+        Insert: {
+          badge_color?: string | null
+          created_at?: string | null
+          description?: string | null
+          icon: string
+          id?: string
+          name: string
+          requirement_type: string
+          requirement_value: number
+        }
+        Update: {
+          badge_color?: string | null
+          created_at?: string | null
+          description?: string | null
+          icon?: string
+          id?: string
+          name?: string
+          requirement_type?: string
+          requirement_value?: number
+        }
+        Relationships: []
+      }
+      agent_bonus_tiers: {
+        Row: {
+          badge_icon: string
+          bonus_amount: number
+          created_at: string | null
+          id: string
+          max_transactions: number | null
+          min_transactions: number
+          tier_level: number
+          tier_name: string
+        }
+        Insert: {
+          badge_icon: string
+          bonus_amount: number
+          created_at?: string | null
+          id?: string
+          max_transactions?: number | null
+          min_transactions: number
+          tier_level: number
+          tier_name: string
+        }
+        Update: {
+          badge_icon?: string
+          bonus_amount?: number
+          created_at?: string | null
+          id?: string
+          max_transactions?: number | null
+          min_transactions?: number
+          tier_level?: number
+          tier_name?: string
+        }
+        Relationships: []
+      }
       agent_commission_earnings: {
         Row: {
           agent_id: string
@@ -159,6 +338,113 @@ export type Database = {
           },
         ]
       }
+      agent_earned_badges: {
+        Row: {
+          agent_id: string
+          badge_id: string
+          earned_at: string | null
+          id: string
+        }
+        Insert: {
+          agent_id: string
+          badge_id: string
+          earned_at?: string | null
+          id?: string
+        }
+        Update: {
+          agent_id?: string
+          badge_id?: string
+          earned_at?: string | null
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agent_earned_badges_badge_id_fkey"
+            columns: ["badge_id"]
+            isOneToOne: false
+            referencedRelation: "agent_badges"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      agent_monthly_bonus_awards: {
+        Row: {
+          agent_id: string
+          award_month: string
+          awarded_at: string | null
+          bonus_amount: number
+          id: string
+          tier_level: number
+          tier_name: string
+          transactions_count: number
+        }
+        Insert: {
+          agent_id: string
+          award_month: string
+          awarded_at?: string | null
+          bonus_amount: number
+          id?: string
+          tier_level: number
+          tier_name: string
+          transactions_count: number
+        }
+        Update: {
+          agent_id?: string
+          award_month?: string
+          awarded_at?: string | null
+          bonus_amount?: number
+          id?: string
+          tier_level?: number
+          tier_name?: string
+          transactions_count?: number
+        }
+        Relationships: []
+      }
+      agent_monthly_goals: {
+        Row: {
+          agent_id: string
+          created_at: string | null
+          current_value: number | null
+          goal_type: string
+          id: string
+          month: string
+          progress_percentage: number | null
+          reward_amount: number | null
+          reward_claimed: boolean | null
+          status: string | null
+          target_value: number
+          updated_at: string | null
+        }
+        Insert: {
+          agent_id: string
+          created_at?: string | null
+          current_value?: number | null
+          goal_type: string
+          id?: string
+          month: string
+          progress_percentage?: number | null
+          reward_amount?: number | null
+          reward_claimed?: boolean | null
+          status?: string | null
+          target_value: number
+          updated_at?: string | null
+        }
+        Update: {
+          agent_id?: string
+          created_at?: string | null
+          current_value?: number | null
+          goal_type?: string
+          id?: string
+          month?: string
+          progress_percentage?: number | null
+          reward_amount?: number | null
+          reward_claimed?: boolean | null
+          status?: string | null
+          target_value?: number
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       agent_transactions: {
         Row: {
           agent_id: string
@@ -194,6 +480,44 @@ export type Database = {
           updated_at?: string | null
         }
         Relationships: []
+      }
+      call_recordings: {
+        Row: {
+          call_id: string
+          created_at: string | null
+          duration_seconds: number | null
+          file_path: string
+          file_size_bytes: number | null
+          id: string
+          recorded_by: string
+        }
+        Insert: {
+          call_id: string
+          created_at?: string | null
+          duration_seconds?: number | null
+          file_path: string
+          file_size_bytes?: number | null
+          id?: string
+          recorded_by: string
+        }
+        Update: {
+          call_id?: string
+          created_at?: string | null
+          duration_seconds?: number | null
+          file_path?: string
+          file_size_bytes?: number | null
+          id?: string
+          recorded_by?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "call_recordings_call_id_fkey"
+            columns: ["call_id"]
+            isOneToOne: false
+            referencedRelation: "group_voice_calls"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       call_sessions: {
         Row: {
@@ -395,6 +719,138 @@ export type Database = {
         }
         Relationships: []
       }
+      group_call_messages: {
+        Row: {
+          call_id: string
+          content: string
+          created_at: string | null
+          id: string
+          user_id: string
+        }
+        Insert: {
+          call_id: string
+          content: string
+          created_at?: string | null
+          id?: string
+          user_id: string
+        }
+        Update: {
+          call_id?: string
+          content?: string
+          created_at?: string | null
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "group_call_messages_call_id_fkey"
+            columns: ["call_id"]
+            isOneToOne: false
+            referencedRelation: "group_voice_calls"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      group_call_participants: {
+        Row: {
+          call_id: string
+          id: string
+          is_muted: boolean | null
+          joined_at: string | null
+          left_at: string | null
+          user_id: string
+        }
+        Insert: {
+          call_id: string
+          id?: string
+          is_muted?: boolean | null
+          joined_at?: string | null
+          left_at?: string | null
+          user_id: string
+        }
+        Update: {
+          call_id?: string
+          id?: string
+          is_muted?: boolean | null
+          joined_at?: string | null
+          left_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "group_call_participants_call_id_fkey"
+            columns: ["call_id"]
+            isOneToOne: false
+            referencedRelation: "group_voice_calls"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      group_call_signals: {
+        Row: {
+          call_id: string
+          created_at: string | null
+          from_user_id: string
+          id: string
+          signal_data: Json
+          signal_type: string
+          to_user_id: string | null
+        }
+        Insert: {
+          call_id: string
+          created_at?: string | null
+          from_user_id: string
+          id?: string
+          signal_data: Json
+          signal_type: string
+          to_user_id?: string | null
+        }
+        Update: {
+          call_id?: string
+          created_at?: string | null
+          from_user_id?: string
+          id?: string
+          signal_data?: Json
+          signal_type?: string
+          to_user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "group_call_signals_call_id_fkey"
+            columns: ["call_id"]
+            isOneToOne: false
+            referencedRelation: "group_voice_calls"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      group_voice_calls: {
+        Row: {
+          created_at: string | null
+          created_by: string
+          ended_at: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+        }
+        Insert: {
+          created_at?: string | null
+          created_by: string
+          ended_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string
+          ended_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+        }
+        Relationships: []
+      }
       investment_products: {
         Row: {
           created_at: string | null
@@ -587,6 +1043,84 @@ export type Database = {
         Update: {
           id?: string
           total_amount?: number
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      notifications: {
+        Row: {
+          created_at: string | null
+          id: string
+          message: string
+          read: boolean | null
+          title: string
+          type: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          message: string
+          read?: boolean | null
+          title: string
+          type?: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          message?: string
+          read?: boolean | null
+          title?: string
+          type?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      order_monthly_goals: {
+        Row: {
+          broker_id: string
+          created_at: string | null
+          current_value: number | null
+          goal_type: string
+          id: string
+          month: string
+          progress_percentage: number | null
+          reward_amount: number | null
+          reward_claimed: boolean | null
+          status: string | null
+          target_value: number
+          updated_at: string | null
+        }
+        Insert: {
+          broker_id: string
+          created_at?: string | null
+          current_value?: number | null
+          goal_type: string
+          id?: string
+          month: string
+          progress_percentage?: number | null
+          reward_amount?: number | null
+          reward_claimed?: boolean | null
+          status?: string | null
+          target_value: number
+          updated_at?: string | null
+        }
+        Update: {
+          broker_id?: string
+          created_at?: string | null
+          current_value?: number | null
+          goal_type?: string
+          id?: string
+          month?: string
+          progress_percentage?: number | null
+          reward_amount?: number | null
+          reward_claimed?: boolean | null
+          status?: string | null
+          target_value?: number
           updated_at?: string | null
         }
         Relationships: []
@@ -1084,6 +1618,47 @@ export type Database = {
           },
         ]
       }
+      tontine_payment_schedule: {
+        Row: {
+          amount: number
+          created_at: string | null
+          cycle_number: number
+          due_date: string
+          id: string
+          reminder_sent: boolean | null
+          status: string | null
+          tontine_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string | null
+          cycle_number: number
+          due_date: string
+          id?: string
+          reminder_sent?: boolean | null
+          status?: string | null
+          tontine_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string | null
+          cycle_number?: number
+          due_date?: string
+          id?: string
+          reminder_sent?: boolean | null
+          status?: string | null
+          tontine_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tontine_payment_schedule_tontine_id_fkey"
+            columns: ["tontine_id"]
+            isOneToOne: false
+            referencedRelation: "tontines"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       tontine_payments: {
         Row: {
           amount: number
@@ -1217,6 +1792,38 @@ export type Database = {
           reason?: string | null
         }
         Relationships: []
+      }
+      user_earned_badges: {
+        Row: {
+          badge_id: string
+          earned_at: string | null
+          id: string
+          reward_claimed: boolean | null
+          user_id: string
+        }
+        Insert: {
+          badge_id: string
+          earned_at?: string | null
+          id?: string
+          reward_claimed?: boolean | null
+          user_id: string
+        }
+        Update: {
+          badge_id?: string
+          earned_at?: string | null
+          id?: string
+          reward_claimed?: boolean | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_earned_badges_badge_id_fkey"
+            columns: ["badge_id"]
+            isOneToOne: false
+            referencedRelation: "achievement_badges"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_locations: {
         Row: {
@@ -1397,6 +2004,22 @@ export type Database = {
       }
     }
     Views: {
+      agent_leaderboard: {
+        Row: {
+          agent_id: string | null
+          agent_name: string | null
+          current_tier: string | null
+          deposit_count: number | null
+          rank_by_commissions: number | null
+          rank_by_transactions: number | null
+          rank_by_volume: number | null
+          total_commissions: number | null
+          total_transactions: number | null
+          total_volume: number | null
+          withdrawal_count: number | null
+        }
+        Relationships: []
+      }
       agent_monthly_commission_report: {
         Row: {
           agent_id: string | null
@@ -1413,9 +2036,24 @@ export type Database = {
         }
         Relationships: []
       }
+      agent_performance_comparison: {
+        Row: {
+          agent_id: string | null
+          agent_name: string | null
+          avg_transaction_amount: number | null
+          monthly_commissions: number | null
+          monthly_deposits: number | null
+          monthly_transactions: number | null
+          monthly_volume: number | null
+          monthly_withdrawals: number | null
+          performance_month: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       auto_update_career_level: { Args: never; Returns: undefined }
+      award_monthly_bonus: { Args: never; Returns: undefined }
       calculate_career_level: {
         Args: { p_user_id: string }
         Returns: Database["public"]["Enums"]["career_level"]
@@ -1427,6 +2065,14 @@ export type Database = {
           p_sale_amount: number
         }
         Returns: number
+      }
+      check_and_award_achievement_badges: {
+        Args: { p_user_id: string }
+        Returns: undefined
+      }
+      check_and_award_badges: {
+        Args: { p_agent_id: string }
+        Returns: undefined
       }
       decrement_wallet_balance: {
         Args: { p_amount: number; p_user_id: string }
@@ -1453,9 +2099,26 @@ export type Database = {
         Args: { p_amount: number; p_user_id: string }
         Returns: undefined
       }
+      initialize_agent_monthly_goals: { Args: never; Returns: undefined }
+      initialize_order_monthly_goals: { Args: never; Returns: undefined }
+      is_tontine_participant: {
+        Args: { _tontine_id: string; _user_id?: string }
+        Returns: boolean
+      }
+      run_monthly_bonus_awards: { Args: never; Returns: undefined }
+      update_agent_goals_progress: { Args: never; Returns: undefined }
+      update_order_goals_progress: { Args: never; Returns: undefined }
       update_user_career_level: {
         Args: { p_user_id: string }
         Returns: undefined
+      }
+      verify_function_security: {
+        Args: never
+        Returns: {
+          function_name: string
+          has_search_path: boolean
+          is_security_definer: boolean
+        }[]
       }
     }
     Enums: {
