@@ -67,7 +67,6 @@ export const usePWABadge = () => {
 
       if (error) throw error;
 
-      console.log(`📬 Notifications non lues: ${count || 0}`);
       return count || 0;
     } catch (error) {
       console.error('❌ Erreur lors de la récupération des notifications:', error);
@@ -100,7 +99,6 @@ export const usePWABadge = () => {
           filter: `user_id=eq.${user.id}`
         },
         (payload) => {
-          console.log('🔔 Notification changée:', payload.eventType);
           updateBadgeFromNotifications();
         }
       )

@@ -9,6 +9,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
 import { ArrowLeft, TrendingUp, DollarSign, Package } from 'lucide-react';
+import InvestmentPaymentHistory from '@/components/dashboard/InvestmentPaymentHistory';
+import InvestmentAnalytics from '@/components/dashboard/InvestmentAnalytics';
 
 const PRODUCTS = [
   { name: 'Manioc', profitRate: 16 },
@@ -26,7 +28,6 @@ const PRODUCTS = [
 ];
 
 const PAYOUT_FREQUENCIES = [
-  { value: 'daily', label: 'Quotidien' },
   { value: 'two_days', label: 'Deux jours' },
   { value: 'weekly', label: 'Semaine' },
   { value: 'two_weeks', label: 'Deux semaines' },
@@ -324,6 +325,12 @@ export default function Investments() {
             )}
           </CardContent>
         </Card>
+      </div>
+
+      {/* Analytics and History */}
+      <div className="space-y-6">
+        <InvestmentAnalytics userId={user?.id || ''} />
+        <InvestmentPaymentHistory userId={user?.id || ''} />
       </div>
     </div>
   );
