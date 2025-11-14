@@ -61,29 +61,28 @@ Deno.serve(async (req) => {
       let shouldPayout = false;
       const hoursSinceLastPayout = (now.getTime() - lastPayout.getTime()) / (1000 * 60 * 60);
 
-      // Check if payout is due based on frequency
+      // Check if payout is due based on frequency (exact hours)
       switch (freq) {
-        case 'daily':
-          shouldPayout = hoursSinceLastPayout >= 24;
-          break;
         case 'two_days':
           shouldPayout = hoursSinceLastPayout >= 48;
           break;
         case 'weekly':
-          shouldPayout = hoursSinceLastPayout >= 168;
+          shouldPayout = hoursSinceLastPayout >= 168; // 7 days
           break;
         case 'two_weeks':
-          shouldPayout = hoursSinceLastPayout >= 336;
+          shouldPayout = hoursSinceLastPayout >= 336; // 14 days
           break;
         case 'monthly':
-          shouldPayout = hoursSinceLastPayout >= 720;
+          shouldPayout = hoursSinceLastPayout >= 720; // 30 days
           break;
         case 'two_months':
-          shouldPayout = hoursSinceLastPayout >= 1440;
+          shouldPayout = hoursSinceLastPayout >= 1440; // 60 days
           break;
         case 'six_months':
-          shouldPayout = hoursSinceLastPayout >= 4320;
+          shouldPayout = hoursSinceLastPayout >= 4320; // 180 days
           break;
+        default:
+          shouldPayout = false;
       }
 
       if (shouldPayout) {
@@ -119,52 +118,60 @@ Deno.serve(async (req) => {
             from_user_id: null,
             to_user_id: investment.investor_id,
             amount: msnAmount,
-            transaction_type: 'investment_payout',
+            transaction_type: 'investment_return',
             status: 'completed',
-            description: `Retour investissement ${investment.product_name} - Capital: ${investment.investment_amount.toFixed(0)} FCFA + Gains: ${investorEarnings.toFixed(0)} FCFA`,
+            description: `Retour investissement ${investment.product_name}: ${investorEarnings.toFixed(0)} FCFA gains + ${investment.investment_amount} FCFA capital`
           }).select().single();
 
-          // Insert into investment payment history
-          await supabaseAdmin.from('investment_payment_history').insert({
-            investment_id: investment.id,
-            investor_id: investment.investor_id,
-            amount_paid: msnAmount,
-            payment_type: 'payout',
-            payment_status: 'completed',
-            transaction_id: transaction?.id
-          });
+          if (transaction) {
+            // Record the sale
+            await supabaseAdmin.from('investment_sales').insert({
+              investment_id: investment.id,
+              sale_amount: investment.investment_amount * 1.16,
+              profit_amount: profit,
+              investor_earnings: investorEarnings
+            });
 
-          // Create notification for the investor
-          await supabaseAdmin.from('notifications').insert({
-            user_id: investment.investor_id,
-            title: 'Paiement d\'investissement reçu',
-            message: `Vous avez reçu ${msnAmount.toFixed(2)} MSN (capital + gains) pour votre investissement ${investment.product_name}`,
-            type: 'investment',
-            related_id: investment.id
-          });
+            // Record payment history - Earnings
+            await supabaseAdmin.from('investment_payment_history').insert({
+              investment_id: investment.id,
+              investor_id: investment.investor_id,
+              payment_type: 'earnings',
+              amount_paid: investorEarnings / 750, // MSN
+              payment_status: 'completed'
+            });
 
-          // Create investment sale record
-          await supabaseAdmin.from('investment_sales').insert({
-            investment_id: investment.id,
-            sale_amount: investment.investment_amount,
-            profit_amount: profit,
-            investor_earnings: investorEarnings,
-          });
+            // Record payment history - Capital return
+            await supabaseAdmin.from('investment_payment_history').insert({
+              investment_id: investment.id,
+              investor_id: investment.investor_id,
+              payment_type: 'capital_return',
+              amount_paid: investment.investment_amount / 750, // MSN
+              payment_status: 'completed'
+            });
 
-          // Mark investment as completed and update totals
-          await supabaseAdmin
-            .from('investment_products')
-            .update({
-              investor_earnings: investorEarnings,
-              total_profit: profit,
-              last_payout_at: now.toISOString(),
-              updated_at: now.toISOString(),
-              status: 'completed',
-            })
-            .eq('id', investment.id);
+            // Send notification
+            await supabaseAdmin.from('notifications').insert({
+              user_id: investment.investor_id,
+              title: '💰 Investissement Complété',
+              message: `Votre investissement "${investment.product_name}" est terminé ! Vous avez reçu ${investorEarnings.toFixed(0)} FCFA de gains + votre capital de ${investment.investment_amount} FCFA.`,
+              type: 'investment'
+            });
 
-          payoutsProcessed++;
-          console.log(`Final payout completed for investment ${investment.id}: ${totalReturn} FCFA (${msnAmount} MSN) - Capital + Gains returned, status: completed`);
+            // Mark investment as completed
+            await supabaseAdmin
+              .from('investment_products')
+              .update({
+                status: 'completed',
+                investor_earnings: investorEarnings,
+                total_profit: profit,
+                last_payout_at: now.toISOString()
+              })
+              .eq('id', investment.id);
+
+            payoutsProcessed++;
+            console.log(`Final payout completed for investment ${investment.id}`);
+          }
         }
       }
     }

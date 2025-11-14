@@ -307,31 +307,6 @@ export default function AdminDashboard() {
           </Card>
         </div>
 
-        {/* Visits Analytics */}
-        <div className="mb-8">
-          <VisitsAnalyticsSection />
-        </div>
-
-        {/* Payment Contacts Manager */}
-        <div className="mb-8">
-          <PaymentContactsManager />
-        </div>
-
-        {/* Member Management */}
-        <div className="mb-8">
-          <MemberManagement />
-        </div>
-
-        {/* Moissonneur Fund & Treasury */}
-        <div className="grid gap-6 md:grid-cols-2 mb-8">
-          <MoissonneurFund />
-          <TreasurySection />
-        </div>
-
-        {/* Fund Withdrawals History */}
-        <div className="mb-8">
-          <FundWithdrawalsHistory />
-        </div>
 
         {/* Orders Table */}
         <Card className="glass-card mb-8">

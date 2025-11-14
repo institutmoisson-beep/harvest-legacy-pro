@@ -13,15 +13,15 @@ CREATE EXTENSION IF NOT EXISTS pg_net;
 -- CRON JOBS POUR LES INVESTISSEMENTS
 -- ===================================================
 
--- 1. Paiements quotidiens (00:01 tous les jours)
+-- 1. Vérification toutes les 2 heures pour les paiements "deux jours"
 SELECT cron.schedule(
-  'daily-investment-payouts',
-  '1 0 * * *',
+  'two-days-investment-payouts',
+  '0 */2 * * *',
   $$
   SELECT net.http_post(
     url := 'https://swefwubntyyfqaerlwym.supabase.co/functions/v1/investment-payout',
     headers := '{"Content-Type": "application/json", "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InN3ZWZ3dWJudHl5ZnFhZXJsd3ltIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA3NjcxNDcsImV4cCI6MjA3NjM0MzE0N30.IBM6AP9C-45n4_rDLENNCJxcB6_A5Uxjqnuj0e0R16o"}'::jsonb,
-    body := '{"frequency": "daily"}'::jsonb
+    body := '{"frequency": "two_days"}'::jsonb
   );
   $$
 );
