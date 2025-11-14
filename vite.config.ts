@@ -44,6 +44,36 @@ export default defineConfig(({ mode }) => ({
             type: 'image/png',
             purpose: 'any maskable'
           }
+        ],
+        shortcuts: [
+          {
+            name: 'Tableau de bord',
+            short_name: 'Dashboard',
+            description: 'Accéder au tableau de bord principal',
+            url: '/dashboard',
+            icons: [{ src: '/pwa-192x192.png', sizes: '192x192' }]
+          },
+          {
+            name: 'Portefeuille',
+            short_name: 'Wallet',
+            description: 'Voir votre portefeuille et solde',
+            url: '/dashboard#wallet',
+            icons: [{ src: '/pwa-192x192.png', sizes: '192x192' }]
+          },
+          {
+            name: 'Commandes',
+            short_name: 'Orders',
+            description: 'Gérer vos commandes',
+            url: '/orders-dashboard',
+            icons: [{ src: '/pwa-192x192.png', sizes: '192x192' }]
+          },
+          {
+            name: 'Agent Dashboard',
+            short_name: 'Agent',
+            description: 'Tableau de bord agent',
+            url: '/agent-dashboard',
+            icons: [{ src: '/pwa-192x192.png', sizes: '192x192' }]
+          }
         ]
       },
       workbox: {

@@ -6,6 +6,7 @@ import { useEffect } from 'react';
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import VisitLogger from "@/components/VisitLogger";
 import { AuthProvider } from "@/hooks/useAuth";
+import { usePWABadge } from "@/hooks/usePWABadge";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
@@ -31,6 +32,48 @@ import NotFound from "./pages/NotFound";
 import { supabase } from '@/integrations/supabase/client';
 
 const queryClient = new QueryClient();
+
+// Composant interne pour utiliser les hooks après AuthProvider
+const AppContent = () => {
+  const { updateBadgeFromNotifications, isBadgeSupported } = usePWABadge();
+
+  useEffect(() => {
+    if (isBadgeSupported) {
+      console.log('✅ Badge API supportée - activation du système de badges');
+      updateBadgeFromNotifications();
+    } else {
+      console.log('⚠️ Badge API non supportée sur ce navigateur');
+    }
+  }, [isBadgeSupported, updateBadgeFromNotifications]);
+
+  return (
+    <Routes>
+      <Route path="/" element={<Index />} />
+      <Route path="/auth" element={<Auth />} />
+      <Route path="/dashboard" element={<Dashboard />} />
+      <Route path="/admin" element={<AdminDashboard />} />
+      <Route path="/profile" element={<Profile />} />
+      <Route path="/proposer" element={<ProposerProduit />} />
+      <Route path="/agent" element={<AgentDashboard />} />
+      <Route path="/messages" element={<Messages />} />
+      <Route path="/tontines" element={<Tontines />} />
+      <Route path="/tontines/:id" element={<TontineDetail />} />
+      <Route path="/investments" element={<Investments />} />
+      <Route path="/investor-dashboard" element={<InvestorDashboard />} />
+      <Route path="/merchant" element={<MerchantDashboard />} />
+      <Route path="/my-shop" element={<MyShop />} />
+      <Route path="/shops-dashboard" element={<ShopsDashboard />} />
+      <Route path="/shop/:shopSlug" element={<PublicShop />} />
+      <Route path="/tontine-dashboard" element={<TontineDashboard />} />
+      <Route path="/orders-dashboard" element={<OrdersDashboard />} />
+      <Route path="/notifications" element={<NotificationsCenter />} />
+      <Route path="/install" element={<InstallPWA />} />
+      <Route path="/support" element={<SupportChat />} />
+      {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+      <Route path="*" element={<NotFound />} />
+    </Routes>
+  );
+};
 
 const App = () => {
   useEffect(() => {
@@ -62,31 +105,7 @@ const App = () => {
         <BrowserRouter>
           <VisitLogger />
           <AuthProvider>
-            <Routes>
-              <Route path="/" element={<Index />} />
-              <Route path="/auth" element={<Auth />} />
-              <Route path="/dashboard" element={<Dashboard />} />
-              <Route path="/admin" element={<AdminDashboard />} />
-              <Route path="/profile" element={<Profile />} />
-              <Route path="/proposer" element={<ProposerProduit />} />
-              <Route path="/agent" element={<AgentDashboard />} />
-              <Route path="/messages" element={<Messages />} />
-              <Route path="/tontines" element={<Tontines />} />
-              <Route path="/tontines/:id" element={<TontineDetail />} />
-              <Route path="/investments" element={<Investments />} />
-              <Route path="/investor-dashboard" element={<InvestorDashboard />} />
-              <Route path="/merchant" element={<MerchantDashboard />} />
-              <Route path="/my-shop" element={<MyShop />} />
-              <Route path="/shops-dashboard" element={<ShopsDashboard />} />
-              <Route path="/shop/:shopSlug" element={<PublicShop />} />
-              <Route path="/tontine-dashboard" element={<TontineDashboard />} />
-              <Route path="/orders-dashboard" element={<OrdersDashboard />} />
-              <Route path="/notifications" element={<NotificationsCenter />} />
-              <Route path="/install" element={<InstallPWA />} />
-              <Route path="/support" element={<SupportChat />} />
-              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-              <Route path="*" element={<NotFound />} />
-            </Routes>
+            <AppContent />
           </AuthProvider>
         </BrowserRouter>
       </TooltipProvider>
