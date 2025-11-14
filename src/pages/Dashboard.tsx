@@ -3,7 +3,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Loader2, Copy, TrendingUp, Users, Wallet, Shield, User, MessageCircle, Coins, Phone, MapPin, ShoppingBag, Store, Bell, Download } from 'lucide-react';
+import { Loader2, Copy, TrendingUp, Users, Wallet, Shield, User, MessageCircle, Coins, Phone, MapPin, ShoppingBag, Store, Bell, Download, ShoppingCart } from 'lucide-react';
 import VoiceCall from '@/components/VoiceCall';
 import LocationSharing from '@/components/LocationSharing';
 import GroupVoiceCall from '@/components/GroupVoiceCall';
@@ -235,6 +235,10 @@ export default function Dashboard() {
             <Button onClick={() => navigate('/agent')} variant="outline" size="sm">
               <Users className="h-4 w-4 mr-2" />
               Agent Dashboard
+            </Button>
+            <Button onClick={() => navigate('/orders-dashboard')} variant="outline" size="sm">
+              <ShoppingCart className="h-4 w-4 mr-2" />
+              Tableau Commandes
             </Button>
             {hasMerchantRole && (
               <Button onClick={() => navigate('/merchant')} variant="outline" size="sm">

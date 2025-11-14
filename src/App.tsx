@@ -24,6 +24,7 @@ import ShopsDashboard from "./pages/ShopsDashboard";
 import PublicShop from "./pages/PublicShop";
 import SupportChat from "./pages/SupportChat";
 import TontineDashboard from "./pages/TontineDashboard";
+import OrdersDashboard from "./pages/OrdersDashboard";
 import NotificationsCenter from "./pages/NotificationsCenter";
 import InstallPWA from "./pages/InstallPWA";
 import NotFound from "./pages/NotFound";
@@ -79,6 +80,7 @@ const App = () => {
               <Route path="/shops-dashboard" element={<ShopsDashboard />} />
               <Route path="/shop/:shopSlug" element={<PublicShop />} />
               <Route path="/tontine-dashboard" element={<TontineDashboard />} />
+              <Route path="/orders-dashboard" element={<OrdersDashboard />} />
               <Route path="/notifications" element={<NotificationsCenter />} />
               <Route path="/install" element={<InstallPWA />} />
               <Route path="/support" element={<SupportChat />} />

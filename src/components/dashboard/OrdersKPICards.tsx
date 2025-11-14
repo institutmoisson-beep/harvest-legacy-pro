@@ -2,39 +2,37 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { TrendingUp, DollarSign, Award, Trophy, Activity, Calendar } from 'lucide-react';
+import { ShoppingCart, Clock, CheckCircle, TrendingUp, DollarSign, Calendar } from 'lucide-react';
 
-interface AgentKPICardsProps {
-  agentId: string;
+interface OrdersKPICardsProps {
+  userId: string;
 }
 
-export default function AgentKPICards({ agentId }: AgentKPICardsProps) {
+export default function OrdersKPICards({ userId }: OrdersKPICardsProps) {
   const [timeFilter, setTimeFilter] = useState<'today' | 'week' | 'month' | 'year'>('month');
   const [kpis, setKpis] = useState({
-    totalTransactions: 0,
-    todayTransactions: 0,
-    totalCommissions: 0,
-    monthlyBonus: 0,
-    leaderboardRank: 0
+    totalOrders: 0,
+    pendingOrders: 0,
+    completedOrders: 0,
+    totalProfit: 0,
+    successRate: 0
   });
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (agentId) {
+    if (userId) {
       fetchKPIs();
     }
-  }, [agentId, timeFilter]);
+  }, [userId, timeFilter]);
 
   const fetchKPIs = async () => {
     try {
       const now = new Date();
-      const today = now.toISOString().split('T')[0];
-      
-      // Calculate date range based on filter
       let startDate = new Date();
+      
       switch (timeFilter) {
         case 'today':
-          startDate = new Date(today);
+          startDate = new Date(now.toISOString().split('T')[0]);
           break;
         case 'week':
           startDate.setDate(startDate.getDate() - 7);
@@ -47,73 +45,28 @@ export default function AgentKPICards({ agentId }: AgentKPICardsProps) {
           break;
       }
 
-      // Fetch transactions with date filter
-      const { data: transactions } = await supabase
-        .from('agent_transactions')
+      const { data: orders } = await supabase
+        .from('orders')
         .select('*')
-        .eq('agent_id', agentId)
-        .eq('status', 'completed')
+        .eq('broker_id', userId)
         .gte('created_at', startDate.toISOString());
 
-      // Fetch today's transactions
-      const { data: todayTrans } = await supabase
-        .from('agent_transactions')
-        .select('*')
-        .eq('agent_id', agentId)
-        .eq('status', 'completed')
-        .gte('created_at', today);
-
-      // Fetch commissions with date filter
-      const { data: commissions } = await supabase
-        .from('agent_commission_earnings')
-        .select('commission_amount, created_at')
-        .eq('agent_id', agentId)
-        .gte('created_at', startDate.toISOString());
-
-      const totalCommissions = commissions?.reduce(
-        (sum, c) => sum + Number(c.commission_amount),
-        0
-      ) || 0;
-
-      // Calculate monthly bonus from commissions
-      const currentMonth = new Date();
-      currentMonth.setDate(1);
-      const { data: monthlyCommissions } = await supabase
-        .from('agent_commission_earnings')
-        .select('commission_amount')
-        .eq('agent_id', agentId)
-        .gte('created_at', currentMonth.toISOString());
-
-      // Fetch leaderboard rank
-      const { data: allAgents } = await supabase
-        .from('agent_transactions')
-        .select('agent_id, status')
-        .eq('status', 'completed');
-
-      const agentCounts = allAgents?.reduce((acc: Record<string, number>, t) => {
-        acc[t.agent_id] = (acc[t.agent_id] || 0) + 1;
-        return acc;
-      }, {}) || {};
-
-      const sortedAgents = Object.entries(agentCounts)
-        .sort(([, a], [, b]) => (b as number) - (a as number));
-      
-      const rank = sortedAgents.findIndex(([id]) => id === agentId) + 1;
-
-      const monthlyBonus = monthlyCommissions?.reduce(
-        (sum, c) => sum + Number(c.commission_amount),
-        0
-      ) || 0;
+      const pending = orders?.filter(o => o.status === 'pending') || [];
+      const completed = orders?.filter(o => o.status === 'completed') || [];
+      const totalProfit = completed.reduce((sum, o) => sum + Number(o.profit), 0);
+      const successRate = orders && orders.length > 0 
+        ? (completed.length / orders.length) * 100 
+        : 0;
 
       setKpis({
-        totalTransactions: transactions?.length || 0,
-        todayTransactions: todayTrans?.length || 0,
-        totalCommissions,
-        monthlyBonus,
-        leaderboardRank: rank > 0 ? rank : 0
+        totalOrders: orders?.length || 0,
+        pendingOrders: pending.length,
+        completedOrders: completed.length,
+        totalProfit,
+        successRate
       });
     } catch (error) {
-      console.error('Error fetching KPIs:', error);
+      console.error('Error fetching orders KPIs:', error);
     } finally {
       setLoading(false);
     }
@@ -143,7 +96,7 @@ export default function AgentKPICards({ agentId }: AgentKPICardsProps) {
   return (
     <div className="space-y-4 mb-8">
       <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold">Indicateurs de Performance</h2>
+        <h2 className="text-2xl font-bold">Indicateurs des Commandes</h2>
         <Select value={timeFilter} onValueChange={(v: any) => setTimeFilter(v)}>
           <SelectTrigger className="w-[200px]">
             <Calendar className="h-4 w-4 mr-2" />
@@ -161,11 +114,11 @@ export default function AgentKPICards({ agentId }: AgentKPICardsProps) {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
         <Card className="glass-card border-l-4 border-l-primary">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Transactions</CardTitle>
-            <TrendingUp className="h-4 w-4 text-primary" />
+            <CardTitle className="text-sm font-medium">Total Commandes</CardTitle>
+            <ShoppingCart className="h-4 w-4 text-primary" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{kpis.totalTransactions}</div>
+            <div className="text-2xl font-bold">{kpis.totalOrders}</div>
             <p className="text-xs text-muted-foreground mt-1">
               {filterLabels[timeFilter]}
             </p>
@@ -174,58 +127,54 @@ export default function AgentKPICards({ agentId }: AgentKPICardsProps) {
 
         <Card className="glass-card border-l-4 border-l-accent">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Aujourd'hui</CardTitle>
-            <Activity className="h-4 w-4 text-accent" />
+            <CardTitle className="text-sm font-medium">En Attente</CardTitle>
+            <Clock className="h-4 w-4 text-accent" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-accent">{kpis.todayTransactions}</div>
+            <div className="text-2xl font-bold text-accent">{kpis.pendingOrders}</div>
             <p className="text-xs text-muted-foreground mt-1">
-              Transactions complétées
+              Nécessitent validation
             </p>
           </CardContent>
         </Card>
 
         <Card className="glass-card border-l-4 border-l-secondary">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Commissions</CardTitle>
+            <CardTitle className="text-sm font-medium">Complétées</CardTitle>
+            <CheckCircle className="h-4 w-4 text-secondary" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-secondary">{kpis.completedOrders}</div>
+            <p className="text-xs text-muted-foreground mt-1">
+              Validées et payées
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card className="glass-card border-l-4 border-l-secondary">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Profits Totaux</CardTitle>
             <DollarSign className="h-4 w-4 text-secondary" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-secondary">
-              {kpis.totalCommissions.toFixed(2)} MSN
+              {kpis.totalProfit.toLocaleString()} FCFA
             </div>
             <p className="text-xs text-muted-foreground mt-1">
-              {filterLabels[timeFilter]}
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card className="glass-card border-l-4 border-l-secondary">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Bonus Mensuel</CardTitle>
-            <Award className="h-4 w-4 text-secondary" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-secondary">
-              {kpis.monthlyBonus.toFixed(2)} MSN
-            </div>
-            <p className="text-xs text-muted-foreground mt-1">
-              Bonus du mois en cours
+              Commissions gagnées
             </p>
           </CardContent>
         </Card>
 
         <Card className="glass-card border-l-4 border-l-primary">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Classement</CardTitle>
-            <Trophy className="h-4 w-4 text-primary" />
+            <CardTitle className="text-sm font-medium">Taux de Réussite</CardTitle>
+            <TrendingUp className="h-4 w-4 text-primary" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
-              {kpis.leaderboardRank > 0 ? `#${kpis.leaderboardRank}` : 'N/A'}
-            </div>
+            <div className="text-2xl font-bold">{kpis.successRate.toFixed(1)}%</div>
             <p className="text-xs text-muted-foreground mt-1">
-              Position globale
+              Commandes validées
             </p>
           </CardContent>
         </Card>
