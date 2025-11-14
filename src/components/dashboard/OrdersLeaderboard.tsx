@@ -2,7 +2,10 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { Trophy, Medal, Award } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Trophy, Medal, Award, Calendar, TrendingUp } from 'lucide-react';
+import BrokerDetailsModal from './BrokerDetailsModal';
 
 interface LeaderboardEntry {
   broker_id: string;
@@ -16,18 +19,36 @@ interface LeaderboardEntry {
 export default function OrdersLeaderboard() {
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
   const [loading, setLoading] = useState(true);
+  const [timeFilter, setTimeFilter] = useState<'week' | 'month' | 'year' | 'all'>('month');
+  const [selectedBroker, setSelectedBroker] = useState<string | null>(null);
 
   useEffect(() => {
     fetchLeaderboard();
-  }, []);
+  }, [timeFilter]);
 
   const fetchLeaderboard = async () => {
     try {
-      // Récupérer toutes les commandes validées
-      const { data: orders, error: ordersError } = await supabase
+      // Calculer la date de début selon le filtre
+      let startDate = new Date();
+      if (timeFilter === 'week') {
+        startDate.setDate(startDate.getDate() - 7);
+      } else if (timeFilter === 'month') {
+        startDate.setMonth(startDate.getMonth() - 1);
+      } else if (timeFilter === 'year') {
+        startDate.setFullYear(startDate.getFullYear() - 1);
+      }
+
+      // Récupérer les commandes selon le filtre temporel
+      let query = supabase
         .from('orders' as any)
-        .select('broker_id, status, profit, quantity, purchase_price')
+        .select('broker_id, status, profit, quantity, purchase_price, created_at')
         .in('status', ['completed', 'validated']);
+
+      if (timeFilter !== 'all') {
+        query = query.gte('created_at', startDate.toISOString());
+      }
+
+      const { data: orders, error: ordersError } = await query;
 
       if (ordersError) {
         console.error('Error fetching orders:', ordersError);
@@ -121,10 +142,24 @@ export default function OrdersLeaderboard() {
   return (
     <Card className="glass-card">
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Trophy className="h-5 w-5 text-accent" />
-          Classement des Moissonneurs
-        </CardTitle>
+        <div className="flex items-center justify-between flex-wrap gap-4">
+          <CardTitle className="flex items-center gap-2">
+            <Trophy className="h-5 w-5 text-accent" />
+            Classement des Moissonneurs
+          </CardTitle>
+          <Select value={timeFilter} onValueChange={(value: any) => setTimeFilter(value)}>
+            <SelectTrigger className="w-[180px]">
+              <Calendar className="h-4 w-4 mr-2" />
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="week">Cette semaine</SelectItem>
+              <SelectItem value="month">Ce mois</SelectItem>
+              <SelectItem value="year">Cette année</SelectItem>
+              <SelectItem value="all">Tout le temps</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
       </CardHeader>
       <CardContent>
         <div className="space-y-3">
@@ -136,11 +171,12 @@ export default function OrdersLeaderboard() {
             leaderboard.map((entry) => (
               <div
                 key={entry.broker_id}
-                className={`flex items-center gap-4 p-4 rounded-lg border transition-all ${
+                className={`flex items-center gap-4 p-4 rounded-lg border transition-all cursor-pointer hover:scale-[1.02] ${
                   entry.rank <= 3
                     ? 'border-secondary bg-secondary/10'
                     : 'border-border bg-muted/30'
                 }`}
+                onClick={() => setSelectedBroker(entry.broker_id)}
               >
                 <div className="flex items-center justify-center w-10">
                   {getRankIcon(entry.rank)}
@@ -174,6 +210,11 @@ export default function OrdersLeaderboard() {
           )}
         </div>
       </CardContent>
+
+      <BrokerDetailsModal 
+        brokerId={selectedBroker} 
+        onClose={() => setSelectedBroker(null)} 
+      />
     </Card>
   );
 }
