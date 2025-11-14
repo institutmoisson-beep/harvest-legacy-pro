@@ -81,14 +81,14 @@ export default function OrderMonthlyGoals({ userId }: OrderMonthlyGoalsProps) {
       currentMonth.setDate(1);
       
       const { data, error } = await supabase
-        .from('order_monthly_goals')
+        .from('order_monthly_goals' as any)
         .select('*')
         .eq('broker_id', userId)
         .eq('month', currentMonth.toISOString().split('T')[0])
         .order('goal_type');
 
       if (error) throw error;
-      setGoals(data || []);
+      setGoals((data as any) || []);
     } catch (error) {
       console.error('Error fetching order goals:', error);
     } finally {

@@ -81,14 +81,14 @@ export default function AgentMonthlyGoals({ agentId }: AgentMonthlyGoalsProps) {
       currentMonth.setDate(1);
       
       const { data, error } = await supabase
-        .from('agent_monthly_goals')
+        .from('agent_monthly_goals' as any)
         .select('*')
         .eq('agent_id', agentId)
         .eq('month', currentMonth.toISOString().split('T')[0])
         .order('goal_type');
 
       if (error) throw error;
-      setGoals(data || []);
+      setGoals((data as any) || []);
     } catch (error) {
       console.error('Error fetching goals:', error);
     } finally {

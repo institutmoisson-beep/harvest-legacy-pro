@@ -18,9 +18,23 @@ export default function InstallPWA() {
 
   useEffect(() => {
     // Vérifier si déjà installé
-    if (window.matchMedia('(display-mode: standalone)').matches) {
-      setIsInstalled(true);
-    }
+    const checkInstalled = () => {
+      // Vérifier le mode d'affichage standalone
+      if (window.matchMedia('(display-mode: standalone)').matches) {
+        setIsInstalled(true);
+        return true;
+      }
+      
+      // Vérifier si c'est une PWA installée (alternative)
+      if ((window.navigator as any).standalone === true) {
+        setIsInstalled(true);
+        return true;
+      }
+      
+      return false;
+    };
+
+    checkInstalled();
 
     // Détecter iOS
     const iOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
@@ -28,11 +42,19 @@ export default function InstallPWA() {
 
     // Écouter l'événement beforeinstallprompt
     const handleBeforeInstall = (e: Event) => {
+      console.log('📱 Événement beforeinstallprompt détecté');
       e.preventDefault();
       setDeferredPrompt(e);
     };
 
     window.addEventListener('beforeinstallprompt', handleBeforeInstall);
+
+    // Vérifier si le service worker est enregistré
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.ready.then((registration) => {
+        console.log('✅ Service Worker prêt:', registration.active?.state);
+      });
+    }
 
     // Vérifier la permission des notifications
     if ('Notification' in window) {
@@ -45,26 +67,52 @@ export default function InstallPWA() {
   }, []);
 
   const handleInstall = async () => {
+    console.log('🔘 Bouton d\'installation cliqué');
+    console.log('📱 deferredPrompt disponible:', !!deferredPrompt);
+    
     if (!deferredPrompt) {
+      // Vérifier si déjà installé
+      if (isInstalled) {
+        toast({ 
+          title: 'Déjà installée', 
+          description: 'L\'application est déjà installée sur votre appareil',
+        });
+        return;
+      }
+      
+      // Donner des instructions pour l'installation manuelle
       toast({ 
-        title: 'Installation non disponible', 
-        description: 'Votre navigateur ne supporte pas l\'installation ou l\'app est déjà installée',
-        variant: 'destructive'
+        title: 'Installation manuelle requise', 
+        description: isIOS 
+          ? 'Sur iOS, utilisez le bouton Partager puis "Sur l\'écran d\'accueil"'
+          : 'Dans le menu de votre navigateur, cherchez "Installer l\'application" ou "Ajouter à l\'écran d\'accueil"',
+        duration: 6000
       });
       return;
     }
 
-    deferredPrompt.prompt();
-    const { outcome } = await deferredPrompt.userChoice;
+    try {
+      console.log('🚀 Déclenchement du prompt d\'installation...');
+      deferredPrompt.prompt();
+      const { outcome } = await deferredPrompt.userChoice;
+      console.log('📊 Résultat de l\'installation:', outcome);
 
-    if (outcome === 'accepted') {
-      toast({ title: 'Succès', description: 'Application installée avec succès!' });
-      setIsInstalled(true);
-    } else {
-      toast({ title: 'Installation annulée', description: 'Vous pouvez installer l\'app plus tard' });
+      if (outcome === 'accepted') {
+        toast({ title: '✅ Succès', description: 'Application installée avec succès!' });
+        setIsInstalled(true);
+      } else {
+        toast({ title: 'Installation annulée', description: 'Vous pouvez installer l\'app plus tard' });
+      }
+
+      setDeferredPrompt(null);
+    } catch (error) {
+      console.error('❌ Erreur lors de l\'installation:', error);
+      toast({ 
+        title: 'Erreur', 
+        description: 'Une erreur s\'est produite lors de l\'installation',
+        variant: 'destructive'
+      });
     }
-
-    setDeferredPrompt(null);
   };
 
   const handleEnableNotifications = async () => {
