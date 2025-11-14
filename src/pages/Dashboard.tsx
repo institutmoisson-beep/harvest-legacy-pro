@@ -21,6 +21,8 @@ import UserQRCode from '@/components/dashboard/UserQRCode';
 import CryptoPaymentOptions from '@/components/dashboard/CryptoPaymentOptions';
 import PromoCodesWidget from '@/components/dashboard/PromoCodesWidget';
 import NotificationsPanel from '@/components/dashboard/NotificationsPanel';
+import OfflineIndicator from '@/components/OfflineIndicator';
+import { useOfflineCache } from '@/hooks/useOfflineCache';
 
 interface Profile {
   full_name: string;
@@ -46,6 +48,13 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [hasAdminAccess, setHasAdminAccess] = useState(false);
   const [hasMerchantRole, setHasMerchantRole] = useState(false);
+  
+  // Active le cache hors-ligne
+  const {
+    isOnline,
+    getCachedProfile,
+    getCachedWallet,
+  } = useOfflineCache({ userId: user?.id, enabled: true });
 
   useEffect(() => {
     if (!user) {
@@ -55,6 +64,28 @@ export default function Dashboard() {
 
     const fetchUserData = async () => {
       try {
+        // En mode hors-ligne, utiliser le cache
+        if (!isOnline) {
+          console.log('📦 Mode hors-ligne: chargement depuis le cache');
+          const cachedProfile = getCachedProfile();
+          const cachedWallet = getCachedWallet();
+          
+          if (cachedProfile) setProfile(cachedProfile);
+          if (cachedWallet) setWallet(cachedWallet);
+          
+          if (!cachedProfile || !cachedWallet) {
+            toast({
+              title: "⚠️ Données limitées",
+              description: "Certaines données ne sont pas disponibles hors-ligne",
+              variant: "destructive",
+            });
+          }
+          
+          setLoading(false);
+          return;
+        }
+
+        // En ligne : récupérer les données fraîches
         // Fetch profile
         const { data: profileData, error: profileError } = await supabase
           .from('profiles')
@@ -102,7 +133,7 @@ export default function Dashboard() {
     };
 
     fetchUserData();
-  }, [user, navigate]);
+  }, [user, navigate, isOnline, getCachedProfile, getCachedWallet]);
 
   const fetchWalletBalance = async () => {
     const { data } = await supabase
@@ -186,6 +217,7 @@ export default function Dashboard() {
             <p className="text-muted-foreground mt-2">Votre tableau de bord Moissonneur</p>
           </div>
           <div className="flex gap-2 flex-wrap">
+            <OfflineIndicator />
             <Button onClick={() => navigate('/profile')} variant="outline" size="sm">
               <User className="h-4 w-4 mr-2" />
               Profil
