@@ -33,6 +33,7 @@ export default function AgentAnalytics({ agentId }: AgentAnalyticsProps) {
     volumeWithdrawals: 0,
   });
   const [trendData, setTrendData] = useState<TrendData[]>([]);
+  const [commissionsData, setCommissionsData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -87,6 +88,36 @@ export default function AgentAnalytics({ agentId }: AgentAnalyticsProps) {
       });
 
       setTrendData(trends);
+
+      // Fetch commissions data for last 12 months
+      const { data: commissionsHistory } = await supabase
+        .from('agent_commission_earnings')
+        .select('commission_amount, created_at')
+        .eq('agent_id', agentId)
+        .order('created_at', { ascending: true });
+
+      // Group by month
+      const last12Months = Array.from({ length: 12 }, (_, i) => {
+        const date = new Date();
+        date.setMonth(date.getMonth() - (11 - i));
+        return {
+          month: date.toISOString().slice(0, 7),
+          label: date.toLocaleDateString('fr-FR', { month: 'short', year: '2-digit' })
+        };
+      });
+
+      const commissionsMonthly = last12Months.map(({ month, label }) => {
+        const monthCommissions = commissionsHistory?.filter(c => 
+          c.created_at.startsWith(month)
+        ) || [];
+        
+        return {
+          month: label,
+          commissions: monthCommissions.reduce((sum, c) => sum + Number(c.commission_amount), 0)
+        };
+      });
+
+      setCommissionsData(commissionsMonthly);
     } catch (error) {
       console.error('Error fetching analytics:', error);
     } finally {

@@ -6,6 +6,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { FileText, Download, Calendar, TrendingUp, DollarSign, Activity } from 'lucide-react';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 
 interface AgentMonthlyReportProps {
   agentId: string;
@@ -65,38 +67,99 @@ export default function AgentMonthlyReport({ agentId }: AgentMonthlyReportProps)
     }
   };
 
-  const downloadReport = () => {
+  const downloadReportPDF = async () => {
     if (!currentReport) return;
 
     const reportDate = format(new Date(currentReport.report_month), 'MMMM yyyy', { locale: fr });
     
-    const csvContent = [
-      ['Rapport Mensuel des Commissions'],
-      ['Mois', reportDate],
-      [''],
-      ['Statistiques'],
-      ['Total Transactions', currentReport.total_transactions],
-      ['Dépôts', currentReport.deposit_count],
-      ['Retraits', currentReport.withdrawal_count],
+    // Fetch detailed transactions for this month
+    const startOfMonth = new Date(currentReport.report_month);
+    const endOfMonth = new Date(startOfMonth);
+    endOfMonth.setMonth(endOfMonth.getMonth() + 1);
+
+    const { data: transactions } = await supabase
+      .from('agent_commission_earnings')
+      .select('*')
+      .eq('agent_id', agentId)
+      .gte('created_at', startOfMonth.toISOString())
+      .lt('created_at', endOfMonth.toISOString())
+      .order('created_at', { ascending: false });
+
+    const doc = new jsPDF();
+    
+    // Header
+    doc.setFontSize(20);
+    doc.setTextColor(139, 92, 246); // primary color
+    doc.text('Rapport Mensuel Agent', 105, 20, { align: 'center' });
+    
+    doc.setFontSize(12);
+    doc.setTextColor(0, 0, 0);
+    doc.text(reportDate, 105, 30, { align: 'center' });
+    
+    // Summary Statistics
+    doc.setFontSize(14);
+    doc.setTextColor(139, 92, 246);
+    doc.text('Résumé des Performances', 14, 45);
+    
+    const summaryData = [
+      ['Total Transactions', currentReport.total_transactions.toString()],
+      ['Dépôts', currentReport.deposit_count.toString()],
+      ['Retraits', currentReport.withdrawal_count.toString()],
       ['Volume Total', `${Number(currentReport.total_volume).toFixed(2)} MSN`],
       ['Total Commissions', `${Number(currentReport.total_commission).toFixed(2)} MSN`],
       ['Taux Moyen', `${Number(currentReport.avg_commission_rate).toFixed(2)}%`],
       ['Palier Actuel', currentReport.current_tier || 'N/A'],
-    ]
-      .map(row => row.join(','))
-      .join('\n');
+    ];
 
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement('a');
-    const url = URL.createObjectURL(blob);
-    
-    link.setAttribute('href', url);
-    link.setAttribute('download', `rapport-commissions-${format(new Date(currentReport.report_month), 'yyyy-MM')}.csv`);
-    link.style.visibility = 'hidden';
-    
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    autoTable(doc, {
+      startY: 50,
+      head: [['Indicateur', 'Valeur']],
+      body: summaryData,
+      theme: 'striped',
+      headStyles: { fillColor: [139, 92, 246] },
+    });
+
+    // Detailed Transactions
+    if (transactions && transactions.length > 0) {
+      doc.addPage();
+      doc.setFontSize(14);
+      doc.setTextColor(139, 92, 246);
+      doc.text('Détail des Commissions', 14, 20);
+
+      const transactionData = transactions.map(t => [
+        format(new Date(t.created_at), 'dd/MM/yyyy', { locale: fr }),
+        t.transaction_type === 'deposit' ? 'Dépôt' : 'Retrait',
+        `${Number(t.transaction_amount).toFixed(2)} MSN`,
+        `${Number(t.commission_rate).toFixed(2)}%`,
+        `${Number(t.commission_amount).toFixed(2)} MSN`,
+        t.tier_name || '-'
+      ]);
+
+      autoTable(doc, {
+        startY: 25,
+        head: [['Date', 'Type', 'Montant', 'Taux', 'Commission', 'Palier']],
+        body: transactionData,
+        theme: 'striped',
+        headStyles: { fillColor: [139, 92, 246] },
+        styles: { fontSize: 8 },
+      });
+    }
+
+    // Footer
+    const pageCount = doc.getNumberOfPages();
+    for (let i = 1; i <= pageCount; i++) {
+      doc.setPage(i);
+      doc.setFontSize(8);
+      doc.setTextColor(128, 128, 128);
+      doc.text(
+        `Page ${i} sur ${pageCount}`,
+        doc.internal.pageSize.width / 2,
+        doc.internal.pageSize.height - 10,
+        { align: 'center' }
+      );
+    }
+
+    doc.save(`rapport-agent-${format(new Date(currentReport.report_month), 'yyyy-MM')}.pdf`);
   };
 
   if (loading) {
@@ -149,9 +212,9 @@ export default function AgentMonthlyReport({ agentId }: AgentMonthlyReportProps)
                 ))}
               </SelectContent>
             </Select>
-            <Button onClick={downloadReport} variant="outline" size="sm">
+            <Button onClick={downloadReportPDF} variant="default" size="sm">
               <Download className="h-4 w-4 mr-2" />
-              Exporter
+              Exporter PDF
             </Button>
           </div>
         </div>
