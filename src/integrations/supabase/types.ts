@@ -1420,6 +1420,30 @@ export type Database = {
         }
         Relationships: []
       }
+      permissions: {
+        Row: {
+          action: string
+          description: string | null
+          id: string
+          module: string
+          name: string
+        }
+        Insert: {
+          action: string
+          description?: string | null
+          id?: string
+          module: string
+          name: string
+        }
+        Update: {
+          action?: string
+          description?: string | null
+          id?: string
+          module?: string
+          name?: string
+        }
+        Relationships: []
+      }
       product_listings: {
         Row: {
           brand: string
@@ -1589,6 +1613,32 @@ export type Database = {
             columns: ["referrer_id"]
             isOneToOne: false
             referencedRelation: "super_admin_status"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      role_permissions: {
+        Row: {
+          id: string
+          permission_id: string
+          role: Database["public"]["Enums"]["app_role"]
+        }
+        Insert: {
+          id?: string
+          permission_id: string
+          role: Database["public"]["Enums"]["app_role"]
+        }
+        Update: {
+          id?: string
+          permission_id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "role_permissions_permission_id_fkey"
+            columns: ["permission_id"]
+            isOneToOne: false
+            referencedRelation: "permissions"
             referencedColumns: ["id"]
           },
         ]
@@ -2457,6 +2507,7 @@ export type Database = {
       }
       users_with_roles: {
         Row: {
+          created_at: string | null
           full_name: string | null
           id: string | null
           max_access_level: number | null
@@ -2517,6 +2568,15 @@ export type Database = {
         Args: { _role: Database["public"]["Enums"]["app_role"] }
         Returns: number
       }
+      get_role_permissions: {
+        Args: { _role: Database["public"]["Enums"]["app_role"] }
+        Returns: {
+          action: string
+          description: string
+          module: string
+          name: string
+        }[]
+      }
       get_super_admin_info: {
         Args: never
         Returns: {
@@ -2530,9 +2590,22 @@ export type Database = {
         }[]
       }
       get_user_max_access_level: { Args: { _user_id: string }; Returns: number }
+      get_user_permissions: {
+        Args: { _user_id: string }
+        Returns: {
+          action: string
+          description: string
+          module: string
+          name: string
+        }[]
+      }
       get_user_role: { Args: { _user_id: string }; Returns: string }
       has_access_level: {
         Args: { _min_level: number; _user_id: string }
+        Returns: boolean
+      }
+      has_permission: {
+        Args: { _action: string; _module: string; _user_id: string }
         Returns: boolean
       }
       has_role: {
