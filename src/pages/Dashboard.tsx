@@ -105,6 +105,17 @@ export default function Dashboard() {
           </div>
           <div className="flex gap-2 flex-wrap">
             <OfflineIndicator />
+            {hasAdminAccess && (
+              <Button 
+                onClick={() => navigate('/admin')} 
+                variant="default"
+                size="sm"
+                className="bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 font-semibold"
+              >
+                <Shield className="h-4 w-4 mr-2" />
+                Admin
+              </Button>
+            )}
             <Button onClick={() => navigate('/profile')} variant="outline" size="sm">
               <User className="h-4 w-4 mr-2" />
               Profil
