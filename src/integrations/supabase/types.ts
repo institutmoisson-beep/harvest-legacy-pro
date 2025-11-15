@@ -2119,6 +2119,7 @@ export type Database = {
         Args: { p_amount: number; p_user_id: string }
         Returns: undefined
       }
+      ensure_super_admin: { Args: never; Returns: undefined }
       generate_referral_code: { Args: never; Returns: string }
       get_agent_tier: {
         Args: { p_agent_id: string }
@@ -2132,6 +2133,18 @@ export type Database = {
       get_role_access_level: {
         Args: { _role: Database["public"]["Enums"]["app_role"] }
         Returns: number
+      }
+      get_super_admin_info: {
+        Args: never
+        Returns: {
+          access_level: number
+          email: string
+          full_name: string
+          phone: string
+          referral_code: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }[]
       }
       get_user_max_access_level: { Args: { _user_id: string }; Returns: number }
       has_access_level: {
@@ -2151,6 +2164,7 @@ export type Database = {
       }
       initialize_agent_monthly_goals: { Args: never; Returns: undefined }
       initialize_order_monthly_goals: { Args: never; Returns: undefined }
+      is_super_admin: { Args: never; Returns: boolean }
       is_tontine_participant: {
         Args: { _tontine_id: string; _user_id?: string }
         Returns: boolean
