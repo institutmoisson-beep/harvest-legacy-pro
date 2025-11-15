@@ -28,6 +28,7 @@ import TontineDashboard from "./pages/TontineDashboard";
 import OrdersDashboard from "./pages/OrdersDashboard";
 import NotificationsCenter from "./pages/NotificationsCenter";
 import InstallPWA from "./pages/InstallPWA";
+import LevelAdmin from "./pages/LevelAdmin";
 import NotFound from "./pages/NotFound";
 import { supabase } from '@/integrations/supabase/client';
 
@@ -69,6 +70,7 @@ const AppContent = () => {
       <Route path="/notifications" element={<NotificationsCenter />} />
       <Route path="/install" element={<InstallPWA />} />
       <Route path="/support" element={<SupportChat />} />
+      <Route path="/level-admin" element={<LevelAdmin />} />
       {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
       <Route path="*" element={<NotFound />} />
     </Routes>

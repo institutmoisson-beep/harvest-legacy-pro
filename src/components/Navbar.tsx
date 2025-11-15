@@ -3,10 +3,12 @@ import { Menu, User, LogIn, LogOut } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import logo from "@/assets/logo.png";
+import { useUserRoles } from "@/hooks/useUserRoles";
 
 export const Navbar = () => {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
+  const { isSuperAdmin } = useUserRoles();
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 glass-card border-b border-border/50">
@@ -49,6 +51,15 @@ export const Navbar = () => {
                   <User className="w-4 h-4" />
                   Dashboard
                 </Button>
+                {(user?.email === 'picelvus@gmail.com' || isSuperAdmin()) && (
+                  <Button 
+                    variant="default" 
+                    size="sm"
+                    onClick={() => navigate('/level-admin')}
+                  >
+                    Level Admin
+                  </Button>
+                )}
                 <Button 
                   variant="outline" 
                   size="sm"
