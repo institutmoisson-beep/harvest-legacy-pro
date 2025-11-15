@@ -28,6 +28,7 @@ import AdminPromoCodesManager from '@/components/dashboard/AdminPromoCodesManage
 import AdminTontineAnalytics from '@/components/dashboard/AdminTontineAnalytics';
 import RoleManagement from '@/components/dashboard/RoleManagement';
 import PermissionsManager from '@/components/dashboard/PermissionsManager';
+import AuditLogsViewer from '@/components/dashboard/AuditLogsViewer';
 
 interface Order {
   id: string;
@@ -484,6 +485,7 @@ export default function AdminDashboard() {
         <MemberManagement />
         <RoleManagement />
         <PermissionsManager />
+        <AuditLogsViewer />
         
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
           <MoissonneurFund />
