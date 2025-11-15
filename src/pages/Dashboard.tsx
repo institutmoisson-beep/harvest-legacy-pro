@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback, useMemo } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -22,7 +22,8 @@ import CryptoPaymentOptions from '@/components/dashboard/CryptoPaymentOptions';
 import PromoCodesWidget from '@/components/dashboard/PromoCodesWidget';
 import NotificationsPanel from '@/components/dashboard/NotificationsPanel';
 import OfflineIndicator from '@/components/OfflineIndicator';
-import { useOfflineCache } from '@/hooks/useOfflineCache';
+import { useDashboardData } from '@/hooks/useDashboardData';
+import { useQueryClient } from '@tanstack/react-query';
 
 interface Profile {
   full_name: string;
@@ -42,158 +43,42 @@ interface Stats {
 export default function Dashboard() {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
-  const [profile, setProfile] = useState<Profile | null>(null);
-  const [wallet, setWallet] = useState<WalletData | null>(null);
-  const [stats, setStats] = useState<Stats>({ directReferrals: 0, totalCommissions: 0 });
-  const [loading, setLoading] = useState(true);
-  const [hasAdminAccess, setHasAdminAccess] = useState(false);
-  const [hasMerchantRole, setHasMerchantRole] = useState(false);
+  const queryClient = useQueryClient();
   
-  // Active le cache hors-ligne
-  const {
-    isOnline,
-    getCachedProfile,
-    getCachedWallet,
-  } = useOfflineCache({ userId: user?.id, enabled: true });
+  // Hook optimisé avec React Query pour cache et performance
+  const { profile, wallet, stats, hasAdminAccess, hasMerchantRole, isLoading } = useDashboardData(user?.id);
 
   useEffect(() => {
-    if (!user) {
-      navigate('/auth');
-      return;
-    }
-
-    const fetchUserData = async () => {
-      try {
-        // En mode hors-ligne, utiliser le cache
-        if (!isOnline) {
-          console.log('📦 Mode hors-ligne: chargement depuis le cache');
-          const cachedProfile = getCachedProfile();
-          const cachedWallet = getCachedWallet();
-          
-          if (cachedProfile) setProfile(cachedProfile);
-          if (cachedWallet) setWallet(cachedWallet);
-          
-          if (!cachedProfile || !cachedWallet) {
-            toast({
-              title: "⚠️ Données limitées",
-              description: "Certaines données ne sont pas disponibles hors-ligne",
-              variant: "destructive",
-            });
-          }
-          
-          setLoading(false);
-          return;
-        }
-
-        // En ligne : récupérer les données fraîches
-        // Fetch profile
-        const { data: profileData, error: profileError } = await supabase
-          .from('profiles')
-          .select('full_name, referral_code, phone')
-          .eq('id', user.id)
-          .single();
-
-        if (profileError) throw profileError;
-        setProfile(profileData);
-
-        // Fetch wallet
-        const { data: walletData, error: walletError } = await supabase
-          .from('wallets')
-          .select('balance')
-          .eq('user_id', user.id)
-          .single();
-
-        if (walletError) throw walletError;
-        setWallet(walletData);
-
-        // Check admin access
-        const { data: roles } = await supabase
-          .from('user_roles')
-          .select('role')
-          .eq('user_id', user.id);
-
-        const hasAccess = roles?.some(r => r.role === 'admin' || r.role === 'financier');
-        setHasAdminAccess(hasAccess || false);
-
-        const isMerchant = roles?.some(r => (r as any).role === 'merchant');
-        setHasMerchantRole(isMerchant || false);
-
-        // Fetch stats
-        await fetchStats();
-
-      } catch (error: any) {
-        toast({
-          title: "Erreur",
-          description: error.message,
-          variant: "destructive",
-        });
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchUserData();
-  }, [user, navigate, isOnline, getCachedProfile, getCachedWallet]);
-
-  const fetchWalletBalance = async () => {
-    const { data } = await supabase
-      .from('wallets')
-      .select('balance')
-      .eq('user_id', user.id)
-      .single();
-    if (data) setWallet(data);
-  };
-
-  const fetchStats = async () => {
-    if (!user) return;
-
-    // Count direct referrals
-    const { count: referralCount } = await supabase
-      .from('referrals')
-      .select('*', { count: 'exact', head: true })
-      .eq('referrer_id', user.id)
-      .eq('level', 1);
-
-    // Sum total commissions
-    const { data: commissionsData } = await supabase
-      .from('commissions')
-      .select('amount')
-      .eq('user_id', user.id);
-
-    const totalCommissions = commissionsData?.reduce((sum, c) => sum + Number(c.amount), 0) || 0;
-
-    setStats({
-      directReferrals: referralCount || 0,
-      totalCommissions: totalCommissions,
-    });
-  };
+    if (!user) navigate('/auth');
+  }, [user, navigate]);
 
   useEffect(() => {
-    if (!user) return;
-    const channel = supabase
-      .channel('dashboard-realtime')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'wallets', filter: `user_id=eq.${user.id}` }, () => fetchWalletBalance())
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'commissions', filter: `user_id=eq.${user.id}` }, () => fetchStats())
+    if (!user?.id) return;
+    const channel = supabase.channel(`dashboard-${user.id}`)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'wallets', filter: `user_id=eq.${user.id}` }, 
+        () => queryClient.invalidateQueries({ queryKey: ['wallet', user.id] }))
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'commissions', filter: `user_id=eq.${user.id}` }, 
+        () => queryClient.invalidateQueries({ queryKey: ['dashboard-stats', user.id] }))
       .subscribe();
+    return () => supabase.removeChannel(channel);
+  }, [user?.id, queryClient]);
 
-    return () => { supabase.removeChannel(channel); };
-  }, [user?.id]);
+  const copyReferralLink = useCallback(() => {
+    if (!profile?.referral_code) return;
+    navigator.clipboard.writeText(`${window.location.origin}/auth?ref=${profile.referral_code}`);
+    toast({ title: "Lien copié !", description: "Le lien de parrainage a été copié" });
+  }, [profile?.referral_code]);
 
-  const copyReferralCode = () => {
-    if (profile?.referral_code) {
-      const referralLink = `${window.location.origin}/auth?ref=${profile.referral_code}`;
-      navigator.clipboard.writeText(referralLink);
-      toast({
-        title: "Lien copié !",
-        description: "Le lien de parrainage a été copié dans le presse-papier.",
-      });
-    }
-  };
+  const formattedBalance = useMemo(() => wallet?.balance?.toFixed(2) || '0.00', [wallet?.balance]);
+  const formattedCommissions = useMemo(() => stats?.totalCommissions?.toFixed(2) || '0.00', [stats?.totalCommissions]);
 
-  if (loading) {
+  if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-background to-primary/5">
+        <div className="text-center space-y-4">
+          <Loader2 className="h-12 w-12 animate-spin mx-auto text-primary" />
+          <p className="text-muted-foreground">Chargement...</p>
+        </div>
       </div>
     );
   }
