@@ -2107,7 +2107,6 @@ export type Database = {
       }
       users_with_roles: {
         Row: {
-          created_at: string | null
           full_name: string | null
           id: string | null
           max_access_level: number | null
