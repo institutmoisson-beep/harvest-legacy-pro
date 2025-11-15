@@ -100,12 +100,12 @@ export const useOfflineCache = ({ userId, enabled = true }: UseOfflineCacheProps
 
     cacheUserData();
 
-    // Rafraîchir le cache toutes les 5 minutes quand en ligne
+    // Rafraîchir le cache toutes les 10 minutes quand en ligne (réduit de 5 à 10)
     const interval = setInterval(() => {
       if (isOnline) {
         cacheUserData();
       }
-    }, 5 * 60 * 1000);
+    }, 10 * 60 * 1000);
 
     return () => clearInterval(interval);
   }, [userId, enabled, isOnline, cacheData, CACHE_KEYS]);
