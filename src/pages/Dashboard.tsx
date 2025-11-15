@@ -74,7 +74,7 @@ export default function Dashboard() {
   const formattedBalance = useMemo(() => wallet?.balance?.toFixed(2) || '0.00', [wallet?.balance]);
   const formattedCommissions = useMemo(() => stats?.totalCommissions?.toFixed(2) || '0.00', [stats?.totalCommissions]);
 
-  if (isLoading) {
+  if (isLoading || !user) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-background to-primary/5">
         <div className="text-center space-y-4">
@@ -256,9 +256,11 @@ export default function Dashboard() {
         </Card>
 
         {/* Career Progress Section - Full Width */}
-        <div className="mb-8">
-          <CareerProgressSection userId={user.id} />
-        </div>
+        {user?.id && (
+          <div className="mb-8">
+            <CareerProgressSection userId={user.id} />
+          </div>
+        )}
 
         {/* Investment Button */}
         <div className="mb-8 grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -298,10 +300,12 @@ export default function Dashboard() {
         {/* Main Content - Grid Layout */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
           {/* Wallet Section */}
-          <WalletSection 
-            balance={wallet?.balance || 0} 
-            userId={user.id}
-          />
+          {user?.id && (
+            <WalletSection 
+              balance={wallet?.balance || 0} 
+              userId={user.id}
+            />
+          )}
 
           {/* Crypto Payment Options */}
           <CryptoPaymentOptions />
@@ -310,10 +314,12 @@ export default function Dashboard() {
           <MoissonneurFund />
 
           {/* Orders Section */}
-          <OrdersSection 
-            userId={user.id}
-            brokerCode={profile?.referral_code || ''}
-          />
+          {user?.id && (
+            <OrdersSection 
+              userId={user.id}
+              brokerCode={profile?.referral_code || ''}
+            />
+          )}
 
           {/* Share Buttons */}
           <ShareButtons referralCode={profile?.referral_code || ''} />
@@ -322,16 +328,18 @@ export default function Dashboard() {
           <UserQRCode />
 
           {/* Referral Tree */}
-          <ReferralTreeSection userId={user.id} />
+          {user?.id && <ReferralTreeSection userId={user.id} />}
         </div>
 
         {/* User Orders - Full Width */}
-        <div className="mb-8">
-          <UserOrdersList userId={user.id} />
-        </div>
+        {user?.id && (
+          <div className="mb-8">
+            <UserOrdersList userId={user.id} />
+          </div>
+        )}
 
         {/* Transaction History - Full Width */}
-        <TransactionHistorySection userId={user.id} />
+        {user?.id && <TransactionHistorySection userId={user.id} />}
       </div>
     </div>
   );
