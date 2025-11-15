@@ -39,14 +39,12 @@ export function usePermissions() {
 
       if (error) {
         console.error('Error fetching permissions:', error);
-        // En cas d'erreur, on vérifie si l'utilisateur est super admin
-        const { data: roles } = await supabase
-          .from('user_roles')
-          .select('access_level')
-          .eq('user_id', user.id);
-        
-        // Si super admin, on donne toutes les permissions
-        if (roles && roles.some((r: any) => r.access_level >= 100)) {
+        // Fallback: check max access level via RPC (bypasses RLS)
+        const { data: maxLevel } = (await supabase.rpc('get_user_max_access_level' as any, {
+          _user_id: user.id,
+        })) as any;
+
+        if (typeof maxLevel === 'number' && maxLevel >= 100) {
           setPermissions([
             { module: 'all', action: 'all', name: 'Super Admin', description: 'Accès complet' }
           ]);
