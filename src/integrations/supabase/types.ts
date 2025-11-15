@@ -87,7 +87,22 @@ export type Database = {
           updated_at?: string | null
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "admin_chat_conversations_assigned_admin_id_fkey"
+            columns: ["assigned_admin_id"]
+            isOneToOne: false
+            referencedRelation: "super_admin_status"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "admin_chat_conversations_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "super_admin_status"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       admin_chat_messages: {
         Row: {
@@ -123,6 +138,13 @@ export type Database = {
             columns: ["conversation_id"]
             isOneToOne: false
             referencedRelation: "admin_chat_conversations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "admin_chat_messages_sender_id_fkey"
+            columns: ["sender_id"]
+            isOneToOne: false
+            referencedRelation: "super_admin_status"
             referencedColumns: ["id"]
           },
         ]
@@ -359,6 +381,13 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "agent_earned_badges_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "super_admin_status"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "agent_earned_badges_badge_id_fkey"
             columns: ["badge_id"]
             isOneToOne: false
@@ -443,7 +472,15 @@ export type Database = {
           target_value?: number
           updated_at?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "agent_monthly_goals_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "super_admin_status"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       agent_transactions: {
         Row: {
@@ -479,7 +516,22 @@ export type Database = {
           transaction_type?: string
           updated_at?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "agent_transactions_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "super_admin_status"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "agent_transactions_member_id_fkey"
+            columns: ["member_id"]
+            isOneToOne: false
+            referencedRelation: "super_admin_status"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       call_recordings: {
         Row: {
@@ -515,6 +567,13 @@ export type Database = {
             columns: ["call_id"]
             isOneToOne: false
             referencedRelation: "group_voice_calls"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "call_recordings_recorded_by_fkey"
+            columns: ["recorded_by"]
+            isOneToOne: false
+            referencedRelation: "super_admin_status"
             referencedColumns: ["id"]
           },
         ]
@@ -553,7 +612,22 @@ export type Database = {
           status?: string
           updated_at?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "call_sessions_callee_id_fkey"
+            columns: ["callee_id"]
+            isOneToOne: false
+            referencedRelation: "super_admin_status"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "call_sessions_caller_id_fkey"
+            columns: ["caller_id"]
+            isOneToOne: false
+            referencedRelation: "super_admin_status"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       commissions: {
         Row: {
@@ -595,6 +669,20 @@ export type Database = {
             columns: ["order_id"]
             isOneToOne: false
             referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "commissions_source_user_id_fkey"
+            columns: ["source_user_id"]
+            isOneToOne: false
+            referencedRelation: "super_admin_status"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "commissions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "super_admin_status"
             referencedColumns: ["id"]
           },
         ]
@@ -690,7 +778,15 @@ export type Database = {
           id?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "fund_contributions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "super_admin_status"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       fund_withdrawals: {
         Row: {
@@ -717,7 +813,15 @@ export type Database = {
           id?: string
           reason?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "fund_withdrawals_admin_id_fkey"
+            columns: ["admin_id"]
+            isOneToOne: false
+            referencedRelation: "super_admin_status"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       group_call_messages: {
         Row: {
@@ -747,6 +851,13 @@ export type Database = {
             columns: ["call_id"]
             isOneToOne: false
             referencedRelation: "group_voice_calls"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "group_call_messages_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "super_admin_status"
             referencedColumns: ["id"]
           },
         ]
@@ -782,6 +893,13 @@ export type Database = {
             columns: ["call_id"]
             isOneToOne: false
             referencedRelation: "group_voice_calls"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "group_call_participants_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "super_admin_status"
             referencedColumns: ["id"]
           },
         ]
@@ -822,6 +940,20 @@ export type Database = {
             referencedRelation: "group_voice_calls"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "group_call_signals_from_user_id_fkey"
+            columns: ["from_user_id"]
+            isOneToOne: false
+            referencedRelation: "super_admin_status"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "group_call_signals_to_user_id_fkey"
+            columns: ["to_user_id"]
+            isOneToOne: false
+            referencedRelation: "super_admin_status"
+            referencedColumns: ["id"]
+          },
         ]
       }
       group_voice_calls: {
@@ -849,7 +981,15 @@ export type Database = {
           is_active?: boolean | null
           name?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "group_voice_calls_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "super_admin_status"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       investment_payment_history: {
         Row: {
@@ -935,7 +1075,15 @@ export type Database = {
           total_profit?: number | null
           updated_at?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "investment_products_investor_id_fkey"
+            columns: ["investor_id"]
+            isOneToOne: false
+            referencedRelation: "super_admin_status"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       investment_sales: {
         Row: {
@@ -1065,7 +1213,22 @@ export type Database = {
           read?: boolean | null
           to_user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "messages_from_user_id_fkey"
+            columns: ["from_user_id"]
+            isOneToOne: false
+            referencedRelation: "super_admin_status"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "messages_to_user_id_fkey"
+            columns: ["to_user_id"]
+            isOneToOne: false
+            referencedRelation: "super_admin_status"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       moissonneur_fund: {
         Row: {
@@ -1161,7 +1324,15 @@ export type Database = {
           target_value?: number
           updated_at?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "order_monthly_goals_broker_id_fkey"
+            columns: ["broker_id"]
+            isOneToOne: false
+            referencedRelation: "super_admin_status"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       orders: {
         Row: {
@@ -1209,7 +1380,15 @@ export type Database = {
           updated_at?: string | null
           validated_at?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "orders_broker_id_fkey"
+            columns: ["broker_id"]
+            isOneToOne: false
+            referencedRelation: "super_admin_status"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       payment_contacts: {
         Row: {
@@ -1281,7 +1460,15 @@ export type Database = {
           updated_at?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "product_listings_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "super_admin_status"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       profiles: {
         Row: {
@@ -1345,6 +1532,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "profiles_id_fkey"
+            columns: ["id"]
+            isOneToOne: true
+            referencedRelation: "super_admin_status"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "profiles_referred_by_fkey"
             columns: ["referred_by"]
             isOneToOne: false
@@ -1382,7 +1576,22 @@ export type Database = {
           referred_id?: string
           referrer_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "referrals_referred_id_fkey"
+            columns: ["referred_id"]
+            isOneToOne: false
+            referencedRelation: "super_admin_status"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "referrals_referrer_id_fkey"
+            columns: ["referrer_id"]
+            isOneToOne: false
+            referencedRelation: "super_admin_status"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       shop_orders: {
         Row: {
@@ -1563,7 +1772,15 @@ export type Database = {
           shop_url_slug?: string | null
           user_id?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "shop_settings_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "super_admin_status"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       tontine_drawings: {
         Row: {
@@ -1598,6 +1815,13 @@ export type Database = {
             referencedRelation: "tontines"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "tontine_drawings_winner_id_fkey"
+            columns: ["winner_id"]
+            isOneToOne: false
+            referencedRelation: "super_admin_status"
+            referencedColumns: ["id"]
+          },
         ]
       }
       tontine_messages: {
@@ -1628,6 +1852,13 @@ export type Database = {
             columns: ["tontine_id"]
             isOneToOne: false
             referencedRelation: "tontines"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tontine_messages_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "super_admin_status"
             referencedColumns: ["id"]
           },
         ]
@@ -1666,6 +1897,13 @@ export type Database = {
             columns: ["tontine_id"]
             isOneToOne: false
             referencedRelation: "tontines"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tontine_participants_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "super_admin_status"
             referencedColumns: ["id"]
           },
         ]
@@ -1753,6 +1991,13 @@ export type Database = {
             referencedRelation: "tontines"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "tontine_payments_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "super_admin_status"
+            referencedColumns: ["id"]
+          },
         ]
       }
       tontines: {
@@ -1795,7 +2040,15 @@ export type Database = {
           status?: string | null
           updated_at?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "tontines_creator_id_fkey"
+            columns: ["creator_id"]
+            isOneToOne: false
+            referencedRelation: "super_admin_status"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       treasury: {
         Row: {
@@ -1875,6 +2128,13 @@ export type Database = {
             referencedRelation: "achievement_badges"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "user_earned_badges_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "super_admin_status"
+            referencedColumns: ["id"]
+          },
         ]
       }
       user_locations: {
@@ -1914,7 +2174,22 @@ export type Database = {
           updated_at?: string | null
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "user_locations_shared_with_user_id_fkey"
+            columns: ["shared_with_user_id"]
+            isOneToOne: false
+            referencedRelation: "super_admin_status"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_locations_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "super_admin_status"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_qr_codes: {
         Row: {
@@ -1938,7 +2213,15 @@ export type Database = {
           updated_at?: string | null
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "user_qr_codes_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "super_admin_status"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_roles: {
         Row: {
@@ -1962,7 +2245,15 @@ export type Database = {
           role?: Database["public"]["Enums"]["app_role"]
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "user_roles_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "super_admin_status"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       visits: {
         Row: {
@@ -1992,7 +2283,15 @@ export type Database = {
           user_agent?: string | null
           user_id?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "visits_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "super_admin_status"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       wallet_transactions: {
         Row: {
@@ -2031,7 +2330,22 @@ export type Database = {
           to_user_id?: string | null
           transaction_type?: Database["public"]["Enums"]["transaction_type"]
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "wallet_transactions_from_user_id_fkey"
+            columns: ["from_user_id"]
+            isOneToOne: false
+            referencedRelation: "super_admin_status"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "wallet_transactions_to_user_id_fkey"
+            columns: ["to_user_id"]
+            isOneToOne: false
+            referencedRelation: "super_admin_status"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       wallets: {
         Row: {
@@ -2055,7 +2369,15 @@ export type Database = {
           updated_at?: string | null
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "wallets_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "super_admin_status"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
@@ -2073,7 +2395,15 @@ export type Database = {
           total_volume: number | null
           withdrawal_count: number | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "agent_transactions_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "super_admin_status"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       agent_monthly_commission_report: {
         Row: {
@@ -2103,6 +2433,26 @@ export type Database = {
           monthly_withdrawals: number | null
           performance_month: string | null
         }
+        Relationships: [
+          {
+            foreignKeyName: "agent_transactions_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "super_admin_status"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      super_admin_status: {
+        Row: {
+          access_level: number | null
+          email: string | null
+          full_name: string | null
+          id: string | null
+          is_super_admin: boolean | null
+          referral_code: string | null
+          role: Database["public"]["Enums"]["app_role"] | null
+        }
         Relationships: []
       }
       users_with_roles: {
@@ -2114,7 +2464,15 @@ export type Database = {
           referral_code: string | null
           roles: Json | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "profiles_id_fkey"
+            columns: ["id"]
+            isOneToOne: true
+            referencedRelation: "super_admin_status"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Functions: {
