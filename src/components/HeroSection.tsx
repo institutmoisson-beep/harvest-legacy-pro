@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { Sparkles, Users, TrendingUp } from "lucide-react";
+import { Sparkles, Users, TrendingUp, MessageCircle, Send } from "lucide-react";
 import heroBackground from "@/assets/hero-background.jpg";
 
 export const HeroSection = () => {
@@ -82,6 +82,28 @@ export const HeroSection = () => {
             >
               <TrendingUp className="w-5 h-5" />
               Explorer le Réseau
+            </Button>
+          </div>
+
+          {/* Social Media Buttons */}
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-6">
+            <Button 
+              variant="outline" 
+              size="lg" 
+              className="w-full sm:w-auto bg-green-600 hover:bg-green-700 text-white border-green-600"
+              onClick={() => window.open('https://chat.whatsapp.com/CskEjfoIc660rXnbx7T0oz?mode=wwt', '_blank')}
+            >
+              <MessageCircle className="w-5 h-5" />
+              Rejoindre WhatsApp
+            </Button>
+            <Button 
+              variant="outline" 
+              size="lg" 
+              className="w-full sm:w-auto bg-blue-500 hover:bg-blue-600 text-white border-blue-500"
+              onClick={() => window.open('https://t.me/+1zoaiLGzw0UzMjc8', '_blank')}
+            >
+              <Send className="w-5 h-5" />
+              Rejoindre Telegram
             </Button>
           </div>
 

@@ -26,6 +26,7 @@ import MoissonneurFund from '@/components/dashboard/MoissonneurFund';
 import CryptoPaymentOptions from '@/components/dashboard/CryptoPaymentOptions';
 import AdminPromoCodesManager from '@/components/dashboard/AdminPromoCodesManager';
 import AdminTontineAnalytics from '@/components/dashboard/AdminTontineAnalytics';
+import RoleManagement from '@/components/dashboard/RoleManagement';
 
 interface Order {
   id: string;
@@ -480,6 +481,7 @@ export default function AdminDashboard() {
         <AdminTransactionsSection />
         <VisitsAnalyticsSection />
         <MemberManagement />
+        <RoleManagement />
         
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
           <MoissonneurFund />
