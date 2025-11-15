@@ -1928,18 +1928,21 @@ export type Database = {
       }
       user_roles: {
         Row: {
+          access_level: number | null
           created_at: string | null
           id: string
           role: Database["public"]["Enums"]["app_role"]
           user_id: string
         }
         Insert: {
+          access_level?: number | null
           created_at?: string | null
           id?: string
           role: Database["public"]["Enums"]["app_role"]
           user_id: string
         }
         Update: {
+          access_level?: number | null
           created_at?: string | null
           id?: string
           role?: Database["public"]["Enums"]["app_role"]
@@ -2125,6 +2128,15 @@ export type Database = {
           tier_level: number
           tier_name: string
         }[]
+      }
+      get_role_access_level: {
+        Args: { _role: Database["public"]["Enums"]["app_role"] }
+        Returns: number
+      }
+      get_user_max_access_level: { Args: { _user_id: string }; Returns: number }
+      has_access_level: {
+        Args: { _min_level: number; _user_id: string }
+        Returns: boolean
       }
       has_role: {
         Args: {
