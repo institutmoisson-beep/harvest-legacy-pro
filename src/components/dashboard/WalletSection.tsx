@@ -13,7 +13,7 @@ const MSN_TO_FCFA = 750;
 interface WalletSectionProps {
   balance: number;
   userId: string;
-  onBalanceUpdate: () => void;
+  onBalanceUpdate?: () => void;
 }
 
 export default function WalletSection({ balance, userId, onBalanceUpdate }: WalletSectionProps) {
@@ -71,7 +71,7 @@ export default function WalletSection({ balance, userId, onBalanceUpdate }: Wall
 
       setDepositAmount('');
       setTransactionId('');
-      onBalanceUpdate();
+      onBalanceUpdate?.();
     } catch (error: any) {
       toast({
         title: "Erreur",
@@ -128,7 +128,7 @@ export default function WalletSection({ balance, userId, onBalanceUpdate }: Wall
       setWithdrawAmount('');
       setPaymentMethod('');
       setPaymentContact('');
-      onBalanceUpdate();
+      onBalanceUpdate?.();
     } catch (error: any) {
       toast({
         title: "Erreur",
@@ -175,7 +175,7 @@ export default function WalletSection({ balance, userId, onBalanceUpdate }: Wall
 
       setTransferAmount('');
       setRecipientIdentifier('');
-      onBalanceUpdate();
+      onBalanceUpdate?.();
     } catch (error: any) {
       toast({
         title: "Erreur",
