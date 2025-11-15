@@ -1,13 +1,15 @@
 import { useEffect, useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
+import { useUserRoles } from '@/hooks/useUserRoles';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { Loader2, Shield, TrendingUp, Users, Wallet, UserCog } from 'lucide-react';
+import { Loader2, Shield, TrendingUp, Users, Wallet, UserCog, Lock } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   Table,
   TableBody,
@@ -60,9 +62,10 @@ interface Transaction {
 
 export default function AdminDashboard() {
   const { user, signOut } = useAuth();
+  const { isSuperAdmin, isAdmin, hasAccessLevel, loading: rolesLoading } = useUserRoles();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
-  const [isAdmin, setIsAdmin] = useState(false);
+  const [hasAccess, setHasAccess] = useState(false);
   const [orders, setOrders] = useState<Order[]>([]);
   const [wallets, setWallets] = useState<UserWallet[]>([]);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
@@ -79,19 +82,12 @@ export default function AdminDashboard() {
       return;
     }
 
+    if (rolesLoading) return;
+
     const checkAdminAccess = async () => {
       try {
-        // Check if user has admin or financier role
-        const { data: roles, error: rolesError } = await supabase
-          .from('user_roles')
-          .select('role')
-          .eq('user_id', user.id);
-
-        if (rolesError) throw rolesError;
-
-        const hasAccess = roles?.some(r => r.role === 'admin' || r.role === 'financier');
-        
-        if (!hasAccess) {
+        // Check if user has at least level 80 access (admin or higher)
+        if (!hasAccessLevel(80)) {
           toast({
             title: "Accès refusé",
             description: "Vous n'avez pas les permissions nécessaires",
@@ -101,7 +97,7 @@ export default function AdminDashboard() {
           return;
         }
 
-        setIsAdmin(true);
+        setHasAccess(true);
         await fetchData();
       } catch (error: any) {
         toast({
@@ -116,7 +112,7 @@ export default function AdminDashboard() {
     };
 
     checkAdminAccess();
-  }, [user, navigate]);
+  }, [user, rolesLoading, hasAccessLevel, navigate]);
 
   const fetchData = async () => {
     try {
@@ -230,7 +226,7 @@ export default function AdminDashboard() {
     };
   }, []);
 
-  if (loading) {
+  if (loading || rolesLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -238,7 +234,7 @@ export default function AdminDashboard() {
     );
   }
 
-  if (!isAdmin) {
+  if (!hasAccess) {
     return null;
   }
 
@@ -249,10 +245,14 @@ export default function AdminDashboard() {
         <div className="flex justify-between items-center mb-8">
           <div>
             <h1 className="text-4xl font-bold gradient-text-cosmic flex items-center gap-2">
-              <Shield className="h-10 w-10" />
-              Super Dashboard Admin
+              {isSuperAdmin() && <Shield className="h-10 w-10 text-primary" />}
+              {isSuperAdmin() ? 'Super Dashboard Admin' : 'Dashboard Administrateur'}
             </h1>
-            <p className="text-muted-foreground mt-2">Vue d'ensemble complète</p>
+            <p className="text-muted-foreground mt-2">
+              {isSuperAdmin() 
+                ? 'Contrôle total de la plateforme - Niveau 100' 
+                : 'Vue d\'ensemble et gestion administrative'}
+            </p>
           </div>
           <div className="flex gap-2">
             <Button onClick={() => navigate('/dashboard')} variant="outline">
@@ -483,9 +483,84 @@ export default function AdminDashboard() {
         <AdminTransactionsSection />
         <VisitsAnalyticsSection />
         <MemberManagement />
-        <RoleManagement />
-        <PermissionsManager />
-        <AuditLogsViewer />
+        {/* Super Admin Only - Management & Security */}
+        {isSuperAdmin() && (
+          <Tabs defaultValue="roles" className="w-full mb-8">
+            <TabsList className="grid w-full grid-cols-3">
+              <TabsTrigger value="roles">
+                <UserCog className="mr-2 h-4 w-4" />
+                Gestion des Rôles
+              </TabsTrigger>
+              <TabsTrigger value="permissions">
+                <Lock className="mr-2 h-4 w-4" />
+                Permissions
+              </TabsTrigger>
+              <TabsTrigger value="audit">
+                <Shield className="mr-2 h-4 w-4" />
+                Logs d'Audit
+              </TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="roles" className="space-y-4">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Gestion des Rôles Utilisateurs</CardTitle>
+                  <CardDescription>
+                    Attribuez et gérez les rôles de tous les utilisateurs de la plateforme
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <RoleManagement />
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="permissions" className="space-y-4">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Configuration des Permissions</CardTitle>
+                  <CardDescription>
+                    Définissez les permissions spécifiques pour chaque rôle
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <PermissionsManager />
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="audit" className="space-y-4">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Historique des Actions</CardTitle>
+                  <CardDescription>
+                    Consultez tous les changements de permissions et d'accès avec détails complets
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <AuditLogsViewer />
+                </CardContent>
+              </Card>
+            </TabsContent>
+          </Tabs>
+        )}
+
+        {/* Access Restricted Message for Non-Super Admins */}
+        {!isSuperAdmin() && hasAccessLevel(80) && (
+          <Card className="border-warning mb-8">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Lock className="h-5 w-5" />
+                Accès Restreint
+              </CardTitle>
+              <CardDescription>
+                La gestion des rôles, permissions et l'audit complet sont réservés au Super Administrateur (Niveau 100).
+                Vous avez actuellement un accès de niveau administratif limité.
+              </CardDescription>
+            </CardHeader>
+          </Card>
+        )}
+        
         
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
           <MoissonneurFund />
