@@ -1338,10 +1338,24 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "profiles_binary_parent_id_fkey"
+            columns: ["binary_parent_id"]
+            isOneToOne: false
+            referencedRelation: "users_with_roles"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "profiles_referred_by_fkey"
             columns: ["referred_by"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "profiles_referred_by_fkey"
+            columns: ["referred_by"]
+            isOneToOne: false
+            referencedRelation: "users_with_roles"
             referencedColumns: ["id"]
           },
         ]
@@ -2088,6 +2102,18 @@ export type Database = {
           monthly_volume: number | null
           monthly_withdrawals: number | null
           performance_month: string | null
+        }
+        Relationships: []
+      }
+      users_with_roles: {
+        Row: {
+          created_at: string | null
+          full_name: string | null
+          id: string | null
+          max_access_level: number | null
+          phone: string | null
+          referral_code: string | null
+          roles: Json | null
         }
         Relationships: []
       }
