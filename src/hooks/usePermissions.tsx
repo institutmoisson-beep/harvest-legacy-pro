@@ -25,18 +25,40 @@ export function usePermissions() {
   }, [user]);
 
   const fetchUserPermissions = async () => {
-    if (!user) return;
+    if (!user) {
+      setPermissions([]);
+      setLoading(false);
+      return;
+    }
 
     try {
+      setLoading(true);
       const { data, error } = await supabase.rpc('get_user_permissions' as any, {
         _user_id: user.id,
       }) as any;
 
-      if (error) throw error;
-
-      setPermissions((data as Permission[]) || []);
+      if (error) {
+        console.error('Error fetching permissions:', error);
+        // En cas d'erreur, on vérifie si l'utilisateur est super admin
+        const { data: roles } = await supabase
+          .from('user_roles')
+          .select('access_level')
+          .eq('user_id', user.id);
+        
+        // Si super admin, on donne toutes les permissions
+        if (roles && roles.some((r: any) => r.access_level >= 100)) {
+          setPermissions([
+            { module: 'all', action: 'all', name: 'Super Admin', description: 'Accès complet' }
+          ]);
+        } else {
+          setPermissions([]);
+        }
+      } else {
+        setPermissions((data as Permission[]) || []);
+      }
     } catch (error) {
       console.error('Error fetching permissions:', error);
+      setPermissions([]);
     } finally {
       setLoading(false);
     }
