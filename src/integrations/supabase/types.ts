@@ -2172,6 +2172,7 @@ export type Database = {
         }[]
       }
       get_user_max_access_level: { Args: { _user_id: string }; Returns: number }
+      get_user_role: { Args: { _user_id: string }; Returns: string }
       has_access_level: {
         Args: { _min_level: number; _user_id: string }
         Returns: boolean
@@ -2194,6 +2195,7 @@ export type Database = {
         Args: { _tontine_id: string; _user_id?: string }
         Returns: boolean
       }
+      is_user_admin: { Args: { _user_id: string }; Returns: boolean }
       run_monthly_bonus_awards: { Args: never; Returns: undefined }
       update_agent_goals_progress: { Args: never; Returns: undefined }
       update_order_goals_progress: { Args: never; Returns: undefined }
