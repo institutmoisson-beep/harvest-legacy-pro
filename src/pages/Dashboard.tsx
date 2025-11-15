@@ -60,7 +60,9 @@ export default function Dashboard() {
       .on('postgres_changes', { event: '*', schema: 'public', table: 'commissions', filter: `user_id=eq.${user.id}` }, 
         () => queryClient.invalidateQueries({ queryKey: ['dashboard-stats', user.id] }))
       .subscribe();
-    return () => supabase.removeChannel(channel);
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [user?.id, queryClient]);
 
   const copyReferralLink = useCallback(() => {
@@ -243,7 +245,7 @@ export default function Dashboard() {
                   {window.location.origin}/auth?ref={profile?.referral_code}
                 </p>
               </div>
-              <Button onClick={copyReferralCode} variant="outline">
+              <Button onClick={copyReferralLink} variant="outline">
                 <Copy className="h-4 w-4" />
               </Button>
             </div>
@@ -299,7 +301,6 @@ export default function Dashboard() {
           <WalletSection 
             balance={wallet?.balance || 0} 
             userId={user.id}
-            onBalanceUpdate={fetchWalletBalance}
           />
 
           {/* Crypto Payment Options */}
