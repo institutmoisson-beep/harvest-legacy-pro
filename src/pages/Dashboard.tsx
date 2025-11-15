@@ -204,7 +204,7 @@ export default function Dashboard() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-3xl font-bold">{stats.directReferrals}</p>
+              <p className="text-3xl font-bold">{stats?.directReferrals ?? 0}</p>
               <p className="text-sm text-muted-foreground">Filleuls directs</p>
             </CardContent>
           </Card>
@@ -217,9 +217,9 @@ export default function Dashboard() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-3xl font-bold">{stats.totalCommissions.toFixed(2)} MSN</p>
+              <p className="text-3xl font-bold">{formattedCommissions} MSN</p>
               <p className="text-sm text-muted-foreground mt-1">
-                {(stats.totalCommissions * 750).toLocaleString()} FCFA
+                {(((stats?.totalCommissions ?? 0) * 750)).toLocaleString()} FCFA
               </p>
             </CardContent>
           </Card>
