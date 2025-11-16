@@ -17,23 +17,36 @@ interface CareerProgressSectionProps {
   userId: string;
 }
 
-type CareerLevel = "novice" | "actif" | "zonal" | "principal" | "gouverneur" | "comte" | "general" | "royal_8" | "royal_9" | "guide";
+type CareerLevel = "semeur" | "cultivateur" | "recolteur" | "gestionnaire" | "superviseur" | "coordinateur" | "directeur" | "gouverneur" | "ambassadeur" | "guide";
 
-const LEVEL_REQUIREMENTS: Record<CareerLevel, { referrals: number; orders: number; teamSize?: number; sales?: number; accountAge?: number }> = {
-  novice: { referrals: 0, orders: 0, accountAge: 0 },
-  actif: { referrals: 4, orders: 5, accountAge: 30 },
-  zonal: { referrals: 15, orders: 15, teamSize: 20 },
-  principal: { referrals: 15, orders: 15, sales: 250000 },
-  gouverneur: { referrals: 15, orders: 15, teamSize: 3 },
-  comte: { referrals: 15, orders: 15, teamSize: 5 },
-  general: { referrals: 15, orders: 15, teamSize: 8 },
-  royal_8: { referrals: 15, orders: 15, teamSize: 10 },
-  royal_9: { referrals: 15, orders: 15, teamSize: 15 },
-  guide: { referrals: 15, orders: 15, teamSize: 20, sales: 250000 },
+const LEVEL_REQUIREMENTS: Record<CareerLevel, { referrals: number; orders: number; teamSize?: number; sales?: number }> = {
+  semeur: { referrals: 0, orders: 0 },
+  cultivateur: { referrals: 5, orders: 7 },
+  recolteur: { referrals: 10, orders: 15 },
+  gestionnaire: { referrals: 15, orders: 25, teamSize: 10 },
+  superviseur: { referrals: 20, orders: 40, teamSize: 20 },
+  coordinateur: { referrals: 30, orders: 60, teamSize: 40, sales: 500000 },
+  directeur: { referrals: 40, orders: 100, teamSize: 80, sales: 1000000 },
+  gouverneur: { referrals: 60, orders: 150, teamSize: 150, sales: 2000000 },
+  ambassadeur: { referrals: 100, orders: 250, teamSize: 300, sales: 5000000 },
+  guide: { referrals: 150, orders: 500, teamSize: 500, sales: 10000000 },
+};
+
+const LEVEL_NAMES: Record<CareerLevel, string> = {
+  semeur: "Semeur",
+  cultivateur: "Cultivateur",
+  recolteur: "Récolteur",
+  gestionnaire: "Gestionnaire",
+  superviseur: "Superviseur",
+  coordinateur: "Coordinateur",
+  directeur: "Directeur",
+  gouverneur: "Gouverneur",
+  ambassadeur: "Ambassadeur",
+  guide: "Guide Moissonneur",
 };
 
 export const CareerProgressSection = ({ userId }: CareerProgressSectionProps) => {
-  const [careerLevel, setCareerLevel] = useState<CareerLevel>("novice");
+  const [careerLevel, setCareerLevel] = useState<CareerLevel>("semeur");
   const [metrics, setMetrics] = useState<CareerMetrics>({
     totalReferrals: 0,
     totalOrders: 0,
@@ -161,7 +174,7 @@ export const CareerProgressSection = ({ userId }: CareerProgressSectionProps) =>
   };
 
   const getNextLevel = (): CareerLevel | null => {
-    const levels: CareerLevel[] = ["novice", "actif", "zonal", "principal", "gouverneur", "comte", "general", "royal_8", "royal_9", "guide"];
+    const levels: CareerLevel[] = ["semeur", "cultivateur", "recolteur", "gestionnaire", "superviseur", "coordinateur", "directeur", "gouverneur", "ambassadeur", "guide"];
     const currentIndex = levels.indexOf(careerLevel);
     return currentIndex < levels.length - 1 ? levels[currentIndex + 1] : null;
   };
@@ -182,9 +195,6 @@ export const CareerProgressSection = ({ userId }: CareerProgressSectionProps) =>
     }
     if (nextRequirements.sales) {
       additionalProgress = Math.min(additionalProgress, (metrics.monthlySales / nextRequirements.sales) * 100);
-    }
-    if (nextRequirements.accountAge) {
-      additionalProgress = Math.min(additionalProgress, (metrics.accountAgeDays / nextRequirements.accountAge) * 100);
     }
 
     return Math.min(100, (referralsProgress + ordersProgress + additionalProgress) / 3);
@@ -211,7 +221,7 @@ export const CareerProgressSection = ({ userId }: CareerProgressSectionProps) =>
         {/* Current Level Badge */}
         <div className="flex flex-col items-center justify-center p-6 bg-gradient-to-br from-primary/10 to-primary/5 rounded-lg">
           <div className="text-4xl mb-2">🏆</div>
-          <h3 className="text-xl font-bold capitalize">{careerLevel}</h3>
+          <h3 className="text-xl font-bold">{LEVEL_NAMES[careerLevel]}</h3>
         </div>
 
         {/* Metrics Grid */}
@@ -243,7 +253,7 @@ export const CareerProgressSection = ({ userId }: CareerProgressSectionProps) =>
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <span className="text-sm font-medium">Prochain niveau</span>
-              <span className="text-lg font-bold capitalize">{nextLevel}</span>
+              <span className="text-lg font-bold">{LEVEL_NAMES[nextLevel]}</span>
             </div>
             
             <Progress value={calculateProgress()} className="h-2" />
@@ -269,21 +279,15 @@ export const CareerProgressSection = ({ userId }: CareerProgressSectionProps) =>
                   <span className="font-medium">{metrics.monthlySales.toLocaleString()} / {nextRequirements.sales.toLocaleString()} FCFA</span>
                 </div>
               )}
-              {nextRequirements.accountAge && (
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Ancienneté:</span>
-                  <span className="font-medium">{metrics.accountAgeDays} / {nextRequirements.accountAge} jours</span>
-                </div>
-              )}
             </div>
           </div>
         )}
 
         {!nextLevel && (
           <div className="text-center p-6 bg-gradient-to-br from-yellow-500/10 to-purple-500/10 rounded-lg">
-            <p className="text-lg font-semibold">🎉 Niveau Maximum Atteint!</p>
+            <p className="text-lg font-semibold">🎉 Guide Moissonneur Atteint!</p>
             <p className="text-sm text-muted-foreground mt-2">
-              Vous êtes au sommet de la hiérarchie des Moissonneurs
+              Vous avez atteint le sommet du plan de carrière Moissonneur
             </p>
           </div>
         )}
