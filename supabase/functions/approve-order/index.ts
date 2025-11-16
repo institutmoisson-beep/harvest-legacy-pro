@@ -33,18 +33,22 @@ Deno.serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
-    // Check if user is admin
+    // Check if user is authenticated
     const { data: { user }, error: userError } = await supabaseClient.auth.getUser();
     if (userError || !user) {
       throw new Error('Non authentifié');
     }
 
-    const { data: roles, error: rolesError } = await supabaseClient
+    // Check if user is admin using service role client (bypasses RLS)
+    const { data: roles, error: rolesError } = await supabaseAdmin
       .from('user_roles')
       .select('role')
       .eq('user_id', user.id);
 
-    if (rolesError) throw rolesError;
+    if (rolesError) {
+      console.error('Error fetching roles:', rolesError);
+      throw rolesError;
+    }
 
     const isAdmin = roles?.some(r => r.role === 'admin' || r.role === 'financier');
     if (!isAdmin) {
