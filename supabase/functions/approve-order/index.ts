@@ -107,7 +107,7 @@ Deno.serve(async (req) => {
         order_id: orderId,
         source_user_id: brokerId,
         commission_type: 'order',
-        level: 0,
+        level: 1,
         commission_rate: 0.40,
         amount: brokerCommission,
       });
