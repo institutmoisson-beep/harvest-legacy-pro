@@ -43,6 +43,8 @@ const ROLE_DEFINITIONS = {
   financial_manager: { label: 'Manager Financier', level: 80, color: 'bg-yellow-500' },
   financier: { label: 'Financier', level: 80, color: 'bg-yellow-500' },
   tontine_manager: { label: 'Manager Tontine/MLM', level: 75, color: 'bg-green-500' },
+  country_representative: { label: 'Représentant Pays', level: 70, color: 'bg-orange-400' },
+  city_representative: { label: 'Représentant Ville', level: 65, color: 'bg-amber-500' },
   moderator: { label: 'Modérateur', level: 70, color: 'bg-blue-500' },
   shop_manager: { label: 'Responsable Boutique', level: 60, color: 'bg-purple-500' },
   merchant: { label: 'Marchand', level: 60, color: 'bg-purple-500' },

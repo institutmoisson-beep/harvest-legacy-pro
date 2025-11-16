@@ -6,6 +6,7 @@ import { toast } from '@/hooks/use-toast';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import AdminTransactionsSection from '@/components/dashboard/AdminTransactionsSection';
+import AdminOrdersSection from '@/components/dashboard/AdminOrdersSection';
 import VisitsAnalyticsSection from '@/components/dashboard/VisitsAnalyticsSection';
 import PaymentContactsManager from '@/components/dashboard/PaymentContactsManager';
 import MemberManagement from '@/components/dashboard/MemberManagement';
@@ -17,6 +18,7 @@ import AdminPromoCodesManager from '@/components/dashboard/AdminPromoCodesManage
 import AdminTontineAnalytics from '@/components/dashboard/AdminTontineAnalytics';
 import RoleManagement from '@/components/dashboard/RoleManagement';
 import PermissionsManager from '@/components/dashboard/PermissionsManager';
+import GeographicRepresentativesManager from '@/components/dashboard/GeographicRepresentativesManager';
 import AuditLogsViewer from '@/components/dashboard/AuditLogsViewer';
 
 // Super tableau de bord exclusif pour le Super Admin
@@ -85,6 +87,8 @@ export default function LevelAdmin() {
         <TabsList className="flex flex-wrap gap-2">
           <TabsTrigger value="roles">Rôles & Accès</TabsTrigger>
           <TabsTrigger value="permissions">Permissions</TabsTrigger>
+          <TabsTrigger value="geographic">Représentants</TabsTrigger>
+          <TabsTrigger value="orders">Commandes</TabsTrigger>
           <TabsTrigger value="transactions">Transactions</TabsTrigger>
           <TabsTrigger value="tontines">Tontines</TabsTrigger>
           <TabsTrigger value="treasury">Trésorerie</TabsTrigger>
@@ -101,11 +105,19 @@ export default function LevelAdmin() {
           <RoleManagement />
         </TabsContent>
 
-        <TabsContent value="permissions" className="mt-4 space-y-6">
+        <TabsContent value="permissions">
           <PermissionsManager />
         </TabsContent>
 
-        <TabsContent value="transactions" className="mt-4 space-y-6">
+        <TabsContent value="geographic">
+          <GeographicRepresentativesManager />
+        </TabsContent>
+
+        <TabsContent value="orders">
+          <AdminOrdersSection />
+        </TabsContent>
+
+        <TabsContent value="transactions">
           <AdminTransactionsSection />
         </TabsContent>
 
