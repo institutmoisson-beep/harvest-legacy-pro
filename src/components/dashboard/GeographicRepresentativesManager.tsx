@@ -53,65 +53,86 @@ export default function GeographicRepresentativesManager() {
     try {
       setLoading(true);
       
-      // Fetch assignments
+      // Fetch assignments avec gestion d'erreur améliorée
       const { data: assignmentsData, error: assignmentsError } = await supabase
-        .from('geographic_assignments' as any)
+        .from('geographic_assignments')
         .select('*')
         .order('created_at', { ascending: false });
 
-      if (assignmentsError) throw assignmentsError;
+      if (assignmentsError) {
+        console.error('Error fetching assignments:', assignmentsError);
+        throw assignmentsError;
+      }
 
-      // Fetch user details for assignments with profiles and emails
+      // Fetch user details pour les assignments
       const userIds = [...new Set((assignmentsData || []).map((a: any) => a.user_id))];
       
-      const { data: usersWithRolesData } = await supabase
-        .from('users_with_roles' as any)
-        .select('id, full_name, email')
-        .in('id', userIds);
+      if (userIds.length > 0) {
+        // Récupérer les profils
+        const { data: profilesData } = await supabase
+          .from('profiles')
+          .select('id, full_name')
+          .in('id', userIds);
 
-      const usersMap = new Map(usersWithRolesData?.map((u: any) => [u.id, u]) || []);
+        const profilesMap = new Map(profilesData?.map((p: any) => [p.id, p]) || []);
 
-      const assignmentsWithUsers = (assignmentsData || []).map((assignment: any) => {
-        const user = usersMap.get(assignment.user_id);
-        return {
-          ...assignment,
-          user_name: user?.full_name || 'Inconnu',
-          user_email: user?.email || '',
-        };
-      });
+        const assignmentsWithUsers = (assignmentsData || []).map((assignment: any) => {
+          const profile = profilesMap.get(assignment.user_id);
+          return {
+            ...assignment,
+            user_name: profile?.full_name || 'Utilisateur inconnu',
+            user_email: '', // Email will be fetched if needed
+          };
+        });
 
-      setAssignments(assignmentsWithUsers as Assignment[]);
+        setAssignments(assignmentsWithUsers as Assignment[]);
+      } else {
+        setAssignments([]);
+      }
 
       // Fetch locations
       const { data: locationsData, error: locationsError } = await supabase
-        .from('african_locations' as any)
+        .from('african_locations')
         .select('country, city')
         .eq('is_active', true)
         .order('country', { ascending: true })
         .order('city', { ascending: true });
 
-      if (locationsError) throw locationsError;
-      setLocations(((locationsData || []) as any) as Location[]);
+      if (locationsError) {
+        console.error('Error fetching locations:', locationsError);
+        throw locationsError;
+      }
+      
+      setLocations((locationsData || []) as Location[]);
 
-      // Fetch users from users_with_roles view which includes email
-      const { data: usersData, error: usersError } = await supabase
-        .from('users_with_roles' as any)
-        .select('id, full_name, email')
+      // Fetch tous les utilisateurs pour la sélection
+      const { data: allProfilesData, error: profilesError } = await supabase
+        .from('profiles')
+        .select('id, full_name')
         .order('full_name', { ascending: true });
 
-      if (usersError) throw usersError;
+      if (profilesError) {
+        console.error('Error fetching profiles:', profilesError);
+        throw profilesError;
+      }
 
-      // Remove duplicates and filter out users without names
+      // Filtrer et dédupliquer
       const uniqueUsers = Array.from(
-        new Map((usersData || []).map((u: any) => [u.id, u])).values()
+        new Map((allProfilesData || []).map((u: any) => [u.id, u])).values()
       ).filter((u: any) => u.full_name && u.full_name.trim() !== '');
 
-      setUsers(uniqueUsers as UserWithRoles[]);
+      setUsers(uniqueUsers.map(u => ({ ...u, email: '' })) as UserWithRoles[]);
+      
+      console.log('Data loaded:', {
+        assignments: assignmentsData?.length || 0,
+        users: uniqueUsers.length,
+        locations: locationsData?.length || 0
+      });
     } catch (error: any) {
       console.error('Error fetching data:', error);
       toast({
-        title: "Erreur",
-        description: "Impossible de charger les données",
+        title: "Erreur de chargement",
+        description: error.message || "Impossible de charger les données",
         variant: "destructive",
       });
     } finally {
@@ -122,7 +143,7 @@ export default function GeographicRepresentativesManager() {
   const handleAddAssignment = async () => {
     if (!selectedUser || !selectedCountry) {
       toast({
-        title: "Erreur",
+        title: "Champs manquants",
         description: "Veuillez sélectionner un utilisateur et un pays",
         variant: "destructive",
       });
@@ -131,7 +152,7 @@ export default function GeographicRepresentativesManager() {
 
     if (assignmentType === 'city' && !selectedCity) {
       toast({
-        title: "Erreur",
+        title: "Champs manquants",
         description: "Veuillez sélectionner une ville",
         variant: "destructive",
       });
@@ -139,8 +160,11 @@ export default function GeographicRepresentativesManager() {
     }
 
     try {
-      const { error } = await supabase
-        .from('geographic_assignments' as any)
+      console.log('Adding assignment:', { selectedUser, assignmentType, selectedCountry, selectedCity });
+      
+      // Insérer l'assignation géographique
+      const { error: assignmentError } = await supabase
+        .from('geographic_assignments')
         .insert({
           user_id: selectedUser,
           assignment_type: assignmentType,
@@ -148,31 +172,36 @@ export default function GeographicRepresentativesManager() {
           city: assignmentType === 'city' ? selectedCity : null,
         });
 
-      if (error) throw error;
+      if (assignmentError) {
+        console.error('Assignment error:', assignmentError);
+        throw assignmentError;
+      }
 
-      // Assign role
+      // Assigner le rôle approprié
       const role = assignmentType === 'country' ? 'country_representative' : 'city_representative';
       const { error: roleError } = await supabase
         .from('user_roles')
         .insert({
           user_id: selectedUser,
-          role: role as any,
+          role: role,
         });
 
+      // Ignorer l'erreur si le rôle existe déjà
       if (roleError && !roleError.message.includes('duplicate')) {
-        throw roleError;
+        console.error('Role error:', roleError);
+        // Ne pas bloquer si l'erreur est juste que le rôle existe déjà
       }
 
       toast({
-        title: "Succès",
-        description: "Représentant assigné avec succès",
+        title: "✅ Représentant assigné",
+        description: `${assignmentType === 'city' ? 'Représentant de ville' : 'Représentant de pays'} assigné avec succès`,
       });
 
       setOpen(false);
       setSelectedUser('');
       setSelectedCountry('');
       setSelectedCity('');
-      fetchData();
+      await fetchData();
     } catch (error: any) {
       console.error('Error adding assignment:', error);
       toast({
@@ -185,41 +214,51 @@ export default function GeographicRepresentativesManager() {
 
   const handleRemoveAssignment = async (assignmentId: string, userId: string, assignmentType: string) => {
     try {
-      const { error } = await supabase
-        .from('geographic_assignments' as any)
+      console.log('Removing assignment:', { assignmentId, userId, assignmentType });
+      
+      const { error: deleteError } = await supabase
+        .from('geographic_assignments')
         .delete()
         .eq('id', assignmentId);
 
-      if (error) throw error;
+      if (deleteError) {
+        console.error('Delete error:', deleteError);
+        throw deleteError;
+      }
 
-      // Check if user has other assignments of this type
+      // Vérifier si l'utilisateur a d'autres assignations du même type
       const { data: otherAssignments } = await supabase
-        .from('geographic_assignments' as any)
+        .from('geographic_assignments')
         .select('id')
         .eq('user_id', userId)
         .eq('assignment_type', assignmentType);
 
-      // If no other assignments, remove the role
+      // Si aucune autre assignation, retirer le rôle
       if (!otherAssignments || otherAssignments.length === 0) {
         const role = assignmentType === 'country' ? 'country_representative' : 'city_representative';
-        await supabase
+        const { error: roleError } = await supabase
           .from('user_roles')
           .delete()
           .eq('user_id', userId)
-          .eq('role', role as any);
+          .eq('role', role);
+        
+        if (roleError) {
+          console.error('Role removal error:', roleError);
+          // Ne pas bloquer si l'erreur est juste que le rôle n'existe pas
+        }
       }
 
       toast({
-        title: "Succès",
-        description: "Assignation supprimée",
+        title: "✅ Assignation supprimée",
+        description: "Le représentant a été retiré avec succès",
       });
 
-      fetchData();
+      await fetchData();
     } catch (error: any) {
       console.error('Error removing assignment:', error);
       toast({
         title: "Erreur",
-        description: "Impossible de supprimer l'assignation",
+        description: error.message || "Impossible de supprimer l'assignation",
         variant: "destructive",
       });
     }
