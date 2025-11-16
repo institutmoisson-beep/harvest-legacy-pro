@@ -21,15 +21,15 @@ type CareerLevel = "semeur" | "cultivateur" | "recolteur" | "gestionnaire" | "su
 
 const LEVEL_REQUIREMENTS: Record<CareerLevel, { referrals: number; orders: number; teamSize?: number; sales?: number }> = {
   semeur: { referrals: 0, orders: 0 },
-  cultivateur: { referrals: 5, orders: 7 },
-  recolteur: { referrals: 10, orders: 15 },
-  gestionnaire: { referrals: 15, orders: 25, teamSize: 10 },
-  superviseur: { referrals: 20, orders: 40, teamSize: 20 },
-  coordinateur: { referrals: 30, orders: 60, teamSize: 40, sales: 500000 },
-  directeur: { referrals: 40, orders: 100, teamSize: 80, sales: 1000000 },
-  gouverneur: { referrals: 60, orders: 150, teamSize: 150, sales: 2000000 },
-  ambassadeur: { referrals: 100, orders: 250, teamSize: 300, sales: 5000000 },
-  guide: { referrals: 150, orders: 500, teamSize: 500, sales: 10000000 },
+  cultivateur: { referrals: 3, orders: 10 },
+  recolteur: { referrals: 6, orders: 25, teamSize: 15 },
+  gestionnaire: { referrals: 10, orders: 50, teamSize: 30 },
+  superviseur: { referrals: 15, orders: 100, teamSize: 50, sales: 1000000 },
+  coordinateur: { referrals: 25, orders: 200, teamSize: 100, sales: 3000000 },
+  directeur: { referrals: 40, orders: 400, teamSize: 200, sales: 10000000 },
+  gouverneur: { referrals: 60, orders: 750, teamSize: 400, sales: 25000000 },
+  ambassadeur: { referrals: 100, orders: 1500, teamSize: 800, sales: 75000000 },
+  guide: { referrals: 150, orders: 3000, teamSize: 1500, sales: 200000000 },
 };
 
 const LEVEL_NAMES: Record<CareerLevel, string> = {
@@ -123,7 +123,7 @@ export const CareerProgressSection = ({ userId }: CareerProgressSectionProps) =>
           .eq("broker_id", userId)
           .in("status", ["validated", "completed"]);
 
-        // Fetch monthly sales
+        // Fetch monthly sales (convert MSN to FCFA: 1 MSN = 750 FCFA)
         const thirtyDaysAgo = new Date();
         thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
         
@@ -135,7 +135,7 @@ export const CareerProgressSection = ({ userId }: CareerProgressSectionProps) =>
           .gte("created_at", thirtyDaysAgo.toISOString());
 
         const totalSales = salesData?.reduce(
-          (sum, order) => sum + (order.purchase_price * order.quantity),
+          (sum, order) => sum + (order.purchase_price * order.quantity * 750),
           0
         ) || 0;
 
@@ -219,9 +219,10 @@ export const CareerProgressSection = ({ userId }: CareerProgressSectionProps) =>
       </CardHeader>
       <CardContent className="space-y-6">
         {/* Current Level Badge */}
-        <div className="flex flex-col items-center justify-center p-6 bg-gradient-to-br from-primary/10 to-primary/5 rounded-lg">
+        <div className="flex flex-col items-center justify-center p-6 bg-gradient-to-br from-primary/10 to-primary/5 rounded-lg border-2 border-primary/20">
           <div className="text-4xl mb-2">🏆</div>
-          <h3 className="text-xl font-bold">{LEVEL_NAMES[careerLevel]}</h3>
+          <h3 className="text-2xl font-bold text-primary">{LEVEL_NAMES[careerLevel]}</h3>
+          <p className="text-sm text-muted-foreground mt-1">Niveau actuel</p>
         </div>
 
         {/* Metrics Grid */}
@@ -250,35 +251,49 @@ export const CareerProgressSection = ({ userId }: CareerProgressSectionProps) =>
 
         {/* Progress to Next Level */}
         {nextLevel && nextRequirements && (
-          <div className="space-y-4">
+          <div className="space-y-4 p-4 bg-muted/30 rounded-lg border border-border">
             <div className="flex items-center justify-between">
-              <span className="text-sm font-medium">Prochain niveau</span>
-              <span className="text-lg font-bold">{LEVEL_NAMES[nextLevel]}</span>
+              <span className="text-sm font-semibold text-foreground">🎯 Objectif suivant</span>
+              <span className="text-lg font-bold text-primary">{LEVEL_NAMES[nextLevel]}</span>
             </div>
             
-            <Progress value={calculateProgress()} className="h-2" />
+            <Progress value={calculateProgress()} className="h-3" />
             
-            <div className="space-y-2 text-sm">
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Parrainages requis:</span>
-                <span className="font-medium">{metrics.totalReferrals} / {nextRequirements.referrals}</span>
+            <div className="space-y-3 text-sm">
+              <div className="flex justify-between items-center p-2 bg-background/50 rounded">
+                <span className="font-medium">Parrainages directs:</span>
+                <span className={`font-bold ${metrics.totalReferrals >= nextRequirements.referrals ? 'text-green-600' : 'text-destructive'}`}>
+                  {metrics.totalReferrals} / {nextRequirements.referrals}
+                </span>
               </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Commandes validées:</span>
-                <span className="font-medium">{metrics.validatedOrders} / {nextRequirements.orders}</span>
+              <div className="flex justify-between items-center p-2 bg-background/50 rounded">
+                <span className="font-medium">Commandes validées:</span>
+                <span className={`font-bold ${metrics.validatedOrders >= nextRequirements.orders ? 'text-green-600' : 'text-destructive'}`}>
+                  {metrics.validatedOrders} / {nextRequirements.orders}
+                </span>
               </div>
               {nextRequirements.teamSize && (
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Équipe active:</span>
-                  <span className="font-medium">{metrics.teamSize} / {nextRequirements.teamSize}</span>
+                <div className="flex justify-between items-center p-2 bg-background/50 rounded">
+                  <span className="font-medium">Équipe totale:</span>
+                  <span className={`font-bold ${metrics.teamSize >= nextRequirements.teamSize ? 'text-green-600' : 'text-destructive'}`}>
+                    {metrics.teamSize} / {nextRequirements.teamSize}
+                  </span>
                 </div>
               )}
               {nextRequirements.sales && (
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Ventes mensuelles:</span>
-                  <span className="font-medium">{metrics.monthlySales.toLocaleString()} / {nextRequirements.sales.toLocaleString()} FCFA</span>
+                <div className="flex justify-between items-center p-2 bg-background/50 rounded">
+                  <span className="font-medium">Ventes mensuelles (FCFA):</span>
+                  <span className={`font-bold ${metrics.monthlySales >= nextRequirements.sales ? 'text-green-600' : 'text-destructive'}`}>
+                    {(metrics.monthlySales / 1000000).toFixed(1)}M / {(nextRequirements.sales / 1000000).toFixed(1)}M
+                  </span>
                 </div>
               )}
+            </div>
+            
+            <div className="mt-4 p-3 bg-destructive/10 border border-destructive/20 rounded-lg">
+              <p className="text-xs font-semibold text-destructive text-center">
+                ⚠️ TOUS les objectifs doivent être atteints pour passer au niveau suivant
+              </p>
             </div>
           </div>
         )}
