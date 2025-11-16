@@ -28,7 +28,8 @@ interface Order {
 export default function AdminOrdersSection() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
-  const [processing, setProcessing] = useState<string | null>(null);
+  const [approving, setApproving] = useState<string | null>(null);
+  const [rejecting, setRejecting] = useState<string | null>(null);
 
   const fetchPendingOrders = async () => {
     try {
@@ -96,7 +97,7 @@ export default function AdminOrdersSection() {
   }, []);
 
   const handleApprove = async (orderId: string) => {
-    setProcessing(orderId);
+    setApproving(orderId);
     try {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) throw new Error('No session');
@@ -121,12 +122,12 @@ export default function AdminOrdersSection() {
         variant: "destructive",
       });
     } finally {
-      setProcessing(null);
+      setApproving(null);
     }
   };
 
   const handleReject = async (orderId: string) => {
-    setProcessing(orderId);
+    setRejecting(orderId);
     try {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) throw new Error('No session');
@@ -151,7 +152,7 @@ export default function AdminOrdersSection() {
         variant: "destructive",
       });
     } finally {
-      setProcessing(null);
+      setRejecting(null);
     }
   };
 
@@ -234,14 +235,15 @@ export default function AdminOrdersSection() {
                       {formatCurrency(order.profit)}
                     </TableCell>
                     <TableCell>
-                      <div className="flex items-center justify-center gap-2">
+                      <div className="flex items-center justify-center gap-3">
                         <Button
                           size="sm"
                           variant="default"
                           onClick={() => handleApprove(order.id)}
-                          disabled={processing === order.id}
+                          disabled={approving === order.id || rejecting === order.id}
+                          className="bg-green-600 hover:bg-green-700"
                         >
-                          {processing === order.id ? (
+                          {approving === order.id ? (
                             <Loader2 className="h-4 w-4 animate-spin" />
                           ) : (
                             <Check className="h-4 w-4" />
@@ -251,9 +253,9 @@ export default function AdminOrdersSection() {
                           size="sm"
                           variant="destructive"
                           onClick={() => handleReject(order.id)}
-                          disabled={processing === order.id}
+                          disabled={approving === order.id || rejecting === order.id}
                         >
-                          {processing === order.id ? (
+                          {rejecting === order.id ? (
                             <Loader2 className="h-4 w-4 animate-spin" />
                           ) : (
                             <X className="h-4 w-4" />
