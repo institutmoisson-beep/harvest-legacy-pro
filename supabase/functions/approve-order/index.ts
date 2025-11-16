@@ -91,19 +91,22 @@ Deno.serve(async (req) => {
         throw updateError;
       }
 
-      // Create commissions for the broker and referrers
-      const profit = Number(order.profit);
+      // Recalculer le bénéfice = 5% du prix total (purchase_price * quantity)
+      const totalPrice = Number(order.purchase_price) * Number(order.quantity);
+      const profit = totalPrice * 0.05; // 5% du prix total
       const brokerId = order.broker_id;
 
-      // Commission for the broker (direct seller)
-      const brokerCommission = profit * 0.30; // 30% du bénéfice
+      console.log(`Order total: ${totalPrice} MSN, Profit (5%): ${profit} MSN`);
+
+      // Commission for the broker (direct seller) = 20% du bénéfice
+      const brokerCommission = profit * 0.20; // 20% du bénéfice (donc 1% du prix total)
       const { error: brokerCommError } = await supabaseAdmin.from('commissions').insert({
         user_id: brokerId,
         order_id: orderId,
         source_user_id: brokerId,
         commission_type: 'order',
         level: 1,
-        commission_rate: 0.30,
+        commission_rate: 0.20,
         amount: brokerCommission,
       });
 
