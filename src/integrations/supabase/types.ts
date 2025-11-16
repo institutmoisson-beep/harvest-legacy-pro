@@ -149,6 +149,30 @@ export type Database = {
           },
         ]
       }
+      african_locations: {
+        Row: {
+          city: string
+          country: string
+          created_at: string | null
+          id: string
+          is_active: boolean | null
+        }
+        Insert: {
+          city: string
+          country: string
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+        }
+        Update: {
+          city?: string
+          country?: string
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+        }
+        Relationships: []
+      }
       agent_badges: {
         Row: {
           badge_color: string | null
@@ -823,6 +847,44 @@ export type Database = {
           },
         ]
       }
+      geographic_assignments: {
+        Row: {
+          assignment_type: string
+          city: string | null
+          country: string
+          created_at: string | null
+          id: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          assignment_type: string
+          city?: string | null
+          country: string
+          created_at?: string | null
+          id?: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          assignment_type?: string
+          city?: string | null
+          country?: string
+          created_at?: string | null
+          id?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "geographic_assignments_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "super_admin_status"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       group_call_messages: {
         Row: {
           call_id: string
@@ -1338,6 +1400,8 @@ export type Database = {
         Row: {
           broker_code: string
           broker_id: string
+          city: string | null
+          country: string | null
           created_at: string | null
           customer_name: string
           geographic_zone: string | null
@@ -1353,6 +1417,8 @@ export type Database = {
         Insert: {
           broker_code: string
           broker_id: string
+          city?: string | null
+          country?: string | null
           created_at?: string | null
           customer_name: string
           geographic_zone?: string | null
@@ -1368,6 +1434,8 @@ export type Database = {
         Update: {
           broker_code?: string
           broker_id?: string
+          city?: string | null
+          country?: string | null
           created_at?: string | null
           customer_name?: string
           geographic_zone?: string | null
@@ -2540,6 +2608,10 @@ export type Database = {
           p_sale_amount: number
         }
         Returns: number
+      }
+      can_view_order: {
+        Args: { _order_city: string; _order_country: string; _user_id: string }
+        Returns: boolean
       }
       check_and_award_achievement_badges: {
         Args: { p_user_id: string }
