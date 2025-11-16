@@ -2575,11 +2575,16 @@ export type Database = {
       }
       users_with_roles: {
         Row: {
-          access_level: number | null
+          banned_until: string | null
+          confirmed_at: string | null
+          created_at: string | null
           email: string | null
           full_name: string | null
           id: string | null
-          role: Database["public"]["Enums"]["app_role"] | null
+          max_access_level: number | null
+          phone: string | null
+          referral_code: string | null
+          roles: Json | null
         }
         Relationships: [
           {
@@ -2593,6 +2598,7 @@ export type Database = {
       }
     }
     Functions: {
+      activate_user_account: { Args: { p_user_id: string }; Returns: undefined }
       auto_update_career_level: { Args: never; Returns: undefined }
       award_monthly_bonus: { Args: never; Returns: undefined }
       calculate_career_level: {
@@ -2623,6 +2629,7 @@ export type Database = {
         Args: { p_amount: number; p_user_id: string }
         Returns: undefined
       }
+      delete_user_account: { Args: { p_user_id: string }; Returns: undefined }
       ensure_super_admin: { Args: never; Returns: undefined }
       generate_referral_code: { Args: never; Returns: string }
       get_agent_tier: {
@@ -2698,6 +2705,10 @@ export type Database = {
       }
       is_user_admin: { Args: { _user_id: string }; Returns: boolean }
       run_monthly_bonus_awards: { Args: never; Returns: undefined }
+      suspend_user_account: {
+        Args: { p_days?: number; p_user_id: string }
+        Returns: undefined
+      }
       update_agent_goals_progress: { Args: never; Returns: undefined }
       update_order_goals_progress: { Args: never; Returns: undefined }
       update_user_career_level: {
