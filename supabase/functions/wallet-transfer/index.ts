@@ -6,6 +6,53 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+// Rate limiting
+const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
+const MAX_REQUESTS = 20;
+const RATE_LIMIT_WINDOW_MS = 10 * 60 * 1000;
+
+// Transaction limits
+const MAX_TRANSACTION_AMOUNT = 1000000;
+const MIN_TRANSACTION_AMOUNT = 0.0001;
+
+function checkRateLimit(userId: string): boolean {
+  const now = Date.now();
+  const userLimit = rateLimitMap.get(userId);
+  
+  if (!userLimit || now > userLimit.resetAt) {
+    rateLimitMap.set(userId, { count: 1, resetAt: now + RATE_LIMIT_WINDOW_MS });
+    return true;
+  }
+  
+  if (userLimit.count >= MAX_REQUESTS) {
+    return false;
+  }
+  
+  userLimit.count++;
+  return true;
+}
+
+function validateAmount(amount: any): number {
+  if (typeof amount !== 'number' || !Number.isFinite(amount)) {
+    throw new Error('Amount must be a valid number');
+  }
+  
+  if (amount < MIN_TRANSACTION_AMOUNT) {
+    throw new Error(`Amount must be at least ${MIN_TRANSACTION_AMOUNT} MSN`);
+  }
+  
+  if (amount > MAX_TRANSACTION_AMOUNT) {
+    throw new Error(`Amount cannot exceed ${MAX_TRANSACTION_AMOUNT} MSN`);
+  }
+  
+  const decimals = (amount.toString().split('.')[1] || '').length;
+  if (decimals > 4) {
+    throw new Error('Amount cannot have more than 4 decimal places');
+  }
+  
+  return amount;
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -25,11 +72,17 @@ serve(async (req) => {
       throw new Error('Unauthorized');
     }
 
-    const { amount, recipientIdentifier } = await req.json();
-
-    if (!amount || amount <= 0) {
-      throw new Error('Invalid amount');
+    if (!checkRateLimit(user.id)) {
+      return new Response(
+        JSON.stringify({ error: 'Trop de demandes. Veuillez réessayer dans 10 minutes.' }),
+        { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
     }
+
+    const body = await req.json();
+    const { amount: rawAmount, recipientIdentifier } = body;
+
+    const amount = validateAmount(rawAmount);
 
     if (!recipientIdentifier) {
       throw new Error('Recipient identifier is required');

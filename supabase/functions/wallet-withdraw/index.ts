@@ -6,6 +6,53 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+// Rate limiting: max 10 withdrawals per user per 10 minutes
+const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
+const MAX_REQUESTS = 10;
+const RATE_LIMIT_WINDOW_MS = 10 * 60 * 1000;
+
+// Transaction limits
+const MAX_TRANSACTION_AMOUNT = 1000000;
+const MIN_TRANSACTION_AMOUNT = 0.0001;
+
+function checkRateLimit(userId: string): boolean {
+  const now = Date.now();
+  const userLimit = rateLimitMap.get(userId);
+  
+  if (!userLimit || now > userLimit.resetAt) {
+    rateLimitMap.set(userId, { count: 1, resetAt: now + RATE_LIMIT_WINDOW_MS });
+    return true;
+  }
+  
+  if (userLimit.count >= MAX_REQUESTS) {
+    return false;
+  }
+  
+  userLimit.count++;
+  return true;
+}
+
+function validateAmount(amount: any): number {
+  if (typeof amount !== 'number' || !Number.isFinite(amount)) {
+    throw new Error('Amount must be a valid number');
+  }
+  
+  if (amount < MIN_TRANSACTION_AMOUNT) {
+    throw new Error(`Amount must be at least ${MIN_TRANSACTION_AMOUNT} MSN`);
+  }
+  
+  if (amount > MAX_TRANSACTION_AMOUNT) {
+    throw new Error(`Amount cannot exceed ${MAX_TRANSACTION_AMOUNT} MSN`);
+  }
+  
+  const decimals = (amount.toString().split('.')[1] || '').length;
+  if (decimals > 4) {
+    throw new Error('Amount cannot have more than 4 decimal places');
+  }
+  
+  return amount;
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -25,11 +72,19 @@ serve(async (req) => {
       throw new Error('Unauthorized');
     }
 
-    const { amount, paymentMethod, paymentContact } = await req.json();
-
-    if (!amount || amount <= 0) {
-      throw new Error('Invalid amount');
+    // Rate limiting check
+    if (!checkRateLimit(user.id)) {
+      return new Response(
+        JSON.stringify({ error: 'Trop de demandes. Veuillez réessayer dans 10 minutes.' }),
+        { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
     }
+
+    const body = await req.json();
+    const { amount: rawAmount, paymentMethod, paymentContact } = body;
+
+    // Validate amount
+    const amount = validateAmount(rawAmount);
 
     if (!paymentMethod || !paymentContact) {
       throw new Error('Payment method and contact are required');
@@ -47,7 +102,7 @@ serve(async (req) => {
     }
 
     // Calculate fees (0.60%)
-    const feePercentage = 0.006; // 0.60%
+    const feePercentage = 0.006;
     const feeAmount = amount * feePercentage;
     const totalDeduction = amount + feeAmount;
 
@@ -100,10 +155,8 @@ serve(async (req) => {
       .single();
 
     if (agentRole) {
-      // Agent gets 40% commission
       const commissionAmount = feeAmount * 0.40;
       
-      // Record commission
       await supabase.from('agent_commissions').insert({
         agent_id: user.id,
         transaction_id: transaction.id,
