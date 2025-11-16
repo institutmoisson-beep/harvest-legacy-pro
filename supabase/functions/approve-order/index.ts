@@ -91,22 +91,24 @@ Deno.serve(async (req) => {
         throw updateError;
       }
 
-      // Recalculer le bénéfice = 5% du prix total (purchase_price * quantity)
+      // Calculate profit = 5% du prix total (purchase_price * quantity)
       const totalPrice = Number(order.purchase_price) * Number(order.quantity);
-      const profit = totalPrice * 0.05; // 5% du prix total
+      const profit = totalPrice * 0.05; // 5% du prix total = bénéfice
       const brokerId = order.broker_id;
 
       console.log(`Order total: ${totalPrice} MSN, Profit (5%): ${profit} MSN`);
 
-      // Commission for the broker (direct seller) = 20% du bénéfice
-      const brokerCommission = profit * 0.20; // 20% du bénéfice (donc 1% du prix total)
+      // Commission for the initiator (broker) = 40% du bénéfice
+      const brokerCommission = profit * 0.40;
+      console.log(`Creating broker commission: ${brokerCommission} MSN (40% of profit) for user ${brokerId}`);
+      
       const { error: brokerCommError } = await supabaseAdmin.from('commissions').insert({
         user_id: brokerId,
         order_id: orderId,
         source_user_id: brokerId,
         commission_type: 'order',
-        level: 1,
-        commission_rate: 0.20,
+        level: 0,
+        commission_rate: 0.40,
         amount: brokerCommission,
       });
 
@@ -117,14 +119,14 @@ Deno.serve(async (req) => {
 
       console.log(`Created broker commission: ${brokerCommission} for user ${brokerId}`);
 
-      // Get wallet and update balance for broker using admin client
+      // Update broker wallet
       const { data: brokerWallet, error: walletError } = await supabaseAdmin
         .from('wallets')
         .select('balance')
         .eq('user_id', brokerId)
         .single();
 
-      if (walletError) {
+      if (walletError && walletError.code !== 'PGRST116') {
         console.error('Error fetching broker wallet:', walletError);
       }
 
@@ -146,7 +148,7 @@ Deno.serve(async (req) => {
           to_user_id: brokerId,
           amount: brokerCommission,
           transaction_type: 'commission',
-          description: `Commission de vente pour commande ${order.customer_name}`,
+          description: `Commission de vente (40%) pour commande ${order.customer_name}`,
           status: 'approved',
         });
 
@@ -166,7 +168,7 @@ Deno.serve(async (req) => {
             to_user_id: brokerId,
             amount: brokerCommission,
             transaction_type: 'commission',
-            description: `Commission de vente pour commande ${order.customer_name}`,
+            description: `Commission de vente (40%) pour commande ${order.customer_name}`,
             status: 'approved',
           });
 
@@ -176,31 +178,40 @@ Deno.serve(async (req) => {
         }
       }
 
-      // Referral commissions
-      const referralRates = [
-        { level: 1, rate: 0.10 }, // 10% niveau 1
-        { level: 2, rate: 0.05 }, // 5% niveau 2
-        { level: 3, rate: 0.03 }, // 3% niveau 3
-        { level: 4, rate: 0.02 }, // 2% niveau 4
-        { level: 5, rate: 0.01 }, // 1% niveau 5
-      ];
+      // Referral commissions - 20 levels with decreasing rates
+      // Level 1: 30%, Level 2: 28.5%, ..., Level 20: 1.5%
+      // Formula: rate = 30% - ((level - 1) * 1.5%)
+      
+      const referralLevels = Array.from({ length: 20 }, (_, i) => {
+        const level = i + 1;
+        const rate = 0.30 - ((level - 1) * 0.015); // Decreasing by 1.5% per level
+        return { level, rate: Math.max(rate, 0.015) }; // Minimum 1.5%
+      });
 
-      // Get all referrers up the chain using admin client
+      console.log('Calculating referral commissions for 20 levels...');
+
+      // Get all referrers up the chain (up to 20 levels)
       const { data: referrers, error: referrersError } = await supabaseAdmin
         .from('referrals')
         .select('referrer_id, level')
         .eq('referred_id', brokerId)
-        .in('level', [1, 2, 3, 4, 5]);
+        .lte('level', 20)
+        .order('level', { ascending: true });
 
       if (referrersError) {
         console.error('Error fetching referrers:', referrersError);
       } else if (referrers && referrers.length > 0) {
+        console.log(`Found ${referrers.length} referrers in the chain`);
+        
         for (const referrer of referrers) {
-          const rateConfig = referralRates.find(r => r.level === referrer.level);
+          const rateConfig = referralLevels.find(r => r.level === referrer.level);
           if (rateConfig) {
+            // Commission is based on the profit (5% of total price)
             const commission = profit * rateConfig.rate;
 
-            // Create commission record using admin client
+            console.log(`Level ${referrer.level} referral: ${commission} MSN (${(rateConfig.rate * 100).toFixed(1)}% of profit) for user ${referrer.referrer_id}`);
+
+            // Create commission record
             const { error: commError } = await supabaseAdmin.from('commissions').insert({
               user_id: referrer.referrer_id,
               order_id: orderId,
@@ -214,69 +225,69 @@ Deno.serve(async (req) => {
             if (commError) {
               console.error(`Error creating commission for referrer ${referrer.referrer_id}:`, commError);
             } else {
-              console.log(`Created level ${referrer.level} commission: ${commission} for user ${referrer.referrer_id}`);
-            }
-
-            // Update wallet
-            const { data: wallet, error: walletFetchError } = await supabaseAdmin
-              .from('wallets')
-              .select('balance')
-              .eq('user_id', referrer.referrer_id)
-              .single();
-
-            if (walletFetchError) {
-              console.error(`Error fetching wallet for referrer ${referrer.referrer_id}:`, walletFetchError);
-            }
-
-            if (wallet) {
-              const { error: walletUpdateError } = await supabaseAdmin
+              // Update wallet
+              const { data: wallet, error: walletFetchError } = await supabaseAdmin
                 .from('wallets')
-                .update({
-                  balance: Number(wallet.balance) + commission,
-                })
-                .eq('user_id', referrer.referrer_id);
+                .select('balance')
+                .eq('user_id', referrer.referrer_id)
+                .single();
 
-              if (walletUpdateError) {
-                console.error(`Error updating wallet for referrer ${referrer.referrer_id}:`, walletUpdateError);
+              if (walletFetchError && walletFetchError.code !== 'PGRST116') {
+                console.error(`Error fetching wallet for referrer ${referrer.referrer_id}:`, walletFetchError);
               }
 
-              // Create transaction record
-              const { error: transError } = await supabaseAdmin.from('wallet_transactions').insert({
-                from_user_id: referrer.referrer_id,
-                to_user_id: referrer.referrer_id,
-                amount: commission,
-                transaction_type: 'commission',
-                description: `Commission niveau ${referrer.level} pour commande ${order.customer_name}`,
-                status: 'approved',
-              });
+              if (wallet) {
+                const { error: walletUpdateError } = await supabaseAdmin
+                  .from('wallets')
+                  .update({
+                    balance: Number(wallet.balance) + commission,
+                  })
+                  .eq('user_id', referrer.referrer_id);
 
-              if (transError) {
-                console.error(`Error creating transaction for referrer ${referrer.referrer_id}:`, transError);
-              }
-            } else {
-              const { error: insertWalletError } = await supabaseAdmin
-                .from('wallets')
-                .insert({ user_id: referrer.referrer_id, balance: commission });
+                if (walletUpdateError) {
+                  console.error(`Error updating wallet for referrer ${referrer.referrer_id}:`, walletUpdateError);
+                }
 
-              if (insertWalletError) {
-                console.error(`Error creating wallet for referrer ${referrer.referrer_id}:`, insertWalletError);
-              } else {
+                // Create transaction record
                 const { error: transError } = await supabaseAdmin.from('wallet_transactions').insert({
                   from_user_id: referrer.referrer_id,
                   to_user_id: referrer.referrer_id,
                   amount: commission,
                   transaction_type: 'commission',
-                  description: `Commission niveau ${referrer.level} pour commande ${order.customer_name}`,
+                  description: `Commission parrainage niveau ${referrer.level} (${(rateConfig.rate * 100).toFixed(1)}%) pour commande ${order.customer_name}`,
                   status: 'approved',
                 });
 
                 if (transError) {
                   console.error(`Error creating transaction for referrer ${referrer.referrer_id}:`, transError);
                 }
+              } else {
+                const { error: insertWalletError } = await supabaseAdmin
+                  .from('wallets')
+                  .insert({ user_id: referrer.referrer_id, balance: commission });
+
+                if (insertWalletError) {
+                  console.error(`Error creating wallet for referrer ${referrer.referrer_id}:`, insertWalletError);
+                } else {
+                  const { error: transError } = await supabaseAdmin.from('wallet_transactions').insert({
+                    from_user_id: referrer.referrer_id,
+                    to_user_id: referrer.referrer_id,
+                    amount: commission,
+                    transaction_type: 'commission',
+                    description: `Commission parrainage niveau ${referrer.level} (${(rateConfig.rate * 100).toFixed(1)}%) pour commande ${order.customer_name}`,
+                    status: 'approved',
+                  });
+
+                  if (transError) {
+                    console.error(`Error creating transaction for referrer ${referrer.referrer_id}:`, transError);
+                  }
+                }
               }
             }
           }
         }
+      } else {
+        console.log('No referrers found in the chain');
       }
 
       console.log(`Order ${orderId} approved and commissions distributed`);

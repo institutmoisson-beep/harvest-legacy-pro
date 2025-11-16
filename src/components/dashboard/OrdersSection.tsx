@@ -14,15 +14,40 @@ interface OrdersSectionProps {
 }
 
 export default function OrdersSection({ userId, brokerCode }: OrdersSectionProps) {
+  const MSN_TO_FCFA = 750;
+  
   const [customerName, setCustomerName] = useState('');
   const [productName, setProductName] = useState('');
-  const [purchasePrice, setPurchasePrice] = useState('');
+  const [purchasePriceMSN, setPurchasePriceMSN] = useState('');
+  const [purchasePriceFCFA, setPurchasePriceFCFA] = useState('');
   const [quantity, setQuantity] = useState('1');
   const [geographicZone, setGeographicZone] = useState('');
   const [loading, setLoading] = useState(false);
 
+  // Conversion MSN -> FCFA
+  const handleMSNChange = (value: string) => {
+    setPurchasePriceMSN(value);
+    if (value && !isNaN(parseFloat(value))) {
+      const fcfa = parseFloat(value) * MSN_TO_FCFA;
+      setPurchasePriceFCFA(fcfa.toFixed(0));
+    } else {
+      setPurchasePriceFCFA('');
+    }
+  };
+
+  // Conversion FCFA -> MSN
+  const handleFCFAChange = (value: string) => {
+    setPurchasePriceFCFA(value);
+    if (value && !isNaN(parseFloat(value))) {
+      const msn = parseFloat(value) / MSN_TO_FCFA;
+      setPurchasePriceMSN(msn.toFixed(2));
+    } else {
+      setPurchasePriceMSN('');
+    }
+  };
+
   const handleSubmit = async () => {
-    if (!customerName || !productName || !purchasePrice || !quantity) {
+    if (!customerName || !productName || !purchasePriceMSN || !quantity) {
       toast({
         title: "Champs manquants",
         description: "Veuillez remplir tous les champs obligatoires",
@@ -34,7 +59,7 @@ export default function OrdersSection({ userId, brokerCode }: OrdersSectionProps
     setLoading(true);
     try {
       // Calculer automatiquement le profit = 5% du prix total
-      const totalPrice = parseFloat(purchasePrice) * parseInt(quantity);
+      const totalPrice = parseFloat(purchasePriceMSN) * parseInt(quantity);
       const calculatedProfit = totalPrice * 0.05;
 
       const { error } = await supabase
@@ -44,7 +69,7 @@ export default function OrdersSection({ userId, brokerCode }: OrdersSectionProps
           broker_code: brokerCode,
           customer_name: customerName,
           product_name: productName,
-          purchase_price: parseFloat(purchasePrice),
+          purchase_price: parseFloat(purchasePriceMSN),
           quantity: parseInt(quantity),
           profit: calculatedProfit,
           geographic_zone: geographicZone || null,
@@ -61,7 +86,8 @@ export default function OrdersSection({ userId, brokerCode }: OrdersSectionProps
       // Reset form
       setCustomerName('');
       setProductName('');
-      setPurchasePrice('');
+      setPurchasePriceMSN('');
+      setPurchasePriceFCFA('');
       setQuantity('1');
       setGeographicZone('');
     } catch (error: any) {
@@ -118,38 +144,61 @@ export default function OrdersSection({ userId, brokerCode }: OrdersSectionProps
 
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-2">
-            <Label htmlFor="purchasePrice">Prix du produit (MSN) *</Label>
+            <Label htmlFor="purchasePriceMSN">Prix du produit (MSN) *</Label>
             <Input
-              id="purchasePrice"
+              id="purchasePriceMSN"
               type="number"
-              placeholder="100"
-              value={purchasePrice}
-              onChange={(e) => setPurchasePrice(e.target.value)}
+              placeholder="2"
+              value={purchasePriceMSN}
+              onChange={(e) => handleMSNChange(e.target.value)}
               min="0"
               step="0.01"
             />
-            <p className="text-xs text-muted-foreground">1 MSN = 750 FCFA</p>
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="quantity">Quantité *</Label>
+            <Label htmlFor="purchasePriceFCFA">Prix du produit (FCFA)</Label>
             <Input
-              id="quantity"
+              id="purchasePriceFCFA"
               type="number"
-              placeholder="1"
-              value={quantity}
-              onChange={(e) => setQuantity(e.target.value)}
-              min="1"
+              placeholder="1500"
+              value={purchasePriceFCFA}
+              onChange={(e) => handleFCFAChange(e.target.value)}
+              min="0"
+              step="1"
             />
+            <p className="text-xs text-muted-foreground">1 MSN = 750 FCFA</p>
           </div>
         </div>
 
-        {purchasePrice && quantity && (
-          <div className="p-3 bg-primary/10 rounded-lg space-y-1">
-            <p className="text-sm text-muted-foreground">Bénéfice automatique (5% du prix) :</p>
-            <p className="text-lg font-semibold text-primary">
-              {(parseFloat(purchasePrice || '0') * parseInt(quantity || '1') * 0.05).toFixed(2)} MSN
-            </p>
+        <div className="space-y-2">
+          <Label htmlFor="quantity">Quantité *</Label>
+          <Input
+            id="quantity"
+            type="number"
+            placeholder="1"
+            value={quantity}
+            onChange={(e) => setQuantity(e.target.value)}
+            min="1"
+          />
+        </div>
+
+        {purchasePriceMSN && quantity && (
+          <div className="p-3 bg-primary/10 rounded-lg space-y-2">
+            <div>
+              <p className="text-sm text-muted-foreground">Bénéfice total (5% du prix) :</p>
+              <p className="text-lg font-semibold text-primary">
+                {(parseFloat(purchasePriceMSN || '0') * parseInt(quantity || '1') * 0.05).toFixed(2)} MSN
+                {' '}({(parseFloat(purchasePriceMSN || '0') * parseInt(quantity || '1') * 0.05 * MSN_TO_FCFA).toFixed(0)} FCFA)
+              </p>
+            </div>
+            <div>
+              <p className="text-sm text-muted-foreground">Votre commission (40% du bénéfice) :</p>
+              <p className="text-lg font-semibold text-accent">
+                {(parseFloat(purchasePriceMSN || '0') * parseInt(quantity || '1') * 0.05 * 0.40).toFixed(2)} MSN
+                {' '}({(parseFloat(purchasePriceMSN || '0') * parseInt(quantity || '1') * 0.05 * 0.40 * MSN_TO_FCFA).toFixed(0)} FCFA)
+              </p>
+            </div>
           </div>
         )}
 
