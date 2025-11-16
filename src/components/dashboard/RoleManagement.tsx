@@ -75,10 +75,8 @@ export default function RoleManagement() {
   const fetchUsers = async () => {
     try {
       setLoading(true);
-      const { data, error } = await supabase
-        .from('users_with_roles' as any)
-        .select('*')
-        .order('created_at', { ascending: false }) as any;
+      // Use secure RPC function instead of view to avoid security issues
+      const { data, error } = await supabase.rpc('get_all_users_admin') as any;
 
       if (error) throw error;
 

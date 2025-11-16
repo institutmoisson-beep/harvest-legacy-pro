@@ -2575,10 +2575,8 @@ export type Database = {
       }
       users_with_roles: {
         Row: {
-          banned_until: string | null
-          confirmed_at: string | null
+          career_level: Database["public"]["Enums"]["career_level"] | null
           created_at: string | null
-          email: string | null
           full_name: string | null
           id: string | null
           max_access_level: number | null
@@ -2641,6 +2639,21 @@ export type Database = {
           tier_name: string
         }[]
       }
+      get_all_users_admin: {
+        Args: never
+        Returns: {
+          banned_until: string
+          confirmed_at: string
+          created_at: string
+          email: string
+          full_name: string
+          id: string
+          max_access_level: number
+          phone: string
+          referral_code: string
+          roles: Json
+        }[]
+      }
       get_role_access_level: {
         Args: { _role: Database["public"]["Enums"]["app_role"] }
         Returns: number
@@ -2664,6 +2677,21 @@ export type Database = {
           referral_code: string
           role: Database["public"]["Enums"]["app_role"]
           user_id: string
+        }[]
+      }
+      get_user_admin_details: {
+        Args: { _user_id: string }
+        Returns: {
+          banned_until: string
+          confirmed_at: string
+          created_at: string
+          email: string
+          full_name: string
+          id: string
+          max_access_level: number
+          phone: string
+          referral_code: string
+          roles: Json
         }[]
       }
       get_user_max_access_level: { Args: { _user_id: string }; Returns: number }
