@@ -2575,13 +2575,11 @@ export type Database = {
       }
       users_with_roles: {
         Row: {
-          created_at: string | null
+          access_level: number | null
+          email: string | null
           full_name: string | null
           id: string | null
-          max_access_level: number | null
-          phone: string | null
-          referral_code: string | null
-          roles: Json | null
+          role: Database["public"]["Enums"]["app_role"] | null
         }
         Relationships: [
           {
@@ -2723,6 +2721,8 @@ export type Database = {
         | "financier"
         | "merchant"
         | "agent"
+        | "country_representative"
+        | "city_representative"
       career_level:
         | "novice"
         | "actif"
@@ -2875,6 +2875,8 @@ export const Constants = {
         "financier",
         "merchant",
         "agent",
+        "country_representative",
+        "city_representative",
       ],
       career_level: [
         "novice",
