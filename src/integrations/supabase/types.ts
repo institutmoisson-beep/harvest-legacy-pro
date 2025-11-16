@@ -1404,6 +1404,7 @@ export type Database = {
           country: string | null
           created_at: string | null
           customer_name: string
+          customer_phone: string | null
           geographic_zone: string | null
           id: string
           product_name: string
@@ -1421,6 +1422,7 @@ export type Database = {
           country?: string | null
           created_at?: string | null
           customer_name: string
+          customer_phone?: string | null
           geographic_zone?: string | null
           id?: string
           product_name: string
@@ -1438,6 +1440,7 @@ export type Database = {
           country?: string | null
           created_at?: string | null
           customer_name?: string
+          customer_phone?: string | null
           geographic_zone?: string | null
           id?: string
           product_name?: string

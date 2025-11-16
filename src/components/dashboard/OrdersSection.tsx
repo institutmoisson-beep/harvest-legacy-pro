@@ -17,6 +17,7 @@ export default function OrdersSection({ userId, brokerCode }: OrdersSectionProps
   const MSN_TO_FCFA = 750;
   
   const [customerName, setCustomerName] = useState('');
+  const [customerPhone, setCustomerPhone] = useState('');
   const [productName, setProductName] = useState('');
   const [purchasePriceMSN, setPurchasePriceMSN] = useState('');
   const [purchasePriceFCFA, setPurchasePriceFCFA] = useState('');
@@ -68,6 +69,7 @@ export default function OrdersSection({ userId, brokerCode }: OrdersSectionProps
           broker_id: userId,
           broker_code: brokerCode,
           customer_name: customerName,
+          customer_phone: customerPhone || null,
           product_name: productName,
           purchase_price: parseFloat(purchasePriceMSN),
           quantity: parseInt(quantity),
@@ -85,6 +87,7 @@ export default function OrdersSection({ userId, brokerCode }: OrdersSectionProps
 
       // Reset form
       setCustomerName('');
+      setCustomerPhone('');
       setProductName('');
       setPurchasePriceMSN('');
       setPurchasePriceFCFA('');
@@ -118,6 +121,17 @@ export default function OrdersSection({ userId, brokerCode }: OrdersSectionProps
             placeholder="Jean Dupont"
             value={customerName}
             onChange={(e) => setCustomerName(e.target.value)}
+          />
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="customerPhone">Numéro du client</Label>
+          <Input
+            id="customerPhone"
+            type="tel"
+            placeholder="+237 6XX XXX XXX"
+            value={customerPhone}
+            onChange={(e) => setCustomerPhone(e.target.value)}
           />
         </div>
 
