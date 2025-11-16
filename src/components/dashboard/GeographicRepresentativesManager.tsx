@@ -61,24 +61,24 @@ export default function GeographicRepresentativesManager() {
 
       if (assignmentsError) throw assignmentsError;
 
-      // Fetch user details for assignments
-      const assignmentsWithUsers = await Promise.all(
-        ((assignmentsData || []) as any[]).map(async (assignment: any) => {
-          const { data: userData } = await supabase
-            .from('profiles')
-            .select('full_name')
-            .eq('id', assignment.user_id)
-            .single();
+      // Fetch user details for assignments with profiles and emails
+      const userIds = [...new Set((assignmentsData || []).map((a: any) => a.user_id))];
+      
+      const { data: usersWithRolesData } = await supabase
+        .from('users_with_roles' as any)
+        .select('id, full_name, email')
+        .in('id', userIds);
 
-          const { data: authData } = await supabase.auth.admin.getUserById(assignment.user_id);
+      const usersMap = new Map(usersWithRolesData?.map((u: any) => [u.id, u]) || []);
 
-          return {
-            ...assignment,
-            user_name: userData?.full_name,
-            user_email: authData?.user?.email,
-          };
-        })
-      );
+      const assignmentsWithUsers = (assignmentsData || []).map((assignment: any) => {
+        const user = usersMap.get(assignment.user_id);
+        return {
+          ...assignment,
+          user_name: user?.full_name || 'Inconnu',
+          user_email: user?.email || '',
+        };
+      });
 
       setAssignments(assignmentsWithUsers as Assignment[]);
 
@@ -93,26 +93,20 @@ export default function GeographicRepresentativesManager() {
       if (locationsError) throw locationsError;
       setLocations(((locationsData || []) as any) as Location[]);
 
-      // Fetch users
+      // Fetch users from users_with_roles view which includes email
       const { data: usersData, error: usersError } = await supabase
-        .from('profiles')
-        .select('id, full_name')
+        .from('users_with_roles' as any)
+        .select('id, full_name, email')
         .order('full_name', { ascending: true });
 
       if (usersError) throw usersError;
 
-      // Get emails from auth
-      const usersWithEmails = await Promise.all(
-        (usersData || []).map(async (user) => {
-          const { data: authData } = await supabase.auth.admin.getUserById(user.id);
-          return {
-            ...user,
-            email: authData?.user?.email || '',
-          };
-        })
-      );
+      // Remove duplicates and filter out users without names
+      const uniqueUsers = Array.from(
+        new Map((usersData || []).map((u: any) => [u.id, u])).values()
+      ).filter((u: any) => u.full_name && u.full_name.trim() !== '');
 
-      setUsers(usersWithEmails);
+      setUsers(uniqueUsers as UserWithRoles[]);
     } catch (error: any) {
       console.error('Error fetching data:', error);
       toast({
