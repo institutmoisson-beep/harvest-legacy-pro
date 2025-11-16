@@ -35,7 +35,7 @@ interface UserWithRoles {
   created_at: string;
   banned_until: string | null;
   confirmed_at: string | null;
-  roles: Array<{ role: string; access_level: number }>;
+  roles: any[];
   max_access_level: number;
 }
 
