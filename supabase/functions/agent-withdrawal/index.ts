@@ -6,6 +6,53 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+// Rate limiting
+const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
+const MAX_REQUESTS = 50;
+const RATE_LIMIT_WINDOW_MS = 10 * 60 * 1000;
+
+// Transaction limits
+const MAX_TRANSACTION_AMOUNT = 500000;
+const MIN_TRANSACTION_AMOUNT = 0.0001;
+
+function checkRateLimit(userId: string): boolean {
+  const now = Date.now();
+  const userLimit = rateLimitMap.get(userId);
+  
+  if (!userLimit || now > userLimit.resetAt) {
+    rateLimitMap.set(userId, { count: 1, resetAt: now + RATE_LIMIT_WINDOW_MS });
+    return true;
+  }
+  
+  if (userLimit.count >= MAX_REQUESTS) {
+    return false;
+  }
+  
+  userLimit.count++;
+  return true;
+}
+
+function validateAmount(amount: any): number {
+  if (typeof amount !== 'number' || !Number.isFinite(amount)) {
+    throw new Error('Le montant doit être un nombre valide');
+  }
+  
+  if (amount < MIN_TRANSACTION_AMOUNT) {
+    throw new Error(`Le montant doit être d'au moins ${MIN_TRANSACTION_AMOUNT} MSN`);
+  }
+  
+  if (amount > MAX_TRANSACTION_AMOUNT) {
+    throw new Error(`Le montant ne peut pas dépasser ${MAX_TRANSACTION_AMOUNT} MSN`);
+  }
+  
+  const decimals = (amount.toString().split('.')[1] || '').length;
+  if (decimals > 4) {
+    throw new Error('Le montant ne peut pas avoir plus de 4 décimales');
+  }
+  
+  return amount;
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -25,10 +72,20 @@ serve(async (req) => {
       throw new Error('Non autorisé');
     }
 
-    const { memberCode, amount } = await req.json();
+    if (!checkRateLimit(user.id)) {
+      return new Response(
+        JSON.stringify({ error: 'Trop de demandes. Veuillez réessayer dans 10 minutes.' }),
+        { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
 
-    if (!memberCode || !amount || amount <= 0) {
-      throw new Error('Données invalides');
+    const body = await req.json();
+    const { memberCode, amount: rawAmount } = body;
+
+    const amount = validateAmount(rawAmount);
+
+    if (!memberCode || typeof memberCode !== 'string') {
+      throw new Error('Code membre invalide');
     }
 
     console.log('Agent withdrawal request:', { agentId: user.id, memberCode, amount });
