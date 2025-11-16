@@ -18,12 +18,11 @@ export default function OrdersSection({ userId, brokerCode }: OrdersSectionProps
   const [productName, setProductName] = useState('');
   const [purchasePrice, setPurchasePrice] = useState('');
   const [quantity, setQuantity] = useState('1');
-  const [profit, setProfit] = useState('');
   const [geographicZone, setGeographicZone] = useState('');
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async () => {
-    if (!customerName || !productName || !purchasePrice || !quantity || !profit) {
+    if (!customerName || !productName || !purchasePrice || !quantity) {
       toast({
         title: "Champs manquants",
         description: "Veuillez remplir tous les champs obligatoires",
@@ -34,6 +33,10 @@ export default function OrdersSection({ userId, brokerCode }: OrdersSectionProps
 
     setLoading(true);
     try {
+      // Calculer automatiquement le profit = 5% du prix total
+      const totalPrice = parseFloat(purchasePrice) * parseInt(quantity);
+      const calculatedProfit = totalPrice * 0.05;
+
       const { error } = await supabase
         .from('orders')
         .insert({
@@ -43,7 +46,7 @@ export default function OrdersSection({ userId, brokerCode }: OrdersSectionProps
           product_name: productName,
           purchase_price: parseFloat(purchasePrice),
           quantity: parseInt(quantity),
-          profit: parseFloat(profit),
+          profit: calculatedProfit,
           geographic_zone: geographicZone || null,
           status: 'pending'
         });
@@ -60,7 +63,6 @@ export default function OrdersSection({ userId, brokerCode }: OrdersSectionProps
       setProductName('');
       setPurchasePrice('');
       setQuantity('1');
-      setProfit('');
       setGeographicZone('');
     } catch (error: any) {
       toast({
@@ -116,15 +118,17 @@ export default function OrdersSection({ userId, brokerCode }: OrdersSectionProps
 
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-2">
-            <Label htmlFor="purchasePrice">Prix d'achat (FCFA) *</Label>
+            <Label htmlFor="purchasePrice">Prix du produit (MSN) *</Label>
             <Input
               id="purchasePrice"
               type="number"
-              placeholder="0"
+              placeholder="100"
               value={purchasePrice}
               onChange={(e) => setPurchasePrice(e.target.value)}
               min="0"
+              step="0.01"
             />
+            <p className="text-xs text-muted-foreground">1 MSN = 750 FCFA</p>
           </div>
 
           <div className="space-y-2">
@@ -140,17 +144,14 @@ export default function OrdersSection({ userId, brokerCode }: OrdersSectionProps
           </div>
         </div>
 
-        <div className="space-y-2">
-          <Label htmlFor="profit">Profit (FCFA) *</Label>
-          <Input
-            id="profit"
-            type="number"
-            placeholder="0"
-            value={profit}
-            onChange={(e) => setProfit(e.target.value)}
-            min="0"
-          />
-        </div>
+        {purchasePrice && quantity && (
+          <div className="p-3 bg-primary/10 rounded-lg space-y-1">
+            <p className="text-sm text-muted-foreground">Bénéfice automatique (5% du prix) :</p>
+            <p className="text-lg font-semibold text-primary">
+              {(parseFloat(purchasePrice || '0') * parseInt(quantity || '1') * 0.05).toFixed(2)} MSN
+            </p>
+          </div>
+        )}
 
         <div className="space-y-2">
           <Label htmlFor="geographicZone">Zone de livraison</Label>
