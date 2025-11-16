@@ -31,7 +31,10 @@ interface UserWithRoles {
   full_name: string;
   referral_code: string;
   phone: string | null;
+  email: string | null;
   created_at: string;
+  banned_until: string | null;
+  confirmed_at: string | null;
   roles: Array<{ role: string; access_level: number }>;
   max_access_level: number;
 }
@@ -63,6 +66,7 @@ export default function RoleManagement() {
   const [selectedRole, setSelectedRole] = useState<string>('');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isAddingRole, setIsAddingRole] = useState(false);
+  const [processingAction, setProcessingAction] = useState<string | null>(null);
 
   useEffect(() => {
     fetchUsers();
@@ -152,10 +156,99 @@ export default function RoleManagement() {
     }
   };
 
+  const suspendUser = async (userId: string) => {
+    try {
+      setProcessingAction(userId);
+      const { error } = await supabase.rpc('suspend_user_account', {
+        p_user_id: userId,
+        p_days: 30
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: 'Succès',
+        description: 'Utilisateur suspendu pour 30 jours',
+      });
+      fetchUsers();
+    } catch (error: any) {
+      console.error('Error suspending user:', error);
+      toast({
+        title: 'Erreur',
+        description: error.message || 'Impossible de suspendre l\'utilisateur',
+        variant: 'destructive',
+      });
+    } finally {
+      setProcessingAction(null);
+    }
+  };
+
+  const activateUser = async (userId: string) => {
+    try {
+      setProcessingAction(userId);
+      const { error } = await supabase.rpc('activate_user_account', {
+        p_user_id: userId
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: 'Succès',
+        description: 'Utilisateur activé avec succès',
+      });
+      fetchUsers();
+    } catch (error: any) {
+      console.error('Error activating user:', error);
+      toast({
+        title: 'Erreur',
+        description: error.message || 'Impossible d\'activer l\'utilisateur',
+        variant: 'destructive',
+      });
+    } finally {
+      setProcessingAction(null);
+    }
+  };
+
+  const deleteUser = async (userId: string, userName: string) => {
+    if (!confirm(`Êtes-vous sûr de vouloir supprimer définitivement ${userName}? Cette action est irréversible.`)) {
+      return;
+    }
+
+    try {
+      setProcessingAction(userId);
+      const { error } = await supabase.rpc('delete_user_account', {
+        p_user_id: userId
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: 'Succès',
+        description: 'Utilisateur supprimé avec succès',
+      });
+      fetchUsers();
+    } catch (error: any) {
+      console.error('Error deleting user:', error);
+      toast({
+        title: 'Erreur',
+        description: error.message || 'Impossible de supprimer l\'utilisateur',
+        variant: 'destructive',
+      });
+    } finally {
+      setProcessingAction(null);
+    }
+  };
+
+  const isUserSuspended = (bannedUntil: string | null) => {
+    if (!bannedUntil) return false;
+    return new Date(bannedUntil) > new Date();
+  };
+
   const filteredUsers = users.filter(user =>
     user.full_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     user.referral_code.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    user.phone?.toLowerCase().includes(searchTerm.toLowerCase())
+    user.phone?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    user.email?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   if (loading) {
@@ -199,25 +292,46 @@ export default function RoleManagement() {
         <div className="rounded-md border">
           <Table>
             <TableHeader>
-              <TableRow>
-                <TableHead>Utilisateur</TableHead>
-                <TableHead>Code</TableHead>
-                <TableHead>Téléphone</TableHead>
-                <TableHead>Rôles</TableHead>
-                <TableHead>Niveau Max</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
-              </TableRow>
+            <TableRow>
+              <TableHead>Utilisateur</TableHead>
+              <TableHead>Email</TableHead>
+              <TableHead>Code</TableHead>
+              <TableHead>Téléphone</TableHead>
+              <TableHead>Statut</TableHead>
+              <TableHead>Rôles</TableHead>
+              <TableHead>Niveau Max</TableHead>
+              <TableHead className="text-right">Actions</TableHead>
+            </TableRow>
             </TableHeader>
             <TableBody>
               {filteredUsers.map((user) => (
                 <TableRow key={user.id}>
-                  <TableCell className="font-medium">{user.full_name}</TableCell>
+                  <TableCell>
+                    <div className="font-medium">{user.full_name}</div>
+                    <div className="text-sm text-muted-foreground">
+                      Inscrit: {new Date(user.created_at).toLocaleDateString('fr-FR')}
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <div className="text-sm">{user.email || 'Non défini'}</div>
+                  </TableCell>
                   <TableCell>
                     <code className="text-sm bg-muted px-2 py-1 rounded">
                       {user.referral_code}
                     </code>
                   </TableCell>
                   <TableCell>{user.phone || '-'}</TableCell>
+                  <TableCell>
+                    {isUserSuspended(user.banned_until) ? (
+                      <Badge variant="destructive">
+                        Suspendu
+                      </Badge>
+                    ) : (
+                      <Badge variant="default" className="bg-green-600">
+                        Actif
+                      </Badge>
+                    )}
+                  </TableCell>
                   <TableCell>
                     <div className="flex flex-wrap gap-1">
                       {user.roles.length > 0 ? (
@@ -253,77 +367,63 @@ export default function RoleManagement() {
                     </Badge>
                   </TableCell>
                   <TableCell className="text-right">
-                    <Dialog open={isDialogOpen && selectedUser?.id === user.id} onOpenChange={(open) => {
-                      setIsDialogOpen(open);
-                      if (!open) {
-                        setSelectedUser(null);
-                        setSelectedRole('');
-                      }
-                    }}>
-                      <DialogTrigger asChild>
+                    <div className="flex items-center justify-end gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          setSelectedUser(user);
+                          setIsDialogOpen(true);
+                        }}
+                        disabled={processingAction === user.id}
+                      >
+                        <Plus className="h-4 w-4 mr-1" />
+                        Rôle
+                      </Button>
+                      
+                      {isUserSuspended(user.banned_until) ? (
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={() => setSelectedUser(user)}
+                          onClick={() => activateUser(user.id)}
+                          disabled={processingAction === user.id}
+                          className="bg-green-600 text-white hover:bg-green-700"
                         >
-                          <Plus className="w-4 h-4 mr-1" />
-                          Ajouter un rôle
+                          {processingAction === user.id ? (
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                          ) : (
+                            'Activer'
+                          )}
                         </Button>
-                      </DialogTrigger>
-                      <DialogContent>
-                        <DialogHeader>
-                          <DialogTitle>Ajouter un rôle à {user.full_name}</DialogTitle>
-                          <DialogDescription>
-                            Sélectionnez le rôle à attribuer à cet utilisateur
-                          </DialogDescription>
-                        </DialogHeader>
-                        <div className="space-y-4 py-4">
-                          <div className="space-y-2">
-                            <Label>Rôle</Label>
-                            <Select value={selectedRole} onValueChange={setSelectedRole}>
-                              <SelectTrigger>
-                                <SelectValue placeholder="Sélectionner un rôle" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {Object.entries(ROLE_DEFINITIONS).map(([key, def]) => (
-                                  <SelectItem key={key} value={key}>
-                                    <div className="flex items-center gap-2">
-                                      <Badge className={`${def.color} text-white`}>
-                                        {def.level}
-                                      </Badge>
-                                      {def.label}
-                                    </div>
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                          </div>
-                        </div>
-                        <DialogFooter>
-                          <Button
-                            variant="outline"
-                            onClick={() => {
-                              setIsDialogOpen(false);
-                              setSelectedUser(null);
-                              setSelectedRole('');
-                            }}
-                          >
-                            Annuler
-                          </Button>
-                          <Button
-                            onClick={addRoleToUser}
-                            disabled={!selectedRole || isAddingRole}
-                          >
-                            {isAddingRole ? (
-                              <Loader2 className="w-4 h-4 animate-spin mr-2" />
-                            ) : (
-                              <Shield className="w-4 h-4 mr-2" />
-                            )}
-                            Attribuer
-                          </Button>
-                        </DialogFooter>
-                      </DialogContent>
-                    </Dialog>
+                      ) : (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => suspendUser(user.id)}
+                          disabled={processingAction === user.id}
+                          className="bg-orange-600 text-white hover:bg-orange-700"
+                        >
+                          {processingAction === user.id ? (
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                          ) : (
+                            'Suspendre'
+                          )}
+                        </Button>
+                      )}
+                      
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                        onClick={() => deleteUser(user.id, user.full_name)}
+                        disabled={processingAction === user.id}
+                      >
+                        {processingAction === user.id ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                          <Trash2 className="h-4 w-4" />
+                        )}
+                      </Button>
+                    </div>
                   </TableCell>
                 </TableRow>
               ))}
@@ -336,6 +436,68 @@ export default function RoleManagement() {
             Aucun utilisateur trouvé
           </div>
         )}
+
+        <Dialog open={isDialogOpen} onOpenChange={(open) => {
+          setIsDialogOpen(open);
+          if (!open) {
+            setSelectedUser(null);
+            setSelectedRole('');
+          }
+        }}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Ajouter un rôle à {selectedUser?.full_name}</DialogTitle>
+              <DialogDescription>
+                Sélectionnez le rôle à attribuer à cet utilisateur
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4 py-4">
+              <div className="space-y-2">
+                <Label>Rôle</Label>
+                <Select value={selectedRole} onValueChange={setSelectedRole}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Sélectionner un rôle" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {Object.entries(ROLE_DEFINITIONS).map(([key, def]) => (
+                      <SelectItem key={key} value={key}>
+                        <div className="flex items-center gap-2">
+                          <Badge className={`${def.color} text-white`}>
+                            {def.level}
+                          </Badge>
+                          {def.label}
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <DialogFooter>
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setIsDialogOpen(false);
+                  setSelectedUser(null);
+                  setSelectedRole('');
+                }}
+              >
+                Annuler
+              </Button>
+              <Button
+                onClick={addRoleToUser}
+                disabled={!selectedRole || isAddingRole}
+              >
+                {isAddingRole ? (
+                  <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                ) : (
+                  <Shield className="w-4 h-4 mr-2" />
+                )}
+                Attribuer
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </CardContent>
     </Card>
   );
