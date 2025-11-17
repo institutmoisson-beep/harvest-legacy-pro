@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Home } from 'lucide-react';
 import AdminTransactionsSection from '@/components/dashboard/AdminTransactionsSection';
 import AdminOrdersSection from '@/components/dashboard/AdminOrdersSection';
+import AdminOrdersExport from '@/components/dashboard/AdminOrdersExport';
 import VisitsAnalyticsSection from '@/components/dashboard/VisitsAnalyticsSection';
 import PaymentContactsManager from '@/components/dashboard/PaymentContactsManager';
 import MemberManagement from '@/components/dashboard/MemberManagement';
@@ -126,7 +127,8 @@ export default function LevelAdmin() {
           <GeographicRepresentativesManager />
         </TabsContent>
 
-        <TabsContent value="orders">
+        <TabsContent value="orders" className="mt-4 space-y-6">
+          <AdminOrdersExport />
           <AdminOrdersSection />
         </TabsContent>
 
