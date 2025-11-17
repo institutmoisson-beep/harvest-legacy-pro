@@ -1648,6 +1648,7 @@ export type Database = {
       shop_settings: {
         Row: {
           active: boolean | null
+          background_theme: string | null
           banner_url: string | null
           created_at: string | null
           description: string | null
@@ -1659,6 +1660,7 @@ export type Database = {
         }
         Insert: {
           active?: boolean | null
+          background_theme?: string | null
           banner_url?: string | null
           created_at?: string | null
           description?: string | null
@@ -1670,6 +1672,7 @@ export type Database = {
         }
         Update: {
           active?: boolean | null
+          background_theme?: string | null
           banner_url?: string | null
           created_at?: string | null
           description?: string | null
