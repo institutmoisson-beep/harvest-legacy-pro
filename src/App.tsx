@@ -22,6 +22,7 @@ import InvestorDashboard from "./pages/InvestorDashboard";
 import MerchantDashboard from "./pages/MerchantDashboard";
 import MyShop from "./pages/MyShop";
 import ShopsDashboard from "./pages/ShopsDashboard";
+import ShopDashboard from "./pages/ShopDashboard";
 import PublicShop from "./pages/PublicShop";
 import SupportChat from "./pages/SupportChat";
 import TontineDashboard from "./pages/TontineDashboard";
@@ -62,7 +63,7 @@ const AppContent = () => {
       <Route path="/investments" element={<Investments />} />
       <Route path="/investor-dashboard" element={<InvestorDashboard />} />
       <Route path="/merchant" element={<MerchantDashboard />} />
-      <Route path="/my-shop" element={<MyShop />} />
+      <Route path="/my-shop" element={<ShopDashboard />} />
       <Route path="/shops-dashboard" element={<ShopsDashboard />} />
       <Route path="/shop/:shopSlug" element={<PublicShop />} />
       <Route path="/tontine-dashboard" element={<TontineDashboard />} />

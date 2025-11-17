@@ -155,7 +155,7 @@ export default function Dashboard() {
               <TrendingUp className="h-4 w-4 mr-2" />
               Dashboard Tontine
             </Button>
-            <Button onClick={() => navigate('/shops-dashboard')} variant="outline" size="sm">
+            <Button onClick={() => navigate('/my-shop')} variant="outline" size="sm">
               <ShoppingBag className="h-4 w-4 mr-2" />
               Ma Boutique
             </Button>
