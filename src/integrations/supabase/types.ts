@@ -1569,6 +1569,7 @@ export type Database = {
           image_url: string | null
           is_active: boolean | null
           is_approved: boolean | null
+          payment_link: string | null
           price: number
           product_name: string
           product_type: string | null
@@ -1583,6 +1584,7 @@ export type Database = {
           image_url?: string | null
           is_active?: boolean | null
           is_approved?: boolean | null
+          payment_link?: string | null
           price: number
           product_name: string
           product_type?: string | null
@@ -1597,6 +1599,7 @@ export type Database = {
           image_url?: string | null
           is_active?: boolean | null
           is_approved?: boolean | null
+          payment_link?: string | null
           price?: number
           product_name?: string
           product_type?: string | null
