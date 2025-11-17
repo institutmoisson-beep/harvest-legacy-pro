@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -242,12 +242,16 @@ export default function RoleManagement() {
     return new Date(bannedUntil) > new Date();
   };
 
-  const filteredUsers = users.filter(user =>
-    user.full_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    user.referral_code.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    user.phone?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    user.email?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredUsers = useMemo(() => {
+    if (!searchTerm) return users;
+    const lowerSearch = searchTerm.toLowerCase();
+    return users.filter(user =>
+      user.full_name.toLowerCase().includes(lowerSearch) ||
+      user.referral_code.toLowerCase().includes(lowerSearch) ||
+      user.phone?.toLowerCase().includes(lowerSearch) ||
+      user.email?.toLowerCase().includes(lowerSearch)
+    );
+  }, [users, searchTerm]);
 
   if (loading) {
     return (
@@ -279,7 +283,7 @@ export default function RoleManagement() {
           <div className="flex items-center gap-2">
             <Search className="w-4 h-4 text-muted-foreground" />
             <Input
-              placeholder="Rechercher par nom, code ou téléphone..."
+              placeholder="Rechercher par nom, code, téléphone ou email..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="max-w-md"
@@ -383,7 +387,10 @@ export default function RoleManagement() {
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={() => activateUser(user.id)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            activateUser(user.id);
+                          }}
                           disabled={processingAction === user.id}
                           className="bg-green-600 text-white hover:bg-green-700"
                         >
@@ -397,7 +404,10 @@ export default function RoleManagement() {
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={() => suspendUser(user.id)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            suspendUser(user.id);
+                          }}
                           disabled={processingAction === user.id}
                           className="bg-orange-600 text-white hover:bg-orange-700"
                         >
@@ -412,7 +422,10 @@ export default function RoleManagement() {
                       <Button
                         variant="destructive"
                         size="sm"
-                        onClick={() => deleteUser(user.id, user.full_name)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          deleteUser(user.id, user.full_name);
+                        }}
                         disabled={processingAction === user.id}
                       >
                         {processingAction === user.id ? (
