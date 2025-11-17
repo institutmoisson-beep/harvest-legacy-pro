@@ -31,6 +31,7 @@ export default function ShopDashboard() {
     shop_name: '',
     shop_url_slug: '',
     description: '',
+    background_theme: 'gradient-purple',
   });
 
   const [productData, setProductData] = useState({
@@ -108,6 +109,7 @@ export default function ShopDashboard() {
         shop_name: shopData.shop_name,
         shop_url_slug: slug,
         description: shopData.description,
+        background_theme: shopData.background_theme,
         active: true,
       })
       .select()
@@ -119,7 +121,21 @@ export default function ShopDashboard() {
       toast({ title: 'Succès', description: 'Boutique créée avec succès!' });
       setShop(data);
       setCreateShopOpen(false);
-      setShopData({ shop_name: '', shop_url_slug: '', description: '' });
+      setShopData({ shop_name: '', shop_url_slug: '', description: '', background_theme: 'gradient-purple' });
+    }
+  };
+
+  const updateShopTheme = async (theme: string) => {
+    const { error } = await supabase
+      .from('shop_settings')
+      .update({ background_theme: theme })
+      .eq('id', shop.id);
+
+    if (error) {
+      toast({ title: 'Erreur', description: error.message, variant: 'destructive' });
+    } else {
+      toast({ title: 'Succès', description: 'Thème mis à jour!' });
+      setShop({ ...shop, background_theme: theme });
     }
   };
 
@@ -301,6 +317,29 @@ export default function ShopDashboard() {
                 />
               </div>
 
+              <div>
+                <Label>Thème de fond</Label>
+                <Select
+                  value={shopData.background_theme}
+                  onValueChange={(value) => setShopData({ ...shopData, background_theme: value })}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Choisir un thème" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="gradient-purple">Dégradé Violet</SelectItem>
+                    <SelectItem value="gradient-blue">Dégradé Bleu</SelectItem>
+                    <SelectItem value="gradient-green">Dégradé Vert</SelectItem>
+                    <SelectItem value="gradient-orange">Dégradé Orange</SelectItem>
+                    <SelectItem value="gradient-pink">Dégradé Rose</SelectItem>
+                    <SelectItem value="solid-dark">Sombre</SelectItem>
+                    <SelectItem value="solid-light">Clair</SelectItem>
+                    <SelectItem value="pattern-dots">Motif Points</SelectItem>
+                    <SelectItem value="pattern-grid">Motif Grille</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
               <Button onClick={createShop} className="w-full">
                 <Store className="h-4 w-4 mr-2" />
                 Créer ma boutique
@@ -409,6 +448,10 @@ export default function ShopDashboard() {
             <TabsTrigger value="orders">
               <ShoppingBag className="h-4 w-4 mr-2" />
               Commandes
+            </TabsTrigger>
+            <TabsTrigger value="settings">
+              <Store className="h-4 w-4 mr-2" />
+              Paramètres
             </TabsTrigger>
           </TabsList>
 
@@ -651,6 +694,57 @@ export default function ShopDashboard() {
                 </CardContent>
               </Card>
             )}
+          </TabsContent>
+
+          {/* Settings Tab */}
+          <TabsContent value="settings" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle>Paramètres de la boutique</CardTitle>
+                <CardDescription>Personnalisez l'apparence de votre boutique</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div>
+                  <Label>Thème de fond</Label>
+                  <Select
+                    value={shop.background_theme || 'gradient-purple'}
+                    onValueChange={updateShopTheme}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Choisir un thème" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="gradient-purple">Dégradé Violet</SelectItem>
+                      <SelectItem value="gradient-blue">Dégradé Bleu</SelectItem>
+                      <SelectItem value="gradient-green">Dégradé Vert</SelectItem>
+                      <SelectItem value="gradient-orange">Dégradé Orange</SelectItem>
+                      <SelectItem value="gradient-pink">Dégradé Rose</SelectItem>
+                      <SelectItem value="solid-dark">Sombre</SelectItem>
+                      <SelectItem value="solid-light">Clair</SelectItem>
+                      <SelectItem value="pattern-dots">Motif Points</SelectItem>
+                      <SelectItem value="pattern-grid">Motif Grille</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <p className="text-sm text-muted-foreground mt-2">
+                    Ce thème sera appliqué à votre boutique publique
+                  </p>
+                </div>
+
+                <div className="border-t pt-4">
+                  <h3 className="font-semibold mb-2">Lien de votre boutique</h3>
+                  <div className="flex gap-2">
+                    <Input 
+                      readOnly 
+                      value={`${window.location.origin}/shop/${shop.shop_url_slug}`}
+                      className="flex-1"
+                    />
+                    <Button variant="outline" onClick={copyShopUrl}>
+                      <Copy className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
           </TabsContent>
         </Tabs>
 

@@ -5,10 +5,22 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { ShoppingCart, Store, Package } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { ShoppingCart, Store, Package, ExternalLink } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { Badge } from '@/components/ui/badge';
+
+const themeClasses = {
+  'gradient-purple': 'bg-gradient-to-br from-purple-900 via-purple-700 to-indigo-900',
+  'gradient-blue': 'bg-gradient-to-br from-blue-900 via-blue-700 to-cyan-900',
+  'gradient-green': 'bg-gradient-to-br from-green-900 via-emerald-700 to-teal-900',
+  'gradient-orange': 'bg-gradient-to-br from-orange-900 via-orange-700 to-red-900',
+  'gradient-pink': 'bg-gradient-to-br from-pink-900 via-rose-700 to-purple-900',
+  'solid-dark': 'bg-gray-950',
+  'solid-light': 'bg-gray-50',
+  'pattern-dots': 'bg-gray-900',
+  'pattern-grid': 'bg-gray-900',
+};
 
 export default function PublicShop() {
   const { shopSlug } = useParams();
@@ -33,12 +45,12 @@ export default function PublicShop() {
   const fetchShopData = async () => {
     setLoading(true);
 
-    // Fetch shop by slug
-    const { data: shopData, error: shopError } = await (supabase.from as any)('shop_settings')
+    const { data: shopData, error: shopError } = await supabase
+      .from('shop_settings')
       .select('*')
       .eq('shop_url_slug', shopSlug)
       .eq('active', true)
-      .single();
+      .maybeSingle();
 
     if (shopError || !shopData) {
       toast({
@@ -46,14 +58,14 @@ export default function PublicShop() {
         description: 'Boutique introuvable',
         variant: 'destructive',
       });
-      navigate('/');
+      setLoading(false);
       return;
     }
 
     setShop(shopData);
 
-    // Fetch products
-    const { data: productsData } = await (supabase.from as any)('shop_products')
+    const { data: productsData } = await supabase
+      .from('shop_products')
       .select('*')
       .eq('shop_id', shopData.id)
       .eq('is_approved', true)
@@ -90,7 +102,7 @@ export default function PublicShop() {
 
     const totalAmount = selectedProduct.price * orderData.quantity;
 
-    const { error } = await (supabase.from as any)('shop_orders').insert({
+    const { error } = await supabase.from('shop_orders').insert({
       shop_id: shop.id,
       product_id: selectedProduct.id,
       buyer_name: orderData.buyer_name,
@@ -118,10 +130,10 @@ export default function PublicShop() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
+      <div className="flex items-center justify-center min-h-screen bg-background">
         <div className="text-center">
-          <Store className="h-12 w-12 mx-auto mb-4 animate-pulse" />
-          <p>Chargement de la boutique...</p>
+          <Store className="h-12 w-12 mx-auto mb-4 animate-pulse text-primary" />
+          <p className="text-foreground">Chargement de la boutique...</p>
         </div>
       </div>
     );
@@ -129,12 +141,15 @@ export default function PublicShop() {
 
   if (!shop) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
+      <div className="flex items-center justify-center min-h-screen bg-background">
         <Card className="max-w-md">
-          <CardContent className="pt-6">
-            <Store className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-            <p className="text-center text-muted-foreground">Boutique introuvable</p>
-            <Button onClick={() => navigate('/')} className="w-full mt-4">
+          <CardContent className="py-12 text-center">
+            <Store className="h-16 w-16 mx-auto mb-4 text-muted-foreground" />
+            <h2 className="text-2xl font-bold mb-2">Boutique introuvable</h2>
+            <p className="text-muted-foreground mb-6">
+              Cette boutique n'existe pas ou n'est plus active.
+            </p>
+            <Button onClick={() => navigate('/')}>
               Retour à l'accueil
             </Button>
           </CardContent>
@@ -143,145 +158,175 @@ export default function PublicShop() {
     );
   }
 
+  const theme = shop.background_theme || 'gradient-purple';
+  const themeClass = themeClasses[theme as keyof typeof themeClasses];
+  const isDarkTheme = !theme.includes('light');
+
   return (
-    <div className="min-h-screen bg-background">
-      {/* Shop Header */}
-      <div className="bg-gradient-to-r from-primary to-secondary py-12 px-4">
-        <div className="container mx-auto max-w-6xl">
-          {shop.banner_url && (
-            <img 
-              src={shop.banner_url} 
-              alt="Bannière" 
-              className="w-full h-48 object-cover rounded-lg mb-6"
-            />
-          )}
-          <div className="flex items-center gap-4">
-            {shop.logo_url && (
-              <img 
-                src={shop.logo_url} 
-                alt="Logo" 
-                className="h-20 w-20 rounded-full border-4 border-white shadow-lg"
-              />
-            )}
-            <div className="text-white">
-              <h1 className="text-4xl font-bold">{shop.shop_name}</h1>
-              {shop.description && (
-                <p className="text-white/90 mt-2">{shop.description}</p>
-              )}
+    <div className={`min-h-screen ${themeClass} relative overflow-hidden`}>
+      {/* Pattern Overlays */}
+      {theme === 'pattern-dots' && (
+        <div className="absolute inset-0 opacity-20" style={{
+          backgroundImage: 'radial-gradient(circle, white 1px, transparent 1px)',
+          backgroundSize: '30px 30px'
+        }} />
+      )}
+      {theme === 'pattern-grid' && (
+        <div className="absolute inset-0 opacity-10" style={{
+          backgroundImage: 'linear-gradient(white 1px, transparent 1px), linear-gradient(90deg, white 1px, transparent 1px)',
+          backgroundSize: '50px 50px'
+        }} />
+      )}
+
+      <div className="relative z-10">
+        {/* Header */}
+        <header className="border-b border-white/10 backdrop-blur-sm bg-black/20">
+          <div className="container mx-auto px-4 py-6">
+            <div className="flex items-center gap-4">
+              <Store className={`h-8 w-8 ${isDarkTheme ? 'text-white' : 'text-gray-900'}`} />
+              <div>
+                <h1 className={`text-2xl font-bold ${isDarkTheme ? 'text-white' : 'text-gray-900'}`}>
+                  {shop.shop_name}
+                </h1>
+                {shop.description && (
+                  <p className={`text-sm ${isDarkTheme ? 'text-gray-300' : 'text-gray-600'}`}>
+                    {shop.description}
+                  </p>
+                )}
+              </div>
             </div>
           </div>
-        </div>
-      </div>
+        </header>
 
-      {/* Products Grid */}
-      <div className="container mx-auto max-w-6xl px-4 py-12">
-        {products.length === 0 ? (
-          <Card>
-            <CardContent className="py-12 text-center">
-              <Package className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-              <p className="text-muted-foreground">Aucun produit disponible pour le moment</p>
-            </CardContent>
-          </Card>
-        ) : (
-          <>
-            <h2 className="text-2xl font-bold mb-6">Produits disponibles</h2>
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {/* Products Grid */}
+        <div className="container mx-auto px-4 py-8">
+          {products.length === 0 ? (
+            <Card className="max-w-md mx-auto bg-white/10 backdrop-blur-sm border-white/20">
+              <CardContent className="py-12 text-center">
+                <Package className={`h-12 w-12 mx-auto mb-4 ${isDarkTheme ? 'text-gray-300' : 'text-gray-600'}`} />
+                <p className={isDarkTheme ? 'text-gray-300' : 'text-gray-600'}>
+                  Aucun produit disponible pour le moment
+                </p>
+              </CardContent>
+            </Card>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {products.map((product) => (
-                <Card key={product.id} className="hover:shadow-lg transition-shadow">
-                  {product.image_url && (
-                    <img 
-                      src={product.image_url} 
-                      alt={product.product_name}
-                      className="w-full h-48 object-cover rounded-t-lg"
-                    />
-                  )}
+                <Card 
+                  key={product.id} 
+                  className="overflow-hidden bg-white/10 backdrop-blur-sm border-white/20 hover:bg-white/20 transition-all"
+                >
                   <CardHeader>
                     <div className="flex justify-between items-start">
-                      <CardTitle className="text-lg">{product.product_name}</CardTitle>
-                      <Badge variant={product.product_type === 'digital' ? 'secondary' : 'default'}>
-                        {product.product_type === 'digital' ? 'Digital' : 'Physique'}
+                      <div className="flex-1">
+                        <CardTitle className={isDarkTheme ? 'text-white' : 'text-gray-900'}>
+                          {product.product_name}
+                        </CardTitle>
+                        <CardDescription className={isDarkTheme ? 'text-gray-300' : 'text-gray-600'}>
+                          {product.description}
+                        </CardDescription>
+                      </div>
+                      <Badge variant={product.stock > 0 ? 'default' : 'destructive'}>
+                        {product.stock > 0 ? `Stock: ${product.stock}` : 'Rupture'}
                       </Badge>
                     </div>
-                    {product.description && (
-                      <CardDescription>{product.description}</CardDescription>
-                    )}
                   </CardHeader>
-                  <CardContent>
-                    <div className="space-y-3">
-                      <div className="flex justify-between items-center">
-                        <span className="text-2xl font-bold gradient-text-primary">
-                          {product.price.toLocaleString()} FCFA
-                        </span>
-                        <span className="text-sm text-muted-foreground">
-                          Stock: {product.stock}
-                        </span>
-                      </div>
-                      <Button 
-                        onClick={() => handleOrderClick(product)} 
-                        className="w-full"
+                  <CardContent className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <span className={`text-2xl font-bold ${isDarkTheme ? 'text-white' : 'text-gray-900'}`}>
+                        {product.price.toLocaleString()} FCFA
+                      </span>
+                      <Badge variant="outline" className="border-white/30">
+                        {product.product_type === 'physical' && 'Physique'}
+                        {product.product_type === 'digital' && 'Numérique'}
+                        {product.product_type === 'service' && 'Service'}
+                      </Badge>
+                    </div>
+
+                    <div className="flex gap-2">
+                      <Button
+                        className="flex-1"
+                        onClick={() => handleOrderClick(product)}
                         disabled={product.stock === 0}
                       >
                         <ShoppingCart className="h-4 w-4 mr-2" />
-                        {product.stock === 0 ? 'Rupture de stock' : 'Commander'}
+                        Commander
                       </Button>
+                      {product.payment_link && (
+                        <Button
+                          variant="outline"
+                          onClick={() => window.open(product.payment_link, '_blank')}
+                          className="border-white/30"
+                        >
+                          <ExternalLink className="h-4 w-4" />
+                        </Button>
+                      )}
                     </div>
                   </CardContent>
                 </Card>
               ))}
             </div>
-          </>
-        )}
+          )}
+        </div>
       </div>
 
       {/* Order Dialog */}
       <Dialog open={orderDialogOpen} onOpenChange={setOrderDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Commander {selectedProduct?.product_name}</DialogTitle>
+            <DialogTitle>Passer une commande</DialogTitle>
           </DialogHeader>
-          <div className="space-y-4">
-            <div>
-              <Label>Votre nom</Label>
-              <Input
-                value={orderData.buyer_name}
-                onChange={(e) => setOrderData({ ...orderData, buyer_name: e.target.value })}
-                placeholder="Nom complet"
-              />
-            </div>
-            <div>
-              <Label>Votre téléphone</Label>
-              <Input
-                value={orderData.buyer_phone}
-                onChange={(e) => setOrderData({ ...orderData, buyer_phone: e.target.value })}
-                placeholder="+225 XX XX XX XX XX"
-              />
-            </div>
-            <div>
-              <Label>Quantité</Label>
-              <Input
-                type="number"
-                min="1"
-                max={selectedProduct?.stock || 1}
-                value={orderData.quantity}
-                onChange={(e) => setOrderData({ ...orderData, quantity: parseInt(e.target.value) || 1 })}
-              />
-            </div>
-            <div className="bg-muted p-4 rounded-lg">
-              <div className="flex justify-between items-center mb-2">
-                <span>Prix unitaire:</span>
-                <span className="font-semibold">{selectedProduct?.price.toLocaleString()} FCFA</span>
+          {selectedProduct && (
+            <div className="space-y-4">
+              <div>
+                <p className="font-semibold">{selectedProduct.product_name}</p>
+                <p className="text-sm text-muted-foreground">
+                  {selectedProduct.price.toLocaleString()} FCFA
+                </p>
               </div>
-              <div className="flex justify-between items-center text-lg font-bold">
-                <span>Total:</span>
-                <span className="gradient-text-primary">
-                  {((selectedProduct?.price || 0) * orderData.quantity).toLocaleString()} FCFA
-                </span>
+
+              <div>
+                <Label>Votre nom</Label>
+                <Input
+                  value={orderData.buyer_name}
+                  onChange={(e) => setOrderData({ ...orderData, buyer_name: e.target.value })}
+                  placeholder="Jean Dupont"
+                />
+              </div>
+
+              <div>
+                <Label>Numéro de téléphone</Label>
+                <Input
+                  value={orderData.buyer_phone}
+                  onChange={(e) => setOrderData({ ...orderData, buyer_phone: e.target.value })}
+                  placeholder="+242 06 123 4567"
+                />
+              </div>
+
+              <div>
+                <Label>Quantité</Label>
+                <Input
+                  type="number"
+                  min="1"
+                  max={selectedProduct.stock}
+                  value={orderData.quantity}
+                  onChange={(e) => setOrderData({ ...orderData, quantity: parseInt(e.target.value) || 1 })}
+                />
+              </div>
+
+              <div className="border-t pt-4">
+                <div className="flex justify-between items-center mb-4">
+                  <span className="font-semibold">Total:</span>
+                  <span className="text-2xl font-bold">
+                    {(selectedProduct.price * orderData.quantity).toLocaleString()} FCFA
+                  </span>
+                </div>
+                <Button onClick={handlePlaceOrder} className="w-full">
+                  Confirmer la commande
+                </Button>
               </div>
             </div>
-            <Button onClick={handlePlaceOrder} className="w-full">
-              Confirmer la commande
-            </Button>
-          </div>
+          )}
         </DialogContent>
       </Dialog>
     </div>
