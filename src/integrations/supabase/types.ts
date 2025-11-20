@@ -623,6 +623,211 @@ export type Database = {
           },
         ]
       }
+      credit_products: {
+        Row: {
+          base_price: number
+          created_at: string | null
+          description: string | null
+          id: string
+          image_url: string | null
+          is_available: boolean | null
+          product_name: string
+          product_type: string
+          vendor_id: string | null
+        }
+        Insert: {
+          base_price: number
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          is_available?: boolean | null
+          product_name: string
+          product_type: string
+          vendor_id?: string | null
+        }
+        Update: {
+          base_price?: number
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          is_available?: boolean | null
+          product_name?: string
+          product_type?: string
+          vendor_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "credit_products_vendor_id_fkey"
+            columns: ["vendor_id"]
+            isOneToOne: false
+            referencedRelation: "credit_vendors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      credit_repayments: {
+        Row: {
+          amount_due: number
+          amount_paid: number | null
+          created_at: string | null
+          credit_id: string | null
+          days_overdue: number | null
+          due_date: string
+          id: string
+          payment_date: string | null
+          payment_method: string | null
+          penalty_amount: number | null
+          status: string | null
+        }
+        Insert: {
+          amount_due: number
+          amount_paid?: number | null
+          created_at?: string | null
+          credit_id?: string | null
+          days_overdue?: number | null
+          due_date: string
+          id?: string
+          payment_date?: string | null
+          payment_method?: string | null
+          penalty_amount?: number | null
+          status?: string | null
+        }
+        Update: {
+          amount_due?: number
+          amount_paid?: number | null
+          created_at?: string | null
+          credit_id?: string | null
+          days_overdue?: number | null
+          due_date?: string
+          id?: string
+          payment_date?: string | null
+          payment_method?: string | null
+          penalty_amount?: number | null
+          status?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "credit_repayments_credit_id_fkey"
+            columns: ["credit_id"]
+            isOneToOne: false
+            referencedRelation: "credits"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      credit_vendors: {
+        Row: {
+          company_name: string
+          contact_name: string
+          created_at: string | null
+          email: string | null
+          id: string
+          is_active: boolean | null
+          phone: string
+          product_categories: string[] | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          company_name: string
+          contact_name: string
+          created_at?: string | null
+          email?: string | null
+          id?: string
+          is_active?: boolean | null
+          phone: string
+          product_categories?: string[] | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          company_name?: string
+          contact_name?: string
+          created_at?: string | null
+          email?: string | null
+          id?: string
+          is_active?: boolean | null
+          phone?: string
+          product_categories?: string[] | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      credits: {
+        Row: {
+          admin_notes: string | null
+          approved_at: string | null
+          approved_by: string | null
+          contract_pdf_url: string | null
+          created_at: string | null
+          delivery_address: string | null
+          down_payment: number | null
+          duration_months: number
+          end_date: string | null
+          id: string
+          installment_amount: number
+          payment_frequency: string
+          product_image: string | null
+          product_name: string
+          product_type: string
+          remaining_amount: number
+          start_date: string | null
+          status: string | null
+          total_price: number
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          admin_notes?: string | null
+          approved_at?: string | null
+          approved_by?: string | null
+          contract_pdf_url?: string | null
+          created_at?: string | null
+          delivery_address?: string | null
+          down_payment?: number | null
+          duration_months: number
+          end_date?: string | null
+          id?: string
+          installment_amount: number
+          payment_frequency: string
+          product_image?: string | null
+          product_name: string
+          product_type: string
+          remaining_amount: number
+          start_date?: string | null
+          status?: string | null
+          total_price: number
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          admin_notes?: string | null
+          approved_at?: string | null
+          approved_by?: string | null
+          contract_pdf_url?: string | null
+          created_at?: string | null
+          delivery_address?: string | null
+          down_payment?: number | null
+          duration_months?: number
+          end_date?: string | null
+          id?: string
+          installment_amount?: number
+          payment_frequency?: string
+          product_image?: string | null
+          product_name?: string
+          product_type?: string
+          remaining_amount?: number
+          start_date?: string | null
+          status?: string | null
+          total_price?: number
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       crypto_addresses: {
         Row: {
           address: string
@@ -1961,6 +2166,48 @@ export type Database = {
           details?: string | null
           id?: number
           reason?: string | null
+        }
+        Relationships: []
+      }
+      user_credit_profiles: {
+        Row: {
+          active_credits: number | null
+          blocked_reason: string | null
+          completed_credits: number | null
+          created_at: string | null
+          credit_score: number | null
+          defaulted_credits: number | null
+          id: string
+          is_blocked: boolean | null
+          total_credits: number | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          active_credits?: number | null
+          blocked_reason?: string | null
+          completed_credits?: number | null
+          created_at?: string | null
+          credit_score?: number | null
+          defaulted_credits?: number | null
+          id?: string
+          is_blocked?: boolean | null
+          total_credits?: number | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          active_credits?: number | null
+          blocked_reason?: string | null
+          completed_credits?: number | null
+          created_at?: string | null
+          credit_score?: number | null
+          defaulted_credits?: number | null
+          id?: string
+          is_blocked?: boolean | null
+          total_credits?: number | null
+          updated_at?: string | null
+          user_id?: string | null
         }
         Relationships: []
       }

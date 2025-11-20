@@ -24,6 +24,9 @@ import MyShop from "./pages/MyShop";
 import ShopsDashboard from "./pages/ShopsDashboard";
 import ShopDashboard from "./pages/ShopDashboard";
 import PublicShop from "./pages/PublicShop";
+import CreditRequest from "./pages/CreditRequest";
+import MyCredits from "./pages/MyCredits";
+import AdminCredits from "./pages/AdminCredits";
 import SupportChat from "./pages/SupportChat";
 import TontineDashboard from "./pages/TontineDashboard";
 import OrdersDashboard from "./pages/OrdersDashboard";
@@ -66,6 +69,9 @@ const AppContent = () => {
       <Route path="/my-shop" element={<ShopDashboard />} />
       <Route path="/shops-dashboard" element={<ShopsDashboard />} />
       <Route path="/shop/:shopSlug" element={<PublicShop />} />
+      <Route path="/credit-request" element={<CreditRequest />} />
+      <Route path="/my-credits" element={<MyCredits />} />
+      <Route path="/admin/credits" element={<AdminCredits />} />
       <Route path="/tontine-dashboard" element={<TontineDashboard />} />
       <Route path="/orders-dashboard" element={<OrdersDashboard />} />
       <Route path="/notifications" element={<NotificationsCenter />} />
