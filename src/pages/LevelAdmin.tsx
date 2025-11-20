@@ -23,6 +23,7 @@ import RoleManagement from '@/components/dashboard/RoleManagement';
 import PermissionsManager from '@/components/dashboard/PermissionsManager';
 import GeographicRepresentativesManager from '@/components/dashboard/GeographicRepresentativesManager';
 import AuditLogsViewer from '@/components/dashboard/AuditLogsViewer';
+import AdminCredits from '@/pages/AdminCredits';
 
 // Super tableau de bord exclusif pour le Super Admin
 export default function LevelAdmin() {
@@ -129,11 +130,7 @@ export default function LevelAdmin() {
         </TabsContent>
 
         <TabsContent value="credits" className="mt-4">
-          <iframe 
-            src="/admin-credits" 
-            className="w-full h-[calc(100vh-200px)] border-0 rounded-lg"
-            title="Gestion des crédits et épargnes"
-          />
+          <AdminCredits />
         </TabsContent>
 
         <TabsContent value="orders" className="mt-4 space-y-6">
