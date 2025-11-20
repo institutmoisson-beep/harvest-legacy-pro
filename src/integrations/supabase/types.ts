@@ -2771,6 +2771,7 @@ export type Database = {
         Returns: undefined
       }
       update_agent_goals_progress: { Args: never; Returns: undefined }
+      update_all_career_levels: { Args: never; Returns: undefined }
       update_order_goals_progress: { Args: never; Returns: undefined }
       update_user_career_level: {
         Args: { p_user_id: string }
@@ -2806,6 +2807,14 @@ export type Database = {
         | "royal_8"
         | "royal_9"
         | "guide"
+        | "semeur"
+        | "cultivateur"
+        | "recolteur"
+        | "gestionnaire"
+        | "superviseur"
+        | "coordinateur"
+        | "directeur"
+        | "ambassadeur"
       order_status: "pending" | "validated" | "rejected" | "completed"
       transaction_type:
         | "deposit"
@@ -2961,6 +2970,14 @@ export const Constants = {
         "royal_8",
         "royal_9",
         "guide",
+        "semeur",
+        "cultivateur",
+        "recolteur",
+        "gestionnaire",
+        "superviseur",
+        "coordinateur",
+        "directeur",
+        "ambassadeur",
       ],
       order_status: ["pending", "validated", "rejected", "completed"],
       transaction_type: [

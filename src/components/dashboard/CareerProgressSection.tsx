@@ -74,7 +74,24 @@ export const CareerProgressSection = ({ userId }: CareerProgressSectionProps) =>
       })
       .subscribe();
 
-    return () => { supabase.removeChannel(ordersChannel); };
+    // Subscribe to referrals changes to auto-update career level
+    const referralsChannel = supabase
+      .channel('referrals-career-updates')
+      .on('postgres_changes', {
+        event: 'INSERT',
+        schema: 'public',
+        table: 'referrals',
+        filter: `referrer_id=eq.${userId}`
+      }, () => {
+        // Trigger career level recalculation
+        updateCareerLevel();
+      })
+      .subscribe();
+
+    return () => { 
+      supabase.removeChannel(ordersChannel);
+      supabase.removeChannel(referralsChannel);
+    };
   }, [userId]);
 
   const updateCareerLevel = async () => {
@@ -135,6 +152,21 @@ export const CareerProgressSection = ({ userId }: CareerProgressSectionProps) =>
           teamSize: 0,
           accountAgeDays: accountAge,
         });
+
+        // Vérifier automatiquement si l'utilisateur a atteint les critères du niveau suivant
+        // et mettre à jour son niveau de carrière
+        const levels: CareerLevel[] = ["semeur", "cultivateur", "recolteur", "gestionnaire", "superviseur", "coordinateur", "directeur", "gouverneur", "ambassadeur", "guide"];
+        const currentIndex = levels.indexOf(profile.career_level as CareerLevel);
+        const nextLevelName = currentIndex < levels.length - 1 ? levels[currentIndex + 1] : null;
+        
+        if (nextLevelName) {
+          const nextRequirements = LEVEL_REQUIREMENTS[nextLevelName];
+          // Si les critères sont atteints, mettre à jour automatiquement
+          if ((referralsCount || 0) >= nextRequirements.referrals && 
+              (validatedCount || 0) >= nextRequirements.orders) {
+            await updateCareerLevel();
+          }
+        }
       }
     } catch (error) {
       console.error("Error fetching career data:", error);
