@@ -193,7 +193,7 @@ export default function CreditRequest() {
 
       if (error) throw error;
 
-      toast.success("Épargne créée avec succès");
+      toast.success("Achat progressif créé avec succès");
       navigate("/my-savings");
     } catch (error: any) {
       toast.error(error.message);
@@ -212,9 +212,9 @@ export default function CreditRequest() {
 
         <Card className="glass-card">
           <CardHeader>
-            <CardTitle className="text-2xl">Achat à crédit ou épargne</CardTitle>
+            <CardTitle className="text-2xl">Achat à crédit ou petit à petit</CardTitle>
             <CardDescription>
-              Choisissez votre mode d'achat : crédit avec échéancier ou épargne progressive
+              Choisissez votre mode d'achat : crédit avec échéancier ou paiement progressif
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -226,7 +226,7 @@ export default function CreditRequest() {
                 </TabsTrigger>
                 <TabsTrigger value="savings" className="flex items-center gap-2">
                   <PiggyBank className="h-4 w-4" />
-                  Épargne
+                  Petit à petit
                 </TabsTrigger>
               </TabsList>
 
@@ -429,7 +429,7 @@ export default function CreditRequest() {
                   </div>
 
                   <Button type="submit" className="w-full" disabled={loading}>
-                    {loading ? "Création en cours..." : "Créer mon épargne"}
+                    {loading ? "Création en cours..." : "Démarrer l'achat progressif"}
                   </Button>
                 </form>
               </TabsContent>
