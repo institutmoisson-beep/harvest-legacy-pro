@@ -1702,6 +1702,100 @@ export type Database = {
           },
         ]
       }
+      savings_payments: {
+        Row: {
+          amount: number
+          created_at: string | null
+          id: string
+          payment_method: string | null
+          savings_id: string | null
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string | null
+          id?: string
+          payment_method?: string | null
+          savings_id?: string | null
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string | null
+          id?: string
+          payment_method?: string | null
+          savings_id?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "savings_payments_savings_id_fkey"
+            columns: ["savings_id"]
+            isOneToOne: false
+            referencedRelation: "savings_purchases"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      savings_purchases: {
+        Row: {
+          amount_saved: number | null
+          created_at: string | null
+          id: string
+          partner_id: string | null
+          penalty_rate: number | null
+          product_image: string | null
+          product_name: string
+          qr_code_url: string | null
+          status: string | null
+          total_price: number
+          updated_at: string | null
+          user_id: string
+          withdrawal_code: string | null
+          withdrawn_at: string | null
+        }
+        Insert: {
+          amount_saved?: number | null
+          created_at?: string | null
+          id?: string
+          partner_id?: string | null
+          penalty_rate?: number | null
+          product_image?: string | null
+          product_name: string
+          qr_code_url?: string | null
+          status?: string | null
+          total_price: number
+          updated_at?: string | null
+          user_id: string
+          withdrawal_code?: string | null
+          withdrawn_at?: string | null
+        }
+        Update: {
+          amount_saved?: number | null
+          created_at?: string | null
+          id?: string
+          partner_id?: string | null
+          penalty_rate?: number | null
+          product_image?: string | null
+          product_name?: string
+          qr_code_url?: string | null
+          status?: string | null
+          total_price?: number
+          updated_at?: string | null
+          user_id?: string
+          withdrawal_code?: string | null
+          withdrawn_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "savings_purchases_partner_id_fkey"
+            columns: ["partner_id"]
+            isOneToOne: false
+            referencedRelation: "withdrawal_partners"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       shop_orders: {
         Row: {
           buyer_id: string | null
@@ -2423,6 +2517,54 @@ export type Database = {
         }
         Relationships: []
       }
+      withdrawal_partners: {
+        Row: {
+          address: string
+          city: string
+          commission_rate: number | null
+          company_name: string
+          contact_name: string
+          created_at: string | null
+          email: string | null
+          id: string
+          is_active: boolean | null
+          phone: string
+          region: string
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          address: string
+          city: string
+          commission_rate?: number | null
+          company_name: string
+          contact_name: string
+          created_at?: string | null
+          email?: string | null
+          id?: string
+          is_active?: boolean | null
+          phone: string
+          region: string
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          address?: string
+          city?: string
+          commission_rate?: number | null
+          company_name?: string
+          contact_name?: string
+          created_at?: string | null
+          email?: string | null
+          id?: string
+          is_active?: boolean | null
+          phone?: string
+          region?: string
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       agent_leaderboard: {
@@ -2520,6 +2662,7 @@ export type Database = {
       delete_user_account: { Args: { p_user_id: string }; Returns: undefined }
       ensure_super_admin: { Args: never; Returns: undefined }
       generate_referral_code: { Args: never; Returns: string }
+      generate_withdrawal_code: { Args: never; Returns: string }
       get_agent_tier: {
         Args: { p_agent_id: string }
         Returns: {
