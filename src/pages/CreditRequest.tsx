@@ -404,13 +404,13 @@ export default function CreditRequest() {
                     <Label htmlFor="partner_id">Partenaire de retrait (optionnel)</Label>
                     <Select
                       value={savingsData.partner_id}
-                      onValueChange={(value) => setSavingsData({ ...savingsData, partner_id: value })}
+                      onValueChange={(value) => setSavingsData({ ...savingsData, partner_id: value === 'none' ? '' : value })}
                     >
                       <SelectTrigger>
                         <SelectValue placeholder="Sélectionner un partenaire" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">Aucun pour le moment</SelectItem>
+                        <SelectItem value="none">Aucun pour le moment</SelectItem>
                       </SelectContent>
                     </Select>
                     <p className="text-xs text-muted-foreground">
