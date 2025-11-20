@@ -2,9 +2,12 @@ import { useEffect, useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
-import { History, ArrowUpRight, ArrowDownLeft, Send } from 'lucide-react';
+import { History, ArrowUpRight, ArrowDownLeft, Send, ChevronDown, Search } from 'lucide-react';
 
 const MSN_TO_FCFA = 750;
 
@@ -27,6 +30,8 @@ interface TransactionHistorySectionProps {
 export default function TransactionHistorySection({ userId }: TransactionHistorySectionProps) {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isOpen, setIsOpen] = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
 
   const fetchTransactions = async () => {
     try {
@@ -115,17 +120,43 @@ export default function TransactionHistorySection({ userId }: TransactionHistory
     return <div className="text-center">Chargement...</div>;
   }
 
+  const filteredTransactions = transactions.filter(tx => 
+    tx.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    tx.transaction_type.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    tx.status.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
   return (
     <Card className="glass-card">
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <History className="h-5 w-5 text-primary" />
-          Historique des transactions
-        </CardTitle>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <History className="h-5 w-5 text-primary" />
+            <CardTitle>Historique des transactions</CardTitle>
+          </div>
+          <Collapsible open={isOpen} onOpenChange={setIsOpen}>
+            <CollapsibleTrigger asChild>
+              <Button variant="ghost" size="sm">
+                <ChevronDown className={`h-4 w-4 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+              </Button>
+            </CollapsibleTrigger>
+          </Collapsible>
+        </div>
         <CardDescription>Vos 20 dernières transactions</CardDescription>
       </CardHeader>
-      <CardContent>
-        <Table>
+      <Collapsible open={isOpen} onOpenChange={setIsOpen}>
+        <CollapsibleContent>
+          <CardContent>
+            <div className="mb-4 relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Rechercher par description, type ou statut..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-10"
+              />
+            </div>
+            <Table>
           <TableHeader>
             <TableRow>
               <TableHead>Type</TableHead>
@@ -136,14 +167,14 @@ export default function TransactionHistorySection({ userId }: TransactionHistory
             </TableRow>
           </TableHeader>
           <TableBody>
-            {transactions.length === 0 ? (
+            {filteredTransactions.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={5} className="text-center text-muted-foreground">
-                  Aucune transaction
+                  {searchQuery ? 'Aucun résultat trouvé' : 'Aucune transaction'}
                 </TableCell>
               </TableRow>
             ) : (
-              transactions.map((tx) => (
+              filteredTransactions.map((tx) => (
                 <TableRow key={tx.id}>
                   <TableCell>
                     <div className="flex items-center gap-2">
@@ -170,6 +201,8 @@ export default function TransactionHistorySection({ userId }: TransactionHistory
           </TableBody>
         </Table>
       </CardContent>
+        </CollapsibleContent>
+      </Collapsible>
     </Card>
   );
 }

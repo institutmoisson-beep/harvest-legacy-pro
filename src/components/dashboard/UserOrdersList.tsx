@@ -1,8 +1,11 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { supabase } from '@/integrations/supabase/client';
 import { useEffect, useState } from 'react';
-import { TrendingUp } from 'lucide-react';
+import { TrendingUp, ChevronDown, Search } from 'lucide-react';
 
 interface Order {
   id: string;
@@ -17,6 +20,8 @@ interface Order {
 
 export default function UserOrdersList({ userId }: { userId: string }) {
   const [orders, setOrders] = useState<Order[]>([]);
+  const [isOpen, setIsOpen] = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
 
   const fetchOrders = async () => {
     const { data } = await supabase
@@ -38,18 +43,44 @@ export default function UserOrdersList({ userId }: { userId: string }) {
     return () => { supabase.removeChannel(channel); };
   }, [userId]);
 
+  const filteredOrders = orders.filter(order => 
+    order.customer_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    order.product_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    order.broker_code.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
   return (
     <Card className="glass-card">
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <TrendingUp className="h-5 w-5 text-accent" />
-          Mes commandes initiées
-        </CardTitle>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <TrendingUp className="h-5 w-5 text-accent" />
+            <CardTitle>Mes commandes initiées</CardTitle>
+          </div>
+          <Collapsible open={isOpen} onOpenChange={setIsOpen}>
+            <CollapsibleTrigger asChild>
+              <Button variant="ghost" size="sm">
+                <ChevronDown className={`h-4 w-4 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+              </Button>
+            </CollapsibleTrigger>
+          </Collapsible>
+        </div>
         <CardDescription>Vos commandes et leurs statuts</CardDescription>
       </CardHeader>
-      <CardContent>
-        <div className="overflow-x-auto">
-          <Table>
+      <Collapsible open={isOpen} onOpenChange={setIsOpen}>
+        <CollapsibleContent>
+          <CardContent>
+            <div className="mb-4 relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Rechercher par client, produit ou code..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-10"
+              />
+            </div>
+            <div className="overflow-x-auto">
+              <Table>
             <TableHeader>
               <TableRow>
                 <TableHead>Client</TableHead>
@@ -62,12 +93,14 @@ export default function UserOrdersList({ userId }: { userId: string }) {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {orders.length === 0 ? (
+              {filteredOrders.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={7} className="text-center text-muted-foreground">Aucune commande</TableCell>
+                  <TableCell colSpan={7} className="text-center text-muted-foreground">
+                    {searchQuery ? 'Aucun résultat trouvé' : 'Aucune commande'}
+                  </TableCell>
                 </TableRow>
               ) : (
-                orders.map((order) => (
+                filteredOrders.map((order) => (
                   <TableRow key={order.id}>
                     <TableCell>{order.customer_name}</TableCell>
                     <TableCell className="max-w-xs truncate">{order.product_name}</TableCell>
@@ -92,6 +125,8 @@ export default function UserOrdersList({ userId }: { userId: string }) {
           </Table>
         </div>
       </CardContent>
+        </CollapsibleContent>
+      </Collapsible>
     </Card>
   );
 }
