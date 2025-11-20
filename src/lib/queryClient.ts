@@ -1,6 +1,6 @@
 import { QueryClient } from '@tanstack/react-query';
 
-// Configuration du cache global pour React Query
+// Configuration optimisée du cache global pour React Query
 export const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -8,18 +8,20 @@ export const queryClient = new QueryClient({
       staleTime: 1000 * 60 * 5,
       // Garde les données en cache pendant 10 minutes même si inutilisées
       gcTime: 1000 * 60 * 10,
-      // Retry automatique en cas d'erreur
-      retry: 2,
-      retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
-      // Refetch en arrière-plan quand la fenêtre regagne le focus
-      refetchOnWindowFocus: true,
+      // Retry automatique en cas d'erreur (réduit à 1 pour accélérer)
+      retry: 1,
+      retryDelay: 1000,
+      // Refetch en arrière-plan quand la fenêtre regagne le focus (désactivé pour performance)
+      refetchOnWindowFocus: false,
       // Ne pas refetch automatiquement au montage si les données sont fresh
       refetchOnMount: false,
       // Refetch automatiquement quand la connexion revient
       refetchOnReconnect: true,
+      // Nouvelle option pour activer le cache réseau
+      networkMode: 'offlineFirst',
     },
     mutations: {
-      retry: 1,
+      retry: 0, // Pas de retry sur les mutations pour éviter les doublons
     },
   },
 });
