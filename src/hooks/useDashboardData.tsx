@@ -1,11 +1,12 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { useOptimizedQuery } from './useOptimizedQuery';
 
 export const useDashboardData = (userId: string | undefined) => {
-  // Profile query avec cache de 5 minutes
-  const { data: profile, isLoading: profileLoading } = useQuery({
-    queryKey: ['profile', userId],
-    queryFn: async () => {
+  // Profile query avec cache local et React Query
+  const { data: profile, isLoading: profileLoading } = useOptimizedQuery(
+    ['profile', userId || ''],
+    async () => {
       if (!userId) return null;
       const { data, error } = await supabase
         .from('profiles')
@@ -15,10 +16,13 @@ export const useDashboardData = (userId: string | undefined) => {
       if (error) throw error;
       return data;
     },
-    enabled: !!userId,
-    staleTime: 5 * 60 * 1000, // 5 minutes
-    gcTime: 10 * 60 * 1000, // 10 minutes
-  });
+    {
+      enabled: !!userId,
+      staleTime: 5 * 60 * 1000, // 5 minutes
+      gcTime: 10 * 60 * 1000, // 10 minutes
+      localCacheMinutes: 5,
+    }
+  );
 
   // Wallet query avec cache de 2 minutes
   const { data: wallet, isLoading: walletLoading } = useQuery({
@@ -67,10 +71,10 @@ export const useDashboardData = (userId: string | undefined) => {
     gcTime: 10 * 60 * 1000, // 10 minutes
   });
 
-  // Roles query avec cache de 10 minutes
-  const { data: roles, isLoading: rolesLoading } = useQuery({
-    queryKey: ['user-roles', userId],
-    queryFn: async () => {
+  // Roles query avec cache local (changent rarement)
+  const { data: roles, isLoading: rolesLoading } = useOptimizedQuery(
+    ['user-roles', userId || ''],
+    async () => {
       if (!userId) return [];
       const { data, error } = await supabase
         .from('user_roles')
@@ -79,10 +83,13 @@ export const useDashboardData = (userId: string | undefined) => {
       if (error) throw error;
       return data || [];
     },
-    enabled: !!userId,
-    staleTime: 10 * 60 * 1000, // 10 minutes
-    gcTime: 15 * 60 * 1000, // 15 minutes
-  });
+    {
+      enabled: !!userId,
+      staleTime: 10 * 60 * 1000, // 10 minutes
+      gcTime: 15 * 60 * 1000, // 15 minutes
+      localCacheMinutes: 15, // Cache local plus long car les rôles changent rarement
+    }
+  );
 
   const hasAdminAccess = roles?.some(r => r.role === 'admin') || false;
   const hasMerchantRole = roles?.some(r => r.role === 'merchant') || false;
