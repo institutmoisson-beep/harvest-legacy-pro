@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { Input } from '@/components/ui/input';
 import { supabase } from '@/integrations/supabase/client';
-import { Users, CheckCircle, XCircle } from 'lucide-react';
+import { Users, CheckCircle, XCircle, ChevronDown, Search } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 
 interface Referral {
@@ -20,6 +22,8 @@ interface ReferralTreeSectionProps {
 export default function ReferralTreeSection({ userId }: ReferralTreeSectionProps) {
   const [referrals, setReferrals] = useState<Referral[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isOpen, setIsOpen] = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
     fetchReferrals();
@@ -98,31 +102,61 @@ export default function ReferralTreeSection({ userId }: ReferralTreeSectionProps
     return grouped;
   };
 
-  const groupedReferrals = groupByLevel(referrals);
+  const filteredReferrals = referrals.filter(ref => 
+    ref.full_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    ref.referral_code.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+  
+  const groupedReferrals = groupByLevel(filteredReferrals);
   const totalReferrals = referrals.length;
   const activeReferrals = referrals.filter(r => r.is_active).length;
 
   return (
     <Card className="glass-card">
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Users className="h-5 w-5 text-accent" />
-          Arbre de Parrainage
+        <CardTitle className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Users className="h-5 w-5 text-accent" />
+            Arbre de Parrainage
+          </div>
+          <CollapsibleTrigger asChild onClick={() => setIsOpen(!isOpen)}>
+            <button className="p-2 hover:bg-accent/10 rounded-lg transition-colors">
+              <ChevronDown className={`h-5 w-5 transition-transform ${isOpen ? '' : 'rotate-180'}`} />
+            </button>
+          </CollapsibleTrigger>
         </CardTitle>
         <CardDescription>
           {totalReferrals} filleul{totalReferrals > 1 ? 's' : ''} au total • {activeReferrals} actif{activeReferrals > 1 ? 's' : ''}
         </CardDescription>
       </CardHeader>
-      <CardContent>
-        {loading ? (
-          <p className="text-center text-muted-foreground">Chargement...</p>
-        ) : referrals.length === 0 ? (
+      <Collapsible open={isOpen} onOpenChange={setIsOpen}>
+        <CollapsibleContent>
+          <CardContent>
+            {referrals.length > 0 && (
+              <div className="mb-4 relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  type="text"
+                  placeholder="Rechercher par nom ou code..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-10"
+                />
+              </div>
+            )}
+            {loading ? (
+              <p className="text-center text-muted-foreground">Chargement...</p>
+            ) : referrals.length === 0 ? (
           <div className="text-center py-8">
             <Users className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
             <p className="text-muted-foreground">Aucun filleul pour le moment</p>
             <p className="text-sm text-muted-foreground mt-2">
               Partagez votre lien de parrainage pour développer votre réseau
             </p>
+          </div>
+        ) : filteredReferrals.length === 0 ? (
+          <div className="text-center py-8">
+            <p className="text-muted-foreground">Aucun filleul trouvé pour "{searchQuery}"</p>
           </div>
         ) : (
           <div className="space-y-6">
@@ -169,7 +203,9 @@ export default function ReferralTreeSection({ userId }: ReferralTreeSectionProps
             ))}
           </div>
         )}
-      </CardContent>
+          </CardContent>
+        </CollapsibleContent>
+      </Collapsible>
     </Card>
   );
 }
