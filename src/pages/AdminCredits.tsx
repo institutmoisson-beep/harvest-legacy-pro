@@ -5,12 +5,14 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { CheckCircle, XCircle, Eye } from "lucide-react";
 import { format, addDays, addWeeks, addMonths } from "date-fns";
 import { fr } from "date-fns/locale";
+import AdminSavingsManager from "@/components/dashboard/AdminSavingsManager";
 
 export default function AdminCredits() {
   const [credits, setCredits] = useState<any[]>([]);
@@ -185,7 +187,14 @@ export default function AdminCredits() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5 p-4">
       <div className="max-w-7xl mx-auto">
-        <Card className="glass-card">
+        <Tabs defaultValue="credits" className="w-full">
+          <TabsList className="grid w-full grid-cols-2 mb-6">
+            <TabsTrigger value="credits">Achats à crédit</TabsTrigger>
+            <TabsTrigger value="savings">Petit à petit</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="credits">
+            <Card className="glass-card">
           <CardHeader>
             <CardTitle>Gestion des crédits</CardTitle>
             <CardDescription>
@@ -348,6 +357,12 @@ export default function AdminCredits() {
             )}
           </DialogContent>
         </Dialog>
+          </TabsContent>
+
+          <TabsContent value="savings">
+            <AdminSavingsManager />
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   );

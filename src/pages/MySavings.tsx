@@ -8,9 +8,10 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import { ArrowLeft, PiggyBank, Plus, QrCode, TrendingUp } from "lucide-react";
+import { ArrowLeft, PiggyBank, Plus, QrCode, TrendingUp, ArrowRight } from "lucide-react";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import QRCode from "qrcode";
@@ -23,8 +24,11 @@ export default function MySavings() {
   const [payments, setPayments] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [paymentAmount, setPaymentAmount] = useState("");
+  const [paymentCurrency, setPaymentCurrency] = useState("fcfa");
   const [qrCodeUrl, setQrCodeUrl] = useState("");
   const [showPaymentDialog, setShowPaymentDialog] = useState(false);
+  
+  const MSN_TO_FCFA_RATE = 200; // 1 MSN = 200 FCFA
 
   useEffect(() => {
     if (user) {
@@ -82,26 +86,35 @@ export default function MySavings() {
   };
 
   const handleMakePayment = async () => {
-    if (!selectedSaving || !paymentAmount) return;
+    if (!selectedSaving || !paymentAmount) {
+      toast.error("Veuillez entrer un montant");
+      return;
+    }
 
     try {
-      const amount = parseFloat(paymentAmount);
+      let amount = parseFloat(paymentAmount);
       if (amount <= 0) {
-        toast.error("Montant invalide");
+        toast.error("Le montant doit être positif");
         return;
+      }
+
+      // Convert MSN to FCFA if needed
+      if (paymentCurrency === "msn") {
+        amount = amount * MSN_TO_FCFA_RATE;
       }
 
       const { error } = await supabase.from("savings_payments").insert({
         savings_id: selectedSaving.id,
-        user_id: user?.id,
+        user_id: user!.id,
         amount,
-        payment_method: "wallet"
+        payment_method: paymentCurrency === "msn" ? "MSN" : "FCFA"
       });
 
       if (error) throw error;
 
-      toast.success("Paiement effectué avec succès");
+      toast.success(`Paiement de ${paymentAmount} ${paymentCurrency.toUpperCase()} effectué avec succès`);
       setPaymentAmount("");
+      setPaymentCurrency("fcfa");
       setShowPaymentDialog(false);
       fetchSavings();
       fetchPayments(selectedSaving.id);
@@ -156,7 +169,7 @@ export default function MySavings() {
           <CardContent className="text-center py-12">
             <PiggyBank className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
             <p className="text-muted-foreground mb-4">
-              Vous devez être connecté pour accéder à vos épargnes
+              Vous devez être connecté pour accéder à vos achats progressifs
             </p>
             <Button onClick={() => navigate("/auth")}>
               Se connecter
@@ -177,24 +190,24 @@ export default function MySavings() {
           </Button>
           <Button onClick={() => navigate("/credit-request")}>
             <Plus className="mr-2 h-4 w-4" />
-            Nouvelle épargne
+            Nouvel achat
           </Button>
         </div>
 
         <div className="grid md:grid-cols-3 gap-6">
-          {/* Liste des épargnes */}
+          {/* Liste des achats */}
           <div className="md:col-span-1">
             <Card className="glass-card">
               <CardHeader>
-                <CardTitle>Mes épargnes</CardTitle>
+                <CardTitle>Mes achats progressifs</CardTitle>
                 <CardDescription>
-                  {savings.length} épargne{savings.length > 1 ? 's' : ''}
+                  {savings.length} achat{savings.length > 1 ? 's' : ''} en cours
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-3">
                 {savings.length === 0 ? (
                   <p className="text-sm text-muted-foreground text-center py-8">
-                    Aucune épargne pour le moment
+                    Aucun achat pour le moment
                   </p>
                 ) : (
                   savings.map((saving) => (
@@ -229,25 +242,25 @@ export default function MySavings() {
             </Card>
           </div>
 
-          {/* Détails de l'épargne sélectionnée */}
+          {/* Détails de l'achat sélectionné */}
           <div className="md:col-span-2">
             {!selectedSaving ? (
               <Card className="glass-card h-full flex items-center justify-center">
                 <CardContent className="text-center py-12">
                   <PiggyBank className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
                   <p className="text-muted-foreground">
-                    Sélectionnez une épargne pour voir les détails
+                    Sélectionnez un achat pour voir les détails
                   </p>
                 </CardContent>
               </Card>
             ) : (
               <div className="space-y-4">
-                {/* Info épargne */}
+                {/* Info achat */}
                 <Card className="glass-card">
                   <CardHeader>
                     <CardTitle>{selectedSaving.product_name}</CardTitle>
                     <CardDescription>
-                      Épargne pour achat différé
+                      Achat progressif - Petit à petit
                     </CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-4">
@@ -265,12 +278,12 @@ export default function MySavings() {
                         <p className="font-semibold">{selectedSaving.total_price?.toLocaleString()} FCFA</p>
                       </div>
                       <div>
-                        <p className="text-muted-foreground">Montant épargné</p>
-                        <p className="font-semibold text-primary">{selectedSaving.amount_saved?.toLocaleString()} FCFA</p>
+                        <p className="text-muted-foreground">Montant payé</p>
+                        <p className="font-semibold">{selectedSaving.amount_saved?.toLocaleString()} FCFA</p>
                       </div>
                       <div>
-                        <p className="text-muted-foreground">Reste à épargner</p>
-                        <p className="font-semibold">{(selectedSaving.total_price - selectedSaving.amount_saved)?.toLocaleString()} FCFA</p>
+                        <p className="text-muted-foreground">Reste à payer</p>
+                        <p className="font-semibold text-primary text-lg">{(selectedSaving.total_price - selectedSaving.amount_saved)?.toLocaleString()} FCFA</p>
                       </div>
                       <div>
                         <p className="text-muted-foreground">Partenaire</p>
@@ -291,24 +304,45 @@ export default function MySavings() {
                         <DialogTrigger asChild>
                           <Button className="w-full">
                             <TrendingUp className="mr-2 h-4 w-4" />
-                            Faire une avance
+                            Continuer le paiement
                           </Button>
                         </DialogTrigger>
                         <DialogContent>
                           <DialogHeader>
-                            <DialogTitle>Faire un versement</DialogTitle>
+                            <DialogTitle>Effectuer un paiement</DialogTitle>
+                            <DialogDescription>
+                              Ajoutez un montant pour réduire le reste à payer
+                            </DialogDescription>
                           </DialogHeader>
                           <div className="space-y-4">
-                            <div className="space-y-2">
-                              <Label htmlFor="amount">Montant (FCFA)</Label>
+                            <div>
+                              <Label htmlFor="currency">Devise</Label>
+                              <Select value={paymentCurrency} onValueChange={setPaymentCurrency}>
+                                <SelectTrigger>
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="fcfa">FCFA</SelectItem>
+                                  <SelectItem value="msn">MSN (1 MSN = 200 FCFA)</SelectItem>
+                                </SelectContent>
+                              </Select>
+                            </div>
+                            <div>
+                              <Label htmlFor="amount">Montant</Label>
                               <Input
                                 id="amount"
                                 type="number"
                                 min="0"
                                 value={paymentAmount}
                                 onChange={(e) => setPaymentAmount(e.target.value)}
-                                placeholder="10000"
+                                placeholder="0"
                               />
+                              {paymentCurrency === "msn" && paymentAmount && (
+                                <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
+                                  <ArrowRight className="h-3 w-3" />
+                                  Équivalent: {(parseFloat(paymentAmount) * MSN_TO_FCFA_RATE).toLocaleString()} FCFA
+                                </p>
+                              )}
                             </div>
                             <Button onClick={handleMakePayment} className="w-full">
                               Confirmer le paiement
@@ -355,7 +389,7 @@ export default function MySavings() {
                                 {format(new Date(payment.created_at), "d MMM yyyy à HH:mm", { locale: fr })}
                               </p>
                             </div>
-                            <Badge variant="outline">{payment.payment_method || "Wallet"}</Badge>
+                            <Badge variant="outline">{payment.payment_method || "FCFA"}</Badge>
                           </div>
                         ))}
                       </div>

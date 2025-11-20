@@ -102,6 +102,7 @@ export default function LevelAdmin() {
           <TabsTrigger value="roles">Rôles & Accès</TabsTrigger>
           <TabsTrigger value="permissions">Permissions</TabsTrigger>
           <TabsTrigger value="geographic">Représentants</TabsTrigger>
+          <TabsTrigger value="credits">Crédits & Épargnes</TabsTrigger>
           <TabsTrigger value="orders">Commandes</TabsTrigger>
           <TabsTrigger value="transactions">Transactions</TabsTrigger>
           <TabsTrigger value="tontines">Tontines</TabsTrigger>
@@ -125,6 +126,14 @@ export default function LevelAdmin() {
 
         <TabsContent value="geographic">
           <GeographicRepresentativesManager />
+        </TabsContent>
+
+        <TabsContent value="credits" className="mt-4">
+          <iframe 
+            src="/admin-credits" 
+            className="w-full h-[calc(100vh-200px)] border-0 rounded-lg"
+            title="Gestion des crédits et épargnes"
+          />
         </TabsContent>
 
         <TabsContent value="orders" className="mt-4 space-y-6">
