@@ -3,7 +3,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Loader2, Copy, TrendingUp, Users, Wallet, Shield, User, MessageCircle, Coins, Phone, MapPin, ShoppingBag, Store, Bell, Download, ShoppingCart } from 'lucide-react';
+import { Loader2, Copy, TrendingUp, Users, Wallet, Shield, User, MessageCircle, Coins, Phone, MapPin, ShoppingBag, Store, Bell, Download, ShoppingCart, CreditCard } from 'lucide-react';
 import VoiceCall from '@/components/VoiceCall';
 import LocationSharing from '@/components/LocationSharing';
 import GroupVoiceCall from '@/components/GroupVoiceCall';
@@ -155,10 +155,14 @@ export default function Dashboard() {
               <TrendingUp className="h-4 w-4 mr-2" />
               Dashboard Tontine
             </Button>
-            <Button onClick={() => navigate('/my-shop')} variant="outline" size="sm">
-              <ShoppingBag className="h-4 w-4 mr-2" />
-              Ma Boutique
-            </Button>
+              <Button onClick={() => navigate('/my-shop')} variant="outline" size="sm">
+                <ShoppingBag className="h-4 w-4 mr-2" />
+                Ma Boutique
+              </Button>
+              <Button onClick={() => navigate('/credit-request')} variant="outline" size="sm">
+                <CreditCard className="h-4 w-4 mr-2" />
+                Achat à crédit
+              </Button>
             <Button onClick={() => navigate('/proposer')} variant="default" size="sm">
               Mettre à disposition
             </Button>
