@@ -8,14 +8,16 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
-import { ArrowLeft, Download, Upload } from "lucide-react";
+import { ArrowLeft, Download, Upload, PiggyBank, CreditCard } from "lucide-react";
 import jsPDF from "jspdf";
 
 export default function CreditRequest() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [loading, setLoading] = useState(false);
+  const [purchaseType, setPurchaseType] = useState<"credit" | "savings">("credit");
   const [formData, setFormData] = useState({
     product_name: "",
     product_image: "",
@@ -26,6 +28,13 @@ export default function CreditRequest() {
     duration_months: "",
     delivery_address: "",
     contract_pdf_url: ""
+  });
+
+  const [savingsData, setSavingsData] = useState({
+    product_name: "",
+    product_image: "",
+    total_price: "",
+    partner_id: ""
   });
 
   const generateContract = () => {
@@ -163,6 +172,36 @@ export default function CreditRequest() {
     }
   };
 
+  const handleSavingsSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!user) {
+      toast.error("Vous devez être connecté");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const { error } = await supabase.from("savings_purchases").insert({
+        user_id: user.id,
+        product_name: savingsData.product_name,
+        product_image: savingsData.product_image,
+        total_price: parseFloat(savingsData.total_price),
+        partner_id: savingsData.partner_id || null,
+        amount_saved: 0,
+        status: 'in_progress'
+      });
+
+      if (error) throw error;
+
+      toast.success("Épargne créée avec succès");
+      navigate("/my-savings");
+    } catch (error: any) {
+      toast.error(error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5 p-4">
       <div className="max-w-4xl mx-auto">
@@ -173,13 +212,26 @@ export default function CreditRequest() {
 
         <Card className="glass-card">
           <CardHeader>
-            <CardTitle className="text-2xl">Demande d'achat à crédit</CardTitle>
+            <CardTitle className="text-2xl">Achat à crédit ou épargne</CardTitle>
             <CardDescription>
-              Remplissez ce formulaire pour faire une demande d'achat à crédit
+              Choisissez votre mode d'achat : crédit avec échéancier ou épargne progressive
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-6">
+            <Tabs value={purchaseType} onValueChange={(v) => setPurchaseType(v as any)}>
+              <TabsList className="grid w-full grid-cols-2 mb-6">
+                <TabsTrigger value="credit" className="flex items-center gap-2">
+                  <CreditCard className="h-4 w-4" />
+                  Crédit
+                </TabsTrigger>
+                <TabsTrigger value="savings" className="flex items-center gap-2">
+                  <PiggyBank className="h-4 w-4" />
+                  Épargne
+                </TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="credit">
+                <form onSubmit={handleSubmit} className="space-y-6">
               <div className="grid md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="product_name">Nom du produit *</Label>
@@ -305,10 +357,83 @@ export default function CreditRequest() {
                 </p>
               </div>
 
-              <Button type="submit" className="w-full" disabled={loading}>
-                {loading ? "Envoi en cours..." : "Soumettre la demande"}
-              </Button>
-            </form>
+                  <Button type="submit" className="w-full" disabled={loading}>
+                    {loading ? "Envoi en cours..." : "Soumettre la demande de crédit"}
+                  </Button>
+                </form>
+              </TabsContent>
+
+              <TabsContent value="savings">
+                <form onSubmit={handleSavingsSubmit} className="space-y-6">
+                  <div className="space-y-2">
+                    <Label htmlFor="savings_product_name">Nom du produit *</Label>
+                    <Input
+                      id="savings_product_name"
+                      required
+                      value={savingsData.product_name}
+                      onChange={(e) => setSavingsData({ ...savingsData, product_name: e.target.value })}
+                      placeholder="Ex: iPhone 15 Pro"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="savings_total_price">Prix total (FCFA) *</Label>
+                    <Input
+                      id="savings_total_price"
+                      type="number"
+                      required
+                      min="0"
+                      value={savingsData.total_price}
+                      onChange={(e) => setSavingsData({ ...savingsData, total_price: e.target.value })}
+                      placeholder="500000"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="savings_product_image">URL de l'image du produit</Label>
+                    <Input
+                      id="savings_product_image"
+                      type="url"
+                      value={savingsData.product_image}
+                      onChange={(e) => setSavingsData({ ...savingsData, product_image: e.target.value })}
+                      placeholder="https://..."
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="partner_id">Partenaire de retrait (optionnel)</Label>
+                    <Select
+                      value={savingsData.partner_id}
+                      onValueChange={(value) => setSavingsData({ ...savingsData, partner_id: value })}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Sélectionner un partenaire" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="">Aucun pour le moment</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <p className="text-xs text-muted-foreground">
+                      Vous pourrez sélectionner un partenaire plus tard
+                    </p>
+                  </div>
+
+                  <div className="rounded-lg border border-border bg-muted/50 p-4">
+                    <h4 className="font-semibold mb-2">Comment ça marche ?</h4>
+                    <ul className="space-y-1 text-sm text-muted-foreground">
+                      <li>• Versez des montants à votre rythme</li>
+                      <li>• Suivez votre progression en temps réel</li>
+                      <li>• À 100%, recevez un code QR pour retirer le produit</li>
+                      <li>• Retirez chez le partenaire de votre choix</li>
+                    </ul>
+                  </div>
+
+                  <Button type="submit" className="w-full" disabled={loading}>
+                    {loading ? "Création en cours..." : "Créer mon épargne"}
+                  </Button>
+                </form>
+              </TabsContent>
+            </Tabs>
           </CardContent>
         </Card>
       </div>
