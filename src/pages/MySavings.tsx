@@ -29,6 +29,9 @@ export default function MySavings() {
   useEffect(() => {
     if (user) {
       fetchSavings();
+    } else if (user === null) {
+      // User is explicitly not logged in
+      setLoading(false);
     }
   }, [user]);
 
@@ -140,8 +143,26 @@ export default function MySavings() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-background to-primary/5">
         <p className="text-muted-foreground">Chargement...</p>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-background to-primary/5">
+        <Card className="glass-card max-w-md">
+          <CardContent className="text-center py-12">
+            <PiggyBank className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
+            <p className="text-muted-foreground mb-4">
+              Vous devez être connecté pour accéder à vos épargnes
+            </p>
+            <Button onClick={() => navigate("/auth")}>
+              Se connecter
+            </Button>
+          </CardContent>
+        </Card>
       </div>
     );
   }

@@ -163,6 +163,10 @@ export default function Dashboard() {
                 <CreditCard className="h-4 w-4 mr-2" />
                 Achat à crédit
               </Button>
+              <Button onClick={() => navigate('/my-savings')} variant="outline" size="sm">
+                <Coins className="h-4 w-4 mr-2" />
+                Mes épargnes
+              </Button>
             <Button onClick={() => navigate('/proposer')} variant="default" size="sm">
               Mettre à disposition
             </Button>
