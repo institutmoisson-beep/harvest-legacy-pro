@@ -16,7 +16,7 @@ import MemberManagement from '@/components/dashboard/MemberManagement';
 import TreasurySection from '@/components/dashboard/TreasurySection';
 import FundWithdrawalsHistory from '@/components/dashboard/FundWithdrawalsHistory';
 import MoissonneurFund from '@/components/dashboard/MoissonneurFund';
-import CryptoPaymentOptions from '@/components/dashboard/CryptoPaymentOptions';
+import AdminCryptoWalletsManager from '@/components/dashboard/AdminCryptoWalletsManager';
 import AdminPromoCodesManager from '@/components/dashboard/AdminPromoCodesManager';
 import AdminTontineAnalytics from '@/components/dashboard/AdminTontineAnalytics';
 import RoleManagement from '@/components/dashboard/RoleManagement';
@@ -110,8 +110,8 @@ export default function LevelAdmin() {
           <TabsTrigger value="treasury">Trésorerie</TabsTrigger>
           <TabsTrigger value="fund">Fonds Moissonneur</TabsTrigger>
           <TabsTrigger value="promo">Codes Promo</TabsTrigger>
-          <TabsTrigger value="payments">Contacts Paiement</TabsTrigger>
-          <TabsTrigger value="crypto">Paiements Crypto</TabsTrigger>
+          <TabsTrigger value="payments">Contacts Mobile Money</TabsTrigger>
+          <TabsTrigger value="crypto">Adresses Crypto</TabsTrigger>
           <TabsTrigger value="visits">Visites</TabsTrigger>
           <TabsTrigger value="audit">Audit</TabsTrigger>
           <TabsTrigger value="members">Membres</TabsTrigger>
@@ -164,7 +164,7 @@ export default function LevelAdmin() {
         </TabsContent>
 
         <TabsContent value="crypto" className="mt-4 space-y-6">
-          <CryptoPaymentOptions />
+          <AdminCryptoWalletsManager />
         </TabsContent>
 
         <TabsContent value="visits" className="mt-4 space-y-6">
