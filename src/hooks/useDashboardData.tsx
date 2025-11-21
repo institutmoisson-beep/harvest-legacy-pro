@@ -1,12 +1,11 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { useOptimizedQuery } from './useOptimizedQuery';
 
 export const useDashboardData = (userId: string | undefined) => {
   // Profile query avec cache local et React Query
-  const { data: profile, isLoading: profileLoading } = useOptimizedQuery(
-    ['profile', userId || ''],
-    async () => {
+  const { data: profile, isLoading: profileLoading, isError: profileError } = useQuery({
+    queryKey: ['profile', userId],
+    queryFn: async () => {
       if (!userId) return null;
       const { data, error } = await supabase
         .from('profiles')
@@ -16,16 +15,14 @@ export const useDashboardData = (userId: string | undefined) => {
       if (error) throw error;
       return data;
     },
-    {
-      enabled: !!userId,
-      staleTime: 5 * 60 * 1000, // 5 minutes
-      gcTime: 10 * 60 * 1000, // 10 minutes
-      localCacheMinutes: 5,
-    }
-  );
+    enabled: !!userId,
+    staleTime: 5 * 60 * 1000,
+    gcTime: 10 * 60 * 1000,
+    retry: 2,
+  });
 
   // Wallet query avec cache de 2 minutes
-  const { data: wallet, isLoading: walletLoading } = useQuery({
+  const { data: wallet, isLoading: walletLoading, isError: walletError } = useQuery({
     queryKey: ['wallet', userId],
     queryFn: async () => {
       if (!userId) return null;
@@ -38,12 +35,13 @@ export const useDashboardData = (userId: string | undefined) => {
       return data;
     },
     enabled: !!userId,
-    staleTime: 2 * 60 * 1000, // 2 minutes
-    gcTime: 5 * 60 * 1000, // 5 minutes
+    staleTime: 2 * 60 * 1000,
+    gcTime: 5 * 60 * 1000,
+    retry: 2,
   });
 
   // Stats query avec cache de 5 minutes
-  const { data: stats, isLoading: statsLoading } = useQuery({
+  const { data: stats, isLoading: statsLoading, isError: statsError } = useQuery({
     queryKey: ['dashboard-stats', userId],
     queryFn: async () => {
       if (!userId) return { directReferrals: 0, totalCommissions: 0 };
@@ -67,14 +65,15 @@ export const useDashboardData = (userId: string | undefined) => {
       };
     },
     enabled: !!userId,
-    staleTime: 5 * 60 * 1000, // 5 minutes
-    gcTime: 10 * 60 * 1000, // 10 minutes
+    staleTime: 5 * 60 * 1000,
+    gcTime: 10 * 60 * 1000,
+    retry: 2,
   });
 
-  // Roles query avec cache local (changent rarement)
-  const { data: roles, isLoading: rolesLoading } = useOptimizedQuery(
-    ['user-roles', userId || ''],
-    async () => {
+  // Roles query
+  const { data: roles, isLoading: rolesLoading, isError: rolesError } = useQuery({
+    queryKey: ['user-roles', userId],
+    queryFn: async () => {
       if (!userId) return [];
       const { data, error } = await supabase
         .from('user_roles')
@@ -83,16 +82,18 @@ export const useDashboardData = (userId: string | undefined) => {
       if (error) throw error;
       return data || [];
     },
-    {
-      enabled: !!userId,
-      staleTime: 10 * 60 * 1000, // 10 minutes
-      gcTime: 15 * 60 * 1000, // 15 minutes
-      localCacheMinutes: 15, // Cache local plus long car les rôles changent rarement
-    }
-  );
+    enabled: !!userId,
+    staleTime: 10 * 60 * 1000,
+    gcTime: 15 * 60 * 1000,
+    retry: 2,
+  });
 
   const hasAdminAccess = roles?.some(r => r.role === 'admin') || false;
   const hasMerchantRole = roles?.some(r => r.role === 'merchant') || false;
+
+  // Si toutes les queries ont des erreurs, ne pas rester bloqué en loading
+  const allQueriesErrored = profileError && walletError && statsError && rolesError;
+  const isLoading = !allQueriesErrored && (profileLoading || walletLoading || statsLoading || rolesLoading);
 
   return {
     profile,
@@ -100,6 +101,6 @@ export const useDashboardData = (userId: string | undefined) => {
     stats,
     hasAdminAccess,
     hasMerchantRole,
-    isLoading: profileLoading || walletLoading || statsLoading || rolesLoading,
+    isLoading,
   };
 };
