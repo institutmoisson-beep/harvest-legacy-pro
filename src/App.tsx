@@ -38,6 +38,7 @@ const OrdersDashboard = lazy(() => import("./pages/OrdersDashboard"));
 const NotificationsCenter = lazy(() => import("./pages/NotificationsCenter"));
 const InstallPWA = lazy(() => import("./pages/InstallPWA"));
 const LevelAdmin = lazy(() => import("./pages/LevelAdmin"));
+const CommunityDelivery = lazy(() => import("./pages/CommunityDelivery"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 // Composant interne pour utiliser les hooks après AuthProvider
@@ -83,6 +84,7 @@ const AppContent = () => {
         <Route path="/install" element={<InstallPWA />} />
         <Route path="/support" element={<SupportChat />} />
         <Route path="/level-admin" element={<LevelAdmin />} />
+        <Route path="/community-delivery" element={<CommunityDelivery />} />
         {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
         <Route path="*" element={<NotFound />} />
       </Routes>

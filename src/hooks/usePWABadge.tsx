@@ -2,18 +2,6 @@ import { useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
 
-interface BadgeAPI {
-  set: (count: number) => Promise<void>;
-  clear: () => Promise<void>;
-}
-
-declare global {
-  interface Navigator {
-    setAppBadge?: (count: number) => Promise<void>;
-    clearAppBadge?: () => Promise<void>;
-  }
-}
-
 export const usePWABadge = () => {
   const { user } = useAuth();
 
@@ -30,11 +18,12 @@ export const usePWABadge = () => {
     }
 
     try {
+      const nav = navigator as any;
       if (count > 0) {
-        await navigator.setAppBadge!(count);
+        await nav.setAppBadge(count);
         console.log(`✅ Badge mis à jour: ${count}`);
       } else {
-        await navigator.clearAppBadge!();
+        await nav.clearAppBadge();
         console.log('✅ Badge effacé');
       }
     } catch (error) {
@@ -47,7 +36,8 @@ export const usePWABadge = () => {
     if (!isBadgeSupported()) return;
 
     try {
-      await navigator.clearAppBadge!();
+      const nav = navigator as any;
+      await nav.clearAppBadge();
       console.log('✅ Badge effacé');
     } catch (error) {
       console.error('❌ Erreur lors de l\'effacement du badge:', error);
