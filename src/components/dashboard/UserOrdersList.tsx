@@ -50,24 +50,22 @@ export default function UserOrdersList({ userId }: { userId: string }) {
   );
 
   return (
-    <Card className="glass-card">
-      <CardHeader>
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <TrendingUp className="h-5 w-5 text-accent" />
-            <CardTitle>Mes commandes initiées</CardTitle>
-          </div>
-          <Collapsible open={isOpen} onOpenChange={setIsOpen}>
+    <Collapsible open={isOpen} onOpenChange={setIsOpen}>
+      <Card className="glass-card">
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <TrendingUp className="h-5 w-5 text-accent" />
+              <CardTitle>Mes commandes initiées</CardTitle>
+            </div>
             <CollapsibleTrigger asChild>
               <Button variant="ghost" size="sm">
                 <ChevronDown className={`h-4 w-4 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
               </Button>
             </CollapsibleTrigger>
-          </Collapsible>
-        </div>
-        <CardDescription>Vos commandes et leurs statuts</CardDescription>
-      </CardHeader>
-      <Collapsible open={isOpen} onOpenChange={setIsOpen}>
+          </div>
+          <CardDescription>Vos commandes et leurs statuts</CardDescription>
+        </CardHeader>
         <CollapsibleContent>
           <CardContent>
             <div className="mb-4 relative">
@@ -126,7 +124,7 @@ export default function UserOrdersList({ userId }: { userId: string }) {
         </div>
       </CardContent>
         </CollapsibleContent>
-      </Collapsible>
-    </Card>
+      </Card>
+    </Collapsible>
   );
 }

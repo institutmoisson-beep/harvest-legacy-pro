@@ -112,24 +112,24 @@ export default function ReferralTreeSection({ userId }: ReferralTreeSectionProps
   const activeReferrals = referrals.filter(r => r.is_active).length;
 
   return (
-    <Card className="glass-card">
-      <CardHeader>
-        <CardTitle className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Users className="h-5 w-5 text-accent" />
-            Arbre de Parrainage
-          </div>
-          <CollapsibleTrigger asChild onClick={() => setIsOpen(!isOpen)}>
-            <button className="p-2 hover:bg-accent/10 rounded-lg transition-colors">
-              <ChevronDown className={`h-5 w-5 transition-transform ${isOpen ? '' : 'rotate-180'}`} />
-            </button>
-          </CollapsibleTrigger>
-        </CardTitle>
-        <CardDescription>
-          {totalReferrals} filleul{totalReferrals > 1 ? 's' : ''} au total • {activeReferrals} actif{activeReferrals > 1 ? 's' : ''}
-        </CardDescription>
-      </CardHeader>
-      <Collapsible open={isOpen} onOpenChange={setIsOpen}>
+    <Collapsible open={isOpen} onOpenChange={setIsOpen}>
+      <Card className="glass-card">
+        <CardHeader>
+          <CardTitle className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Users className="h-5 w-5 text-accent" />
+              Arbre de Parrainage
+            </div>
+            <CollapsibleTrigger asChild>
+              <button className="p-2 hover:bg-accent/10 rounded-lg transition-colors">
+                <ChevronDown className={`h-5 w-5 transition-transform ${isOpen ? '' : 'rotate-180'}`} />
+              </button>
+            </CollapsibleTrigger>
+          </CardTitle>
+          <CardDescription>
+            {totalReferrals} filleul{totalReferrals > 1 ? 's' : ''} au total • {activeReferrals} actif{activeReferrals > 1 ? 's' : ''}
+          </CardDescription>
+        </CardHeader>
         <CollapsibleContent>
           <CardContent>
             {referrals.length > 0 && (
@@ -205,7 +205,7 @@ export default function ReferralTreeSection({ userId }: ReferralTreeSectionProps
         )}
           </CardContent>
         </CollapsibleContent>
-      </Collapsible>
-    </Card>
+      </Card>
+    </Collapsible>
   );
 }
