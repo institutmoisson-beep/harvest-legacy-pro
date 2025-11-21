@@ -876,6 +876,137 @@ export type Database = {
         }
         Relationships: []
       }
+      delivery_offers: {
+        Row: {
+          created_at: string | null
+          deliverer_id: string
+          id: string
+          message: string | null
+          package_id: string
+          proposed_delivery_time: string | null
+          status: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          deliverer_id: string
+          id?: string
+          message?: string | null
+          package_id: string
+          proposed_delivery_time?: string | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          deliverer_id?: string
+          id?: string
+          message?: string | null
+          package_id?: string
+          proposed_delivery_time?: string | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "delivery_offers_package_id_fkey"
+            columns: ["package_id"]
+            isOneToOne: false
+            referencedRelation: "delivery_packages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      delivery_packages: {
+        Row: {
+          assigned_at: string | null
+          created_at: string | null
+          customer_address: string
+          customer_city: string
+          customer_id: string
+          customer_latitude: number | null
+          customer_longitude: number | null
+          customer_name: string
+          customer_phone: string
+          delivered_at: string | null
+          deliverer_id: string | null
+          delivery_code: string | null
+          delivery_commission: number | null
+          delivery_method: string
+          id: string
+          notes: string | null
+          order_id: string | null
+          picked_up_at: string | null
+          pickup_code: string | null
+          relay_point_id: string | null
+          status: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          assigned_at?: string | null
+          created_at?: string | null
+          customer_address: string
+          customer_city: string
+          customer_id: string
+          customer_latitude?: number | null
+          customer_longitude?: number | null
+          customer_name: string
+          customer_phone: string
+          delivered_at?: string | null
+          deliverer_id?: string | null
+          delivery_code?: string | null
+          delivery_commission?: number | null
+          delivery_method: string
+          id?: string
+          notes?: string | null
+          order_id?: string | null
+          picked_up_at?: string | null
+          pickup_code?: string | null
+          relay_point_id?: string | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          assigned_at?: string | null
+          created_at?: string | null
+          customer_address?: string
+          customer_city?: string
+          customer_id?: string
+          customer_latitude?: number | null
+          customer_longitude?: number | null
+          customer_name?: string
+          customer_phone?: string
+          delivered_at?: string | null
+          deliverer_id?: string | null
+          delivery_code?: string | null
+          delivery_commission?: number | null
+          delivery_method?: string
+          id?: string
+          notes?: string | null
+          order_id?: string | null
+          picked_up_at?: string | null
+          pickup_code?: string | null
+          relay_point_id?: string | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "delivery_packages_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "delivery_packages_relay_point_id_fkey"
+            columns: ["relay_point_id"]
+            isOneToOne: false
+            referencedRelation: "delivery_relay_points"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       delivery_providers: {
         Row: {
           api_key: string | null
@@ -897,6 +1028,95 @@ export type Database = {
           id?: string
           is_active?: boolean | null
           name?: string
+        }
+        Relationships: []
+      }
+      delivery_ratings: {
+        Row: {
+          comment: string | null
+          created_at: string | null
+          customer_id: string
+          deliverer_id: string
+          id: string
+          package_id: string
+          rating: number | null
+        }
+        Insert: {
+          comment?: string | null
+          created_at?: string | null
+          customer_id: string
+          deliverer_id: string
+          id?: string
+          package_id: string
+          rating?: number | null
+        }
+        Update: {
+          comment?: string | null
+          created_at?: string | null
+          customer_id?: string
+          deliverer_id?: string
+          id?: string
+          package_id?: string
+          rating?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "delivery_ratings_package_id_fkey"
+            columns: ["package_id"]
+            isOneToOne: false
+            referencedRelation: "delivery_packages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      delivery_relay_points: {
+        Row: {
+          address: string
+          city: string
+          country: string
+          created_at: string | null
+          id: string
+          is_active: boolean | null
+          latitude: number | null
+          longitude: number | null
+          manager_id: string | null
+          name: string
+          opening_hours: Json | null
+          phone: string | null
+          type: string
+          updated_at: string | null
+        }
+        Insert: {
+          address: string
+          city: string
+          country: string
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          latitude?: number | null
+          longitude?: number | null
+          manager_id?: string | null
+          name: string
+          opening_hours?: Json | null
+          phone?: string | null
+          type: string
+          updated_at?: string | null
+        }
+        Update: {
+          address?: string
+          city?: string
+          country?: string
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          latitude?: number | null
+          longitude?: number | null
+          manager_id?: string | null
+          name?: string
+          opening_hours?: Json | null
+          phone?: string | null
+          type?: string
+          updated_at?: string | null
         }
         Relationships: []
       }
@@ -2661,6 +2881,8 @@ export type Database = {
       }
       delete_user_account: { Args: { p_user_id: string }; Returns: undefined }
       ensure_super_admin: { Args: never; Returns: undefined }
+      generate_delivery_code: { Args: never; Returns: string }
+      generate_pickup_code: { Args: never; Returns: string }
       generate_referral_code: { Args: never; Returns: string }
       generate_withdrawal_code: { Args: never; Returns: string }
       get_agent_tier: {

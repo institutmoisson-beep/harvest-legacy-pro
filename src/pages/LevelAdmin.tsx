@@ -24,6 +24,8 @@ import PermissionsManager from '@/components/dashboard/PermissionsManager';
 import GeographicRepresentativesManager from '@/components/dashboard/GeographicRepresentativesManager';
 import AuditLogsViewer from '@/components/dashboard/AuditLogsViewer';
 import AdminCredits from '@/pages/AdminCredits';
+import AdminDeliveryRelaysManager from '@/components/dashboard/AdminDeliveryRelaysManager';
+import AdminDeliveryPackagesManager from '@/components/dashboard/AdminDeliveryPackagesManager';
 
 // Super tableau de bord exclusif pour le Super Admin
 export default function LevelAdmin() {
@@ -109,6 +111,7 @@ export default function LevelAdmin() {
           <TabsTrigger value="tontines">Tontines</TabsTrigger>
           <TabsTrigger value="treasury">Trésorerie</TabsTrigger>
           <TabsTrigger value="fund">Fonds Moissonneur</TabsTrigger>
+          <TabsTrigger value="delivery">Livraison</TabsTrigger>
           <TabsTrigger value="promo">Codes Promo</TabsTrigger>
           <TabsTrigger value="payments">Contacts Mobile Money</TabsTrigger>
           <TabsTrigger value="crypto">Adresses Crypto</TabsTrigger>
@@ -153,6 +156,11 @@ export default function LevelAdmin() {
 
         <TabsContent value="fund" className="mt-4 space-y-6">
           <MoissonneurFund />
+        </TabsContent>
+
+        <TabsContent value="delivery" className="mt-4 space-y-6">
+          <AdminDeliveryRelaysManager />
+          <AdminDeliveryPackagesManager />
         </TabsContent>
 
         <TabsContent value="promo" className="mt-4 space-y-6">
