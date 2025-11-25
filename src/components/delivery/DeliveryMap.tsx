@@ -242,8 +242,17 @@ export default function DeliveryMap({
     // Add new user markers
     activeUsers.forEach((user) => {
       const el = document.createElement('div');
-      el.className = 'w-7 h-7 bg-orange-500 rounded-full border-2 border-white shadow-lg flex items-center justify-center';
-      el.innerHTML = '<span class="text-white font-bold text-xs">👤</span>';
+      el.style.width = '28px';
+      el.style.height = '28px';
+      el.style.backgroundColor = '#f97316';
+      el.style.borderRadius = '50%';
+      el.style.border = '2px solid white';
+      el.style.boxShadow = '0 10px 15px -3px rgba(0, 0, 0, 0.2)';
+      el.style.display = 'flex';
+      el.style.alignItems = 'center';
+      el.style.justifyContent = 'center';
+      el.style.cursor = 'pointer';
+      el.innerHTML = '<span style="color: white; font-weight: bold; font-size: 12px;">👤</span>';
 
       const marker = new mapboxgl.Marker({ element: el })
         .setLngLat([user.longitude, user.latitude])
