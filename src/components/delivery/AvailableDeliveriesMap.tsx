@@ -12,6 +12,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Slider } from '@/components/ui/slider';
 import { Package, MapPin, Navigation, AlertCircle, Loader2, Zap } from 'lucide-react';
 import DeliveryMap from './DeliveryMap';
+import MapSearch from './MapSearch';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 
 export default function AvailableDeliveriesMap() {
