@@ -181,6 +181,8 @@ export default function Profile() {
             </CardContent>
           </Card>
 
+          <JobDomainSelector />
+
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
