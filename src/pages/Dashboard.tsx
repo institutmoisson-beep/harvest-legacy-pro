@@ -282,6 +282,11 @@ export default function Dashboard() {
           </div>
         )}
 
+        {/* Community Delivery Dashboard Card */}
+        <div className="mb-8">
+          <CommunityDeliveryDashboardCard />
+        </div>
+
         {/* Investment Button */}
         <div className="mb-8 grid grid-cols-1 md:grid-cols-2 gap-4">
           <Button 
