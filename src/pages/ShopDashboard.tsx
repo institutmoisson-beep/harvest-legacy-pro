@@ -924,7 +924,7 @@ export default function ShopDashboard() {
 
         {/* Edit Product Dialog */}
         <Dialog open={editProductOpen} onOpenChange={setEditProductOpen}>
-          <DialogContent className="max-w-2xl">
+          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>Modifier le produit</DialogTitle>
             </DialogHeader>
@@ -946,6 +946,42 @@ export default function ShopDashboard() {
                 />
               </div>
 
+              <div>
+                <Label>Image du produit</Label>
+                <div className="border-2 border-dashed border-border rounded-lg p-4 text-center cursor-pointer hover:border-primary transition">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    disabled={uploading}
+                    onChange={async (e) => {
+                      const file = e.target.files?.[0];
+                      if (file) {
+                        const url = await uploadProductImage(file);
+                        if (url) {
+                          setProductData({ ...productData, image_url: url });
+                          setImagePreview(url);
+                        }
+                      }
+                    }}
+                    className="hidden"
+                    id="edit-product-image-input"
+                  />
+                  <label htmlFor="edit-product-image-input" className="cursor-pointer">
+                    {imagePreview ? (
+                      <div className="space-y-2">
+                        <img src={imagePreview} alt="Aperçu" className="w-32 h-32 mx-auto object-cover rounded" />
+                        <p className="text-sm text-muted-foreground">Cliquez pour changer</p>
+                      </div>
+                    ) : (
+                      <div className="py-4">
+                        <p className="text-sm text-muted-foreground">Cliquez pour ajouter une image</p>
+                        <p className="text-xs text-muted-foreground mt-1">PNG, JPG, GIF jusqu'à 5MB</p>
+                      </div>
+                    )}
+                  </label>
+                </div>
+              </div>
+
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <Label>Prix (FCFA)</Label>
@@ -962,23 +998,21 @@ export default function ShopDashboard() {
                     type="number"
                     value={productData.stock}
                     onChange={(e) => setProductData({ ...productData, stock: e.target.value })}
+                    disabled={productData.product_type === 'digital'}
                   />
                 </div>
-              </div>
-
-              <div>
-                <Label>Lien de paiement (optionnel)</Label>
-                <Input
-                  value={productData.payment_link}
-                  onChange={(e) => setProductData({ ...productData, payment_link: e.target.value })}
-                />
               </div>
 
               <div>
                 <Label>Type de produit</Label>
                 <Select
                   value={productData.product_type}
-                  onValueChange={(value) => setProductData({ ...productData, product_type: value })}
+                  onValueChange={(value) => {
+                    setProductData({ ...productData, product_type: value });
+                    if (value === 'digital') {
+                      setProductData(prev => ({ ...prev, stock: '1' }));
+                    }
+                  }}
                 >
                   <SelectTrigger>
                     <SelectValue />
@@ -991,8 +1025,53 @@ export default function ShopDashboard() {
                 </Select>
               </div>
 
-              <Button onClick={updateProduct} className="w-full">
-                Mettre à jour
+              {productData.product_type === 'digital' && (
+                <div>
+                  <Label>Fichier téléchargeable</Label>
+                  <div className="border-2 border-dashed border-border rounded-lg p-4 text-center cursor-pointer hover:border-primary transition">
+                    <input
+                      type="file"
+                      disabled={uploading}
+                      onChange={async (e) => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                          const url = await uploadProductFile(file);
+                          if (url) {
+                            setProductData({ ...productData, file_url: url });
+                            setFilePreview(file.name);
+                          }
+                        }
+                      }}
+                      className="hidden"
+                      id="edit-product-file-input"
+                    />
+                    <label htmlFor="edit-product-file-input" className="cursor-pointer">
+                      {filePreview ? (
+                        <div className="space-y-2">
+                          <p className="text-sm font-medium text-foreground">✓ {filePreview}</p>
+                          <p className="text-xs text-muted-foreground">Cliquez pour changer</p>
+                        </div>
+                      ) : (
+                        <div className="py-4">
+                          <p className="text-sm text-muted-foreground">Cliquez pour ajouter un fichier</p>
+                          <p className="text-xs text-muted-foreground mt-1">PDF, ZIP, etc. jusqu'à 100MB</p>
+                        </div>
+                      )}
+                    </label>
+                  </div>
+                </div>
+              )}
+
+              <div>
+                <Label>Lien de paiement (optionnel)</Label>
+                <Input
+                  value={productData.payment_link}
+                  onChange={(e) => setProductData({ ...productData, payment_link: e.target.value })}
+                />
+              </div>
+
+              <Button onClick={updateProduct} className="w-full" disabled={uploading}>
+                {uploading ? 'Téléchargement...' : 'Mettre à jour'}
               </Button>
             </div>
           </DialogContent>
