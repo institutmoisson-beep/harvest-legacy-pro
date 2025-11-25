@@ -145,26 +145,34 @@ export default function ShopDashboard() {
     }
   };
 
-  const uploadProductImage = async (file: File): Promise<string | null> => {
+  const uploadProductImage = async (file: File, productId?: number): Promise<string | null> => {
     try {
       setUploading(true);
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${shop.id}-${Date.now()}.${fileExt}`;
+      const arrayBuffer = await file.arrayBuffer();
+      const uint8Array = new Uint8Array(arrayBuffer);
+      const base64String = btoa(String.fromCharCode.apply(null, Array.from(uint8Array)));
+      const dataUrl = `data:${file.type};base64,${base64String}`;
 
-      const { data, error } = await supabase.storage
-        .from('shop-product-images')
-        .upload(fileName, file, { upsert: true });
+      if (productId) {
+        const { error } = await supabase
+          .from('product_media')
+          .upsert({
+            product_id: productId,
+            media_type: 'image',
+            file_name: file.name,
+            file_size: file.size,
+            file_data: uint8Array,
+            mime_type: file.type,
+            is_primary: true,
+          });
 
-      if (error) {
-        toast({ title: 'Erreur', description: `Erreur lors du téléchargement: ${error.message}`, variant: 'destructive' });
-        return null;
+        if (error) {
+          toast({ title: 'Erreur', description: `Erreur lors du téléchargement: ${error.message}`, variant: 'destructive' });
+          return null;
+        }
       }
 
-      const { data: urlData } = supabase.storage
-        .from('shop-product-images')
-        .getPublicUrl(fileName);
-
-      return urlData?.publicUrl || null;
+      return dataUrl;
     } catch (err: any) {
       toast({ title: 'Erreur', description: err.message, variant: 'destructive' });
       return null;
@@ -173,26 +181,31 @@ export default function ShopDashboard() {
     }
   };
 
-  const uploadProductFile = async (file: File): Promise<string | null> => {
+  const uploadProductFile = async (file: File, productId?: number): Promise<string | null> => {
     try {
       setUploading(true);
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${shop.id}-${Date.now()}.${fileExt}`;
+      const arrayBuffer = await file.arrayBuffer();
+      const uint8Array = new Uint8Array(arrayBuffer);
 
-      const { data, error } = await supabase.storage
-        .from('shop-product-files')
-        .upload(fileName, file, { upsert: true });
+      if (productId) {
+        const { error } = await supabase
+          .from('product_media')
+          .insert({
+            product_id: productId,
+            media_type: 'file',
+            file_name: file.name,
+            file_size: file.size,
+            file_data: uint8Array,
+            mime_type: file.type,
+          });
 
-      if (error) {
-        toast({ title: 'Erreur', description: `Erreur lors du téléchargement: ${error.message}`, variant: 'destructive' });
-        return null;
+        if (error) {
+          toast({ title: 'Erreur', description: `Erreur lors du téléchargement: ${error.message}`, variant: 'destructive' });
+          return null;
+        }
       }
 
-      const { data: urlData } = supabase.storage
-        .from('shop-product-files')
-        .getPublicUrl(fileName);
-
-      return urlData?.publicUrl || null;
+      return file.name;
     } catch (err: any) {
       toast({ title: 'Erreur', description: err.message, variant: 'destructive' });
       return null;
