@@ -10,8 +10,31 @@ export default defineConfig(({ mode }) => ({
     host: "::",
     port: 8080,
   },
+  build: {
+    target: 'esnext',
+    minify: 'terser',
+    terserOptions: {
+      compress: {
+        drop_console: true
+      }
+    },
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          'recharts': ['recharts'],
+          'react-query': ['@tanstack/react-query'],
+          'ui-components': [
+            '@/components/ui/card',
+            '@/components/ui/button',
+            '@/components/ui/input'
+          ]
+        }
+      }
+    },
+    chunkSizeWarningLimit: 600
+  },
   plugins: [
-    react(), 
+    react(),
     mode === "development" && componentTagger(),
     VitePWA({
       registerType: 'autoUpdate',
