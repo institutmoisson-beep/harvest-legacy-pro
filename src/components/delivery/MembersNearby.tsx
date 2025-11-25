@@ -360,16 +360,26 @@ export default function MembersNearby() {
                 </TabsTrigger>
               </TabsList>
 
-              <TabsContent value="map" className="p-4">
-                {nearbyMembers.length > 0 ? (
+              <TabsContent value="map" className="p-0">
+                <div style={{ width: '100%', height: '500px', position: 'relative' }} className="rounded-lg overflow-hidden border border-gray-200 bg-gray-100">
                   <div
                     ref={mapContainer}
-                    className="w-full h-[500px] rounded-lg border overflow-hidden"
+                    style={{
+                      width: '100%',
+                      height: '100%',
+                      position: 'absolute',
+                      top: 0,
+                      left: 0,
+                    }}
                   />
-                ) : (
-                  <div className="text-center py-12 text-muted-foreground">
-                    <Users className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                    <p>Aucun membre disponible pour le moment</p>
+                </div>
+                {nearbyMembers.length === 0 && (
+                  <div className="absolute inset-0 flex items-center justify-center bg-black/30 rounded-lg">
+                    <div className="text-center text-white">
+                      <Users className="w-12 h-12 mx-auto mb-4 opacity-70" />
+                      <p>Aucun membre disponible pour le moment</p>
+                      <p className="text-sm text-gray-300 mt-2">La carte s'affichera quand d'autres membres seront à proximité</p>
+                    </div>
                   </div>
                 )}
               </TabsContent>
