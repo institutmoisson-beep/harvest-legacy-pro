@@ -234,3 +234,5 @@ function OrdersSectionComponent({ userId, brokerCode }: OrdersSectionProps) {
     </Card>
   );
 }
+
+export default memo(OrdersSectionComponent);
