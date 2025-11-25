@@ -52,6 +52,7 @@ export default function DeliveryMap({
   const markersRef = useRef<Map<string, mapboxgl.Marker>>(new Map());
   const userMarkersRef = useRef<Map<string, mapboxgl.Marker>>(new Map());
   const userMarkerRef = useRef<mapboxgl.Marker | null>(null);
+  const [mapReady, setMapReady] = useState(false);
 
   // Initialize map
   useEffect(() => {
