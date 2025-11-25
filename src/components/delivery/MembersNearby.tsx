@@ -201,20 +201,39 @@ export default function MembersNearby() {
     }
 
     const el = document.createElement('div');
-    el.className = 'w-8 h-8 bg-blue-500 rounded-full border-4 border-white shadow-lg flex items-center justify-center';
-    el.innerHTML = '<div class="w-2 h-2 bg-white rounded-full"></div>';
+    el.style.width = '32px';
+    el.style.height = '32px';
+    el.style.backgroundColor = '#3b82f6';
+    el.style.borderRadius = '50%';
+    el.style.border = '4px solid white';
+    el.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.3)';
+    el.style.display = 'flex';
+    el.style.alignItems = 'center';
+    el.style.justifyContent = 'center';
+    el.style.cursor = 'pointer';
+    el.style.zIndex = '10';
+
+    const innerDot = document.createElement('div');
+    innerDot.style.width = '8px';
+    innerDot.style.height = '8px';
+    innerDot.style.backgroundColor = 'white';
+    innerDot.style.borderRadius = '50%';
+    el.appendChild(innerDot);
 
     userMarkerRef.current = new mapboxgl.Marker({ element: el })
       .setLngLat([location.longitude, location.latitude])
       .addTo(map.current);
 
-    if (map.current.getZoom() < 5) {
-      map.current.flyTo({
-        center: [location.longitude, location.latitude],
-        zoom: 13,
-        duration: 1000,
-      });
-    }
+    // Add popup for user location
+    const popup = new mapboxgl.Popup({ offset: 25 }).setHTML(
+      `<div style="padding: 8px; font-size: 12px;">
+        <div style="font-weight: bold;">Votre position</div>
+        <div style="color: #666; margin-top: 4px;">Lat: ${location.latitude.toFixed(4)}</div>
+        <div style="color: #666;">Lng: ${location.longitude.toFixed(4)}</div>
+        <div style="color: #999;">Précision: ±${location.accuracy?.toFixed(0) || '?'}m</div>
+      </div>`
+    );
+    userMarkerRef.current.setPopup(popup);
   }, [location]);
 
   // Update member markers
