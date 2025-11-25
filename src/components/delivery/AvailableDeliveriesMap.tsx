@@ -249,18 +249,38 @@ export default function AvailableDeliveriesMap() {
               </TabsList>
 
               <TabsContent value="map" className="p-4">
-                {nearbyDeliveries.length > 0 ? (
-                  <DeliveryMap
-                    userLocation={location}
-                    deliveries={nearbyDeliveries}
-                    selectedDeliveryId={selectedDeliveryId}
-                    onSelectDelivery={setSelectedDeliveryId}
-                    onPropose={handlePropose}
-                  />
+                {nearbyDeliveries.length > 0 || activeUsers.length > 0 ? (
+                  <div className="space-y-3">
+                    {activeUsers.length > 0 && (
+                      <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                        <p className="text-sm font-medium text-blue-900">
+                          👥 {activeUsers.length} livreur(s) actif(s) à proximité
+                        </p>
+                        <div className="flex flex-wrap gap-2 mt-2">
+                          {activeUsers.map((user) => (
+                            <Badge key={user.id} variant="secondary" className="bg-blue-100">
+                              📍 {user.distance.toFixed(1)} km
+                            </Badge>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    <DeliveryMap
+                      userLocation={location}
+                      deliveries={nearbyDeliveries}
+                      activeUsers={activeUsers}
+                      selectedDeliveryId={selectedDeliveryId}
+                      onSelectDelivery={setSelectedDeliveryId}
+                      onPropose={handlePropose}
+                    />
+                  </div>
                 ) : (
                   <div className="text-center py-12 text-muted-foreground">
                     <Package className="w-12 h-12 mx-auto mb-4 opacity-50" />
                     <p>Aucune livraison disponible dans un rayon de {radiusKm} km</p>
+                    {activeUsers.length === 0 && (
+                      <p className="text-sm mt-2">Aucun livreur actif à proximité</p>
+                    )}
                   </div>
                 )}
               </TabsContent>
