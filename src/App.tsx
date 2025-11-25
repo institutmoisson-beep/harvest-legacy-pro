@@ -39,6 +39,7 @@ const NotificationsCenter = lazy(() => import("./pages/NotificationsCenter"));
 const InstallPWA = lazy(() => import("./pages/InstallPWA"));
 const LevelAdmin = lazy(() => import("./pages/LevelAdmin"));
 const CommunityDelivery = lazy(() => import("./pages/CommunityDelivery"));
+const AdminJobDomains = lazy(() => import("./pages/AdminJobDomains"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 // Composant interne pour utiliser les hooks après AuthProvider
