@@ -243,6 +243,11 @@ export default function ShopDashboard() {
   const updateProduct = async () => {
     if (!selectedProduct) return;
 
+    if (productData.product_type === 'digital' && !productData.file_url) {
+      toast({ title: 'Erreur', description: 'Un fichier téléchargeable est requis pour les produits numériques', variant: 'destructive' });
+      return;
+    }
+
     const { error } = await supabase
       .from('shop_products')
       .update({
@@ -252,6 +257,8 @@ export default function ShopDashboard() {
         stock: parseInt(productData.stock),
         payment_link: productData.payment_link,
         product_type: productData.product_type,
+        image_url: productData.image_url || null,
+        file_url: productData.file_url || null,
       })
       .eq('id', selectedProduct.id);
 
@@ -261,6 +268,8 @@ export default function ShopDashboard() {
       toast({ title: 'Succès', description: 'Produit mis à jour!' });
       setEditProductOpen(false);
       setSelectedProduct(null);
+      setImagePreview(null);
+      setFilePreview(null);
       fetchProducts(shop.id);
     }
   };
