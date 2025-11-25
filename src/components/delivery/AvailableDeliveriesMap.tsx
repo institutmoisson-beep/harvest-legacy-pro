@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useGeolocation, useDistance, useNearbyDeliveries } from '@/hooks/useGeolocation';
+import { useRealtimeLocation } from '@/hooks/useRealtimeLocation';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -9,7 +10,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { toast } from '@/hooks/use-toast';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Slider } from '@/components/ui/slider';
-import { Package, MapPin, Navigation, AlertCircle, Loader2 } from 'lucide-react';
+import { Package, MapPin, Navigation, AlertCircle, Loader2, Zap } from 'lucide-react';
 import DeliveryMap from './DeliveryMap';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 
