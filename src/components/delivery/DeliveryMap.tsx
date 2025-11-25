@@ -59,50 +59,64 @@ export default function DeliveryMap({
 
     if (map.current) {
       // Update center if location changes
-      map.current.flyTo({
-        center: [userLocation.longitude, userLocation.latitude],
-        zoom: 13,
-        duration: 1000,
-      });
+      if (map.current.isStyleLoaded()) {
+        map.current.flyTo({
+          center: [userLocation.longitude, userLocation.latitude],
+          zoom: 13,
+          duration: 1000,
+        });
+      }
       return;
     }
 
-    // Ensure container has dimensions
-    const containerStyle = mapContainer.current.getAttribute('style') || '';
-    if (!containerStyle.includes('height')) {
-      mapContainer.current.style.height = '100%';
-      mapContainer.current.style.width = '100%';
-    }
+    const initializeMap = async () => {
+      if (!mapContainer.current) return;
 
-    try {
-      map.current = new mapboxgl.Map({
-        container: mapContainer.current,
-        style: 'mapbox://styles/mapbox/streets-v12',
-        center: [userLocation.longitude, userLocation.latitude],
-        zoom: 13,
-        preserveDrawingBuffer: true,
-      });
+      try {
+        // Wait a tick to ensure DOM is ready
+        await new Promise(resolve => setTimeout(resolve, 0));
 
-      map.current.on('load', () => {
-        if (map.current) {
-          map.current.addControl(
-            new mapboxgl.GeolocateControl({
-              positionOptions: {
-                enableHighAccuracy: true,
-              },
-              trackUserLocation: false,
-            })
-          );
+        map.current = new mapboxgl.Map({
+          container: mapContainer.current!,
+          style: 'mapbox://styles/mapbox/streets-v12',
+          center: [userLocation.longitude, userLocation.latitude],
+          zoom: 13,
+          preserveDrawingBuffer: true,
+          antialias: true,
+        });
 
-          map.current.addControl(
-            new mapboxgl.NavigationControl(),
-            'top-right'
-          );
-        }
-      });
-    } catch (error) {
-      console.error('Error initializing map:', error);
-    }
+        map.current.on('load', () => {
+          if (map.current) {
+            try {
+              map.current.addControl(
+                new mapboxgl.GeolocateControl({
+                  positionOptions: {
+                    enableHighAccuracy: true,
+                  },
+                  trackUserLocation: false,
+                }),
+                'top-left'
+              );
+
+              map.current.addControl(
+                new mapboxgl.NavigationControl(),
+                'top-right'
+              );
+            } catch (error) {
+              console.warn('Error adding controls:', error);
+            }
+          }
+        });
+
+        map.current.on('error', (error) => {
+          console.error('Map error:', error);
+        });
+      } catch (error) {
+        console.error('Error initializing map:', error);
+      }
+    };
+
+    initializeMap();
 
     return () => {
       // Don't destroy the map on unmount to prevent flickering
