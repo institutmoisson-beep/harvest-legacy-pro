@@ -64,9 +64,10 @@ export default function NotificationsCenter() {
 
       if (error) {
         console.error('Erreur notifications:', error);
+        const errorMessage = error?.message || JSON.stringify(error) || 'Une erreur inconnue est survenue';
         toast({
           title: 'Erreur',
-          description: `Erreur lors de la récupération des notifications: ${error.message}`,
+          description: `Erreur lors de la récupération des notifications: ${errorMessage}`,
           variant: 'destructive',
         });
         return;
@@ -78,9 +79,10 @@ export default function NotificationsCenter() {
       }
     } catch (error: any) {
       console.error('Erreur lors de la récupération des notifications:', error);
+      const errorMessage = error?.message || JSON.stringify(error) || 'Une erreur est survenue';
       toast({
         title: 'Erreur',
-        description: error?.message || 'Une erreur est survenue',
+        description: errorMessage,
         variant: 'destructive',
       });
     }

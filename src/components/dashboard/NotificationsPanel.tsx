@@ -51,9 +51,11 @@ export default function NotificationsPanel({ userId }: NotificationsPanelProps) 
 
       if (error) {
         console.error('Erreur notifications:', error);
+        const errorMessage = error?.message || JSON.stringify(error) || 'Une erreur inconnue est survenue';
+        console.error('Message d\'erreur complet:', errorMessage);
         toast({
           title: 'Erreur',
-          description: `Erreur lors de la récupération des notifications: ${error.message}`,
+          description: `Erreur lors de la récupération des notifications: ${errorMessage}`,
           variant: 'destructive',
         });
         return;
@@ -65,9 +67,10 @@ export default function NotificationsPanel({ userId }: NotificationsPanelProps) 
       }
     } catch (error: any) {
       console.error('Erreur lors de la récupération des notifications:', error);
+      const errorMessage = error?.message || JSON.stringify(error) || 'Une erreur est survenue';
       toast({
         title: 'Erreur',
-        description: error?.message || 'Une erreur est survenue',
+        description: errorMessage,
         variant: 'destructive',
       });
     }
@@ -83,7 +86,8 @@ export default function NotificationsPanel({ userId }: NotificationsPanelProps) 
       if (error) throw error;
       fetchNotifications();
     } catch (error: any) {
-      toast({ title: 'Erreur', description: error.message, variant: 'destructive' });
+      const errorMessage = error?.message || JSON.stringify(error) || 'Une erreur est survenue';
+      toast({ title: 'Erreur', description: errorMessage, variant: 'destructive' });
     }
   };
 
@@ -99,7 +103,8 @@ export default function NotificationsPanel({ userId }: NotificationsPanelProps) 
       toast({ title: 'Succès', description: 'Toutes les notifications marquées comme lues' });
       fetchNotifications();
     } catch (error: any) {
-      toast({ title: 'Erreur', description: error.message, variant: 'destructive' });
+      const errorMessage = error?.message || JSON.stringify(error) || 'Une erreur est survenue';
+      toast({ title: 'Erreur', description: errorMessage, variant: 'destructive' });
     }
   };
 
@@ -113,7 +118,8 @@ export default function NotificationsPanel({ userId }: NotificationsPanelProps) 
       if (error) throw error;
       fetchNotifications();
     } catch (error: any) {
-      toast({ title: 'Erreur', description: error.message, variant: 'destructive' });
+      const errorMessage = error?.message || JSON.stringify(error) || 'Une erreur est survenue';
+      toast({ title: 'Erreur', description: errorMessage, variant: 'destructive' });
     }
   };
 
