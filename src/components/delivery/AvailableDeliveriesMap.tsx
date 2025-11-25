@@ -32,6 +32,7 @@ export default function AvailableDeliveriesMap() {
   const [viewMode, setViewMode] = useState<'map' | 'list'>('map');
   const [activeUsers, setActiveUsers] = useState<any[]>([]);
   const [refetchInterval, setRefetchInterval] = useState<NodeJS.Timeout | null>(null);
+  const [searchLocation, setSearchLocation] = useState<{ latitude: number; longitude: number; name: string } | null>(null);
 
   // Get initial location on mount
   useEffect(() => {
