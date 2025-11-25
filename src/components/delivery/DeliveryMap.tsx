@@ -152,9 +152,43 @@ export default function DeliveryMap({
     });
   }, [deliveries, selectedDeliveryId, onSelectDelivery]);
 
+  // Update active user markers
+  useEffect(() => {
+    if (!map.current) return;
+
+    // Remove old user markers
+    userMarkersRef.current.forEach((marker) => {
+      marker.remove();
+    });
+    userMarkersRef.current.clear();
+
+    // Add new user markers
+    activeUsers.forEach((user) => {
+      const el = document.createElement('div');
+      el.className = 'w-7 h-7 bg-orange-500 rounded-full border-2 border-white shadow-lg flex items-center justify-center';
+      el.innerHTML = '<span class="text-white font-bold text-xs">👤</span>';
+
+      const marker = new mapboxgl.Marker({ element: el })
+        .setLngLat([user.longitude, user.latitude])
+        .addTo(map.current!);
+
+      userMarkersRef.current.set(user.id, marker);
+
+      // Add popup with distance
+      const popup = new mapboxgl.Popup({ offset: 25 }).setHTML(
+        `<div class="p-2">
+          <div class="font-semibold text-sm">Livreur actif</div>
+          <div class="text-xs text-gray-600">${user.distance?.toFixed(1) || '?'} km</div>
+        </div>`
+      );
+
+      marker.setPopup(popup);
+    });
+  }, [activeUsers]);
+
   // Fit bounds when deliveries change
   useEffect(() => {
-    if (!map.current || deliveries.length === 0 || !userLocation) return;
+    if (!map.current || (deliveries.length === 0 && activeUsers.length === 0) || !userLocation) return;
 
     const bounds = new mapboxgl.LngLatBounds(
       [userLocation.longitude, userLocation.latitude],
@@ -165,8 +199,12 @@ export default function DeliveryMap({
       bounds.extend([delivery.customer_longitude, delivery.customer_latitude]);
     });
 
+    activeUsers.forEach((user) => {
+      bounds.extend([user.longitude, user.latitude]);
+    });
+
     map.current.fitBounds(bounds, { padding: 50 });
-  }, [deliveries, userLocation]);
+  }, [deliveries, activeUsers, userLocation]);
 
   const selectedDelivery = deliveries.find((d) => d.id === selectedDeliveryId);
 
