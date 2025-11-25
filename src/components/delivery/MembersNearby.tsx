@@ -417,6 +417,13 @@ export default function MembersNearby() {
               </TabsList>
 
               <TabsContent value="map" className="p-0">
+                <div className="p-4 border-b">
+                  <MapSearch
+                    onLocationFound={setSearchLocation}
+                    placeholder="Rechercher des membres près d'une adresse..."
+                    searchType="member"
+                  />
+                </div>
                 <div style={{ width: '100%', height: '500px', position: 'relative' }} className="rounded-lg overflow-hidden border border-gray-200 bg-gray-100">
                   <div
                     ref={mapContainer}
