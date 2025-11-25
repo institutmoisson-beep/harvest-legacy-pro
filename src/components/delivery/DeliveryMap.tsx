@@ -30,6 +30,12 @@ interface ActiveUser {
   distance?: number;
 }
 
+interface SearchLocation {
+  latitude: number;
+  longitude: number;
+  name: string;
+}
+
 interface DeliveryMapProps {
   userLocation: UserLocation | null;
   deliveries: DeliveryMarker[];
@@ -37,6 +43,7 @@ interface DeliveryMapProps {
   selectedDeliveryId: string | null;
   onSelectDelivery: (deliveryId: string) => void;
   onPropose: (deliveryId: string) => void;
+  searchLocation?: SearchLocation | null;
 }
 
 export default function DeliveryMap({
