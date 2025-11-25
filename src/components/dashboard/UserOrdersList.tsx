@@ -54,7 +54,7 @@ function UserOrdersListComponent({ userId }: { userId: string }) {
               </Button>
             </CollapsibleTrigger>
           </div>
-          <CardDescription>Vos commandes et leurs statuts</CardDescription>
+          <CardDescription>Vos commandes et leurs statuts ({filteredOrders.length} total)</CardDescription>
         </CardHeader>
         <CollapsibleContent>
           <CardContent>
@@ -63,58 +63,94 @@ function UserOrdersListComponent({ userId }: { userId: string }) {
               <Input
                 placeholder="Rechercher par client, produit ou code..."
                 value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+                onChange={(e) => {
+                  setSearchQuery(e.target.value);
+                  setCurrentPage(1);
+                }}
                 className="pl-10"
               />
             </div>
-            <div className="overflow-x-auto">
-              <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Client</TableHead>
-                <TableHead>Produit</TableHead>
-                <TableHead>Prix</TableHead>
-                <TableHead>Profit</TableHead>
-                <TableHead>Code</TableHead>
-                <TableHead>Statut</TableHead>
-                <TableHead>Date</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredOrders.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={7} className="text-center text-muted-foreground">
-                    {searchQuery ? 'Aucun résultat trouvé' : 'Aucune commande'}
-                  </TableCell>
-                </TableRow>
-              ) : (
-                filteredOrders.map((order) => (
-                  <TableRow key={order.id}>
-                    <TableCell>{order.customer_name}</TableCell>
-                    <TableCell className="max-w-xs truncate">{order.product_name}</TableCell>
-                    <TableCell>{order.purchase_price.toLocaleString()} FCFA</TableCell>
-                    <TableCell className="text-secondary">{order.profit.toLocaleString()} FCFA</TableCell>
-                    <TableCell className="font-mono text-sm">{order.broker_code}</TableCell>
-                    <TableCell>
-                      <span className={`px-2 py-1 rounded text-xs ${
-                        order.status === 'completed' ? 'bg-secondary/20 text-secondary' :
-                        order.status === 'pending' ? 'bg-accent/20 text-accent' :
-                        order.status === 'rejected' ? 'bg-destructive/20 text-destructive' :
-                        'bg-muted text-muted-foreground'
-                      }`}>
-                        {order.status}
-                      </span>
-                    </TableCell>
-                    <TableCell>{new Date(order.created_at).toLocaleDateString()}</TableCell>
-                  </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
-        </div>
+            {loading ? (
+              <div className="text-center py-8 text-muted-foreground">Chargement...</div>
+            ) : (
+              <>
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Client</TableHead>
+                        <TableHead>Produit</TableHead>
+                        <TableHead>Prix</TableHead>
+                        <TableHead>Profit</TableHead>
+                        <TableHead>Code</TableHead>
+                        <TableHead>Statut</TableHead>
+                        <TableHead>Date</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {paginatedOrders.length === 0 ? (
+                        <TableRow>
+                          <TableCell colSpan={7} className="text-center text-muted-foreground">
+                            {searchQuery ? 'Aucun résultat trouvé' : 'Aucune commande'}
+                          </TableCell>
+                        </TableRow>
+                      ) : (
+                        paginatedOrders.map((order) => (
+                          <TableRow key={order.id}>
+                            <TableCell>{order.customer_name}</TableCell>
+                            <TableCell className="max-w-xs truncate">{order.product_name}</TableCell>
+                            <TableCell>{order.purchase_price.toLocaleString()} FCFA</TableCell>
+                            <TableCell className="text-secondary">{order.profit.toLocaleString()} FCFA</TableCell>
+                            <TableCell className="font-mono text-sm">{order.broker_code}</TableCell>
+                            <TableCell>
+                              <span className={`px-2 py-1 rounded text-xs ${
+                                order.status === 'completed' ? 'bg-secondary/20 text-secondary' :
+                                order.status === 'pending' ? 'bg-accent/20 text-accent' :
+                                order.status === 'rejected' ? 'bg-destructive/20 text-destructive' :
+                                'bg-muted text-muted-foreground'
+                              }`}>
+                                {order.status}
+                              </span>
+                            </TableCell>
+                            <TableCell>{new Date(order.created_at).toLocaleDateString()}</TableCell>
+                          </TableRow>
+                        ))
+                      )}
+                    </TableBody>
+                  </Table>
+                </div>
+                {filteredOrders.length > ITEMS_PER_PAGE && (
+                  <div className="flex items-center justify-between mt-4 pt-4 border-t">
+                    <span className="text-sm text-muted-foreground">
+                      Page {currentPage} sur {totalPages}
+                    </span>
+                    <div className="flex gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={handlePreviousPage}
+                        disabled={currentPage === 1}
+                      >
+                        <ChevronLeft className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={handleNextPage}
+                        disabled={currentPage === totalPages}
+                      >
+                        <ChevronRight className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                )}
+              </>
+            )}
       </CardContent>
         </CollapsibleContent>
       </Card>
     </Collapsible>
   );
 }
+
+export default memo(UserOrdersListComponent);
