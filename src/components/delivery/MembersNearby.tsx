@@ -39,11 +39,13 @@ export default function MembersNearby() {
   const [loading, setLoading] = useState(false);
   const [radiusKm, setRadiusKm] = useState(10);
   const [viewMode, setViewMode] = useState<'map' | 'list'>('map');
+  const [searchLocation, setSearchLocation] = useState<{ latitude: number; longitude: number; name: string } | null>(null);
 
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
   const markersRef = useRef<Map<string, mapboxgl.Marker>>(new Map());
   const userMarkerRef = useRef<mapboxgl.Marker | null>(null);
+  const searchMarkerRef = useRef<mapboxgl.Marker | null>(null);
 
   // Initialize map
   useEffect(() => {
