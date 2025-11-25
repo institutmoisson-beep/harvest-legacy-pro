@@ -683,9 +683,12 @@ export default function ShopDashboard() {
                             onChange={async (e) => {
                               const file = e.target.files?.[0];
                               if (file) {
-                                const url = await uploadProductFile(file);
-                                if (url) {
-                                  setProductData({ ...productData, file_url: url });
+                                if (file.size > 100 * 1024 * 1024) {
+                                  toast({ title: 'Erreur', description: 'Le fichier ne doit pas dépasser 100MB', variant: 'destructive' });
+                                  return;
+                                }
+                                const fileName = await uploadProductFile(file);
+                                if (fileName) {
                                   setFilePreview(file.name);
                                 }
                               }
