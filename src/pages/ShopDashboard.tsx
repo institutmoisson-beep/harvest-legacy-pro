@@ -258,7 +258,7 @@ export default function ShopDashboard() {
   const updateProduct = async () => {
     if (!selectedProduct) return;
 
-    if (productData.product_type === 'digital' && !productData.file_url) {
+    if (productData.product_type === 'digital' && !filePreview) {
       toast({ title: 'Erreur', description: 'Un fichier téléchargeable est requis pour les produits numériques', variant: 'destructive' });
       return;
     }
@@ -272,8 +272,8 @@ export default function ShopDashboard() {
         stock: parseInt(productData.stock),
         payment_link: productData.payment_link,
         product_type: productData.product_type,
-        image_url: productData.image_url || null,
-        file_url: productData.file_url || null,
+        image_url: imagePreview ? 'stored_in_media' : null,
+        file_url: filePreview ? 'stored_in_media' : null,
       })
       .eq('id', selectedProduct.id);
 
