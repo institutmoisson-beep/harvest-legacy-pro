@@ -57,23 +57,52 @@ export default function DeliveryMap({
   useEffect(() => {
     if (!mapContainer.current || !userLocation) return;
 
-    if (map.current) return; // Prevent multiple initializations
+    if (map.current) {
+      // Update center if location changes
+      map.current.flyTo({
+        center: [userLocation.longitude, userLocation.latitude],
+        zoom: 13,
+        duration: 1000,
+      });
+      return;
+    }
 
-    map.current = new mapboxgl.Map({
-      container: mapContainer.current,
-      style: 'mapbox://styles/mapbox/streets-v12',
-      center: [userLocation.longitude, userLocation.latitude],
-      zoom: 13,
-    });
+    // Ensure container has dimensions
+    const containerStyle = mapContainer.current.getAttribute('style') || '';
+    if (!containerStyle.includes('height')) {
+      mapContainer.current.style.height = '100%';
+      mapContainer.current.style.width = '100%';
+    }
 
-    map.current.addControl(
-      new mapboxgl.GeolocateControl({
-        positionOptions: {
-          enableHighAccuracy: true,
-        },
-        trackUserLocation: false,
-      })
-    );
+    try {
+      map.current = new mapboxgl.Map({
+        container: mapContainer.current,
+        style: 'mapbox://styles/mapbox/streets-v12',
+        center: [userLocation.longitude, userLocation.latitude],
+        zoom: 13,
+        preserveDrawingBuffer: true,
+      });
+
+      map.current.on('load', () => {
+        if (map.current) {
+          map.current.addControl(
+            new mapboxgl.GeolocateControl({
+              positionOptions: {
+                enableHighAccuracy: true,
+              },
+              trackUserLocation: false,
+            })
+          );
+
+          map.current.addControl(
+            new mapboxgl.NavigationControl(),
+            'top-right'
+          );
+        }
+      });
+    } catch (error) {
+      console.error('Error initializing map:', error);
+    }
 
     return () => {
       // Don't destroy the map on unmount to prevent flickering
