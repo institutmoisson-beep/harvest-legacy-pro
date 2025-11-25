@@ -16,30 +16,42 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 
 export default function AvailableDeliveriesMap() {
   const { user } = useAuth();
-  const { location, error: geoError, getCurrentLocation, loading: geoLoading } = useGeolocation();
+  const { location: staticLocation, error: geoError, getCurrentLocation, loading: geoLoading } = useGeolocation();
+  const { location: realtimeLocation, isTracking, error: trackingError, startTracking, stopTracking } = useRealtimeLocation();
   const { nearbyDeliveries, getNearbyDeliveries, loading: nearbyLoading } = useNearbyDeliveries();
   const { calculateDistance } = useDistance();
+
+  // Use realtime location if available, fallback to static location
+  const location = realtimeLocation || staticLocation;
 
   const [selectedDeliveryId, setSelectedDeliveryId] = useState<string | null>(null);
   const [message, setMessage] = useState('');
   const [radiusKm, setRadiusKm] = useState(10);
   const [proposing, setProposing] = useState(false);
   const [viewMode, setViewMode] = useState<'map' | 'list'>('map');
-  const [locationSharing, setLocationSharing] = useState(false);
+  const [activeUsers, setActiveUsers] = useState<any[]>([]);
+  const [refetchInterval, setRefetchInterval] = useState<NodeJS.Timeout | null>(null);
 
   // Get initial location on mount
   useEffect(() => {
     getCurrentLocation();
   }, [getCurrentLocation]);
 
-  // Fetch nearby deliveries when location changes
+  // Fetch nearby deliveries and active users when location changes
   useEffect(() => {
     if (location) {
       getNearbyDeliveries(location, radiusKm);
-      // Save location to database for delivery agent visibility
-      if (!locationSharing) {
-        saveUserLocation(location);
-      }
+      fetchActiveUsers();
+
+      // Set up continuous refetch of nearby deliveries and active users every 10 seconds
+      const interval = setInterval(() => {
+        getNearbyDeliveries(location, radiusKm);
+        fetchActiveUsers();
+      }, 10000);
+
+      setRefetchInterval(interval);
+
+      return () => clearInterval(interval);
     }
   }, [location, radiusKm]);
 
