@@ -103,14 +103,18 @@ export default function DeliveryMap({
                 new mapboxgl.NavigationControl(),
                 'top-right'
               );
+
+              setMapReady(true);
             } catch (error) {
               console.warn('Error adding controls:', error);
+              setMapReady(true);
             }
           }
         });
 
         map.current.on('error', (error) => {
           console.error('Map error:', error);
+          setMapReady(true);
         });
       } catch (error) {
         console.error('Error initializing map:', error);
