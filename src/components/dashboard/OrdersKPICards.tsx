@@ -158,3 +158,5 @@ function OrdersKPICardsComponent({ userId }: OrdersKPICardsProps) {
     </div>
   );
 }
+
+export default memo(OrdersKPICardsComponent);
