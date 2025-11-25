@@ -28,7 +28,7 @@ interface UserLocation {
   };
 }
 
-const MAPBOX_TOKEN = 'pk.eyJ1IjoibG92YWJsZSIsImEiOiJjbTNtZDJiMGswMDh3MmpxeWlnbmlsYjBmIn0.VPJ3C1vhfTqzSGevKDZ1_g';
+const MAPBOX_TOKEN = 'pk.eyJ1IjoiY2VsdnVzIiwiYSI6ImNtZjVvcm1zejA2dWsyanM5cGdxOTM5NWkifQ.1I0VU-32Ek6bg3sZvpUS0w';
 
 export default function LocationSharing() {
   const { user } = useAuth();
