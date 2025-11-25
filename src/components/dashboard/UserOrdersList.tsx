@@ -3,51 +3,41 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { supabase } from '@/integrations/supabase/client';
-import { useEffect, useState } from 'react';
-import { TrendingUp, ChevronDown, Search } from 'lucide-react';
+import { useState, useMemo, memo } from 'react';
+import { TrendingUp, ChevronDown, Search, ChevronLeft, ChevronRight } from 'lucide-react';
+import { useOrdersData } from '@/hooks/useOrdersData';
 
-interface Order {
-  id: string;
-  customer_name: string;
-  product_name: string;
-  purchase_price: number;
-  profit: number;
-  status: string;
-  created_at: string;
-  broker_code: string;
-}
+const ITEMS_PER_PAGE = 10;
 
-export default function UserOrdersList({ userId }: { userId: string }) {
-  const [orders, setOrders] = useState<Order[]>([]);
+function UserOrdersListComponent({ userId }: { userId: string }) {
+  const { orders, loading } = useOrdersData(userId);
   const [isOpen, setIsOpen] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
 
-  const fetchOrders = async () => {
-    const { data } = await supabase
-      .from('orders')
-      .select('*')
-      .eq('broker_id', userId)
-      .order('created_at', { ascending: false });
-    setOrders(data || []);
+  const filteredOrders = useMemo(() =>
+    orders.filter(order =>
+      order.customer_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      order.product_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      order.broker_code.toLowerCase().includes(searchQuery.toLowerCase())
+    ),
+    [orders, searchQuery]
+  );
+
+  const paginatedOrders = useMemo(() => {
+    const start = (currentPage - 1) * ITEMS_PER_PAGE;
+    return filteredOrders.slice(start, start + ITEMS_PER_PAGE);
+  }, [filteredOrders, currentPage]);
+
+  const totalPages = Math.ceil(filteredOrders.length / ITEMS_PER_PAGE);
+
+  const handlePreviousPage = () => {
+    setCurrentPage(prev => Math.max(1, prev - 1));
   };
 
-  useEffect(() => {
-    fetchOrders();
-
-    const channel = supabase
-      .channel('user-orders')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'orders', filter: `broker_id=eq.${userId}` }, () => fetchOrders())
-      .subscribe();
-
-    return () => { supabase.removeChannel(channel); };
-  }, [userId]);
-
-  const filteredOrders = orders.filter(order => 
-    order.customer_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    order.product_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    order.broker_code.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const handleNextPage = () => {
+    setCurrentPage(prev => Math.min(totalPages, prev + 1));
+  };
 
   return (
     <Collapsible open={isOpen} onOpenChange={setIsOpen}>
