@@ -171,6 +171,10 @@ export default function Dashboard() {
             <Button onClick={() => navigate('/proposer')} variant="default" size="sm">
               Mettre à disposition
             </Button>
+            <Button onClick={() => navigate('/establish')} variant="outline" size="sm">
+              <Store className="h-4 w-4 mr-2" />
+              QR Menu
+            </Button>
             <Button onClick={() => navigate('/agent')} variant="outline" size="sm">
               <Users className="h-4 w-4 mr-2" />
               Agent Dashboard
