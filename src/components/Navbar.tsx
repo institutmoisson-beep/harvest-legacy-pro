@@ -24,6 +24,9 @@ export const Navbar = () => {
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center gap-6">
+            <Link to="/marketplace" className="text-foreground/80 hover:text-primary transition-colors">
+              Marketplace
+            </Link>
             <a href="#about" className="text-foreground/80 hover:text-primary transition-colors">
               À Propos
             </a>

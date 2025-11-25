@@ -55,14 +55,55 @@ export default function NotificationsCenter() {
   }, [user, navigate]);
 
   const fetchNotifications = async () => {
-    const { data } = await (supabase.from as any)('notifications')
-      .select('*')
-      .eq('user_id', user?.id)
-      .order('created_at', { ascending: false });
-    
-    if (data) {
-      setNotifications(data);
-      setUnreadCount(data.filter((n: any) => !n.is_read).length);
+    try {
+      const { data, error } = await supabase
+        .from('notifications')
+        .select('*')
+        .eq('user_id', user?.id)
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        console.error('Erreur notifications complète:', error);
+        let errorMessage = 'Impossible de récupérer les notifications';
+
+        if (typeof error === 'object' && error !== null) {
+          if ('message' in error && typeof error.message === 'string') {
+            errorMessage = error.message;
+          } else if ('code' in error && typeof error.code === 'string') {
+            errorMessage = `Erreur (${error.code})`;
+          }
+        }
+
+        console.error('Message d\'erreur affiché:', errorMessage);
+        toast({
+          title: 'Erreur',
+          description: errorMessage,
+          variant: 'destructive',
+        });
+        return;
+      }
+
+      if (data) {
+        setNotifications(data);
+        setUnreadCount(data.filter((n: any) => !n.is_read).length);
+      }
+    } catch (error: any) {
+      console.error('Exception lors de la récupération des notifications:', error);
+      let errorMessage = 'Une erreur est survenue';
+
+      if (typeof error === 'string') {
+        errorMessage = error;
+      } else if (error instanceof Error) {
+        errorMessage = error.message;
+      } else if (typeof error === 'object' && error !== null && 'message' in error) {
+        errorMessage = String(error.message);
+      }
+
+      toast({
+        title: 'Erreur',
+        description: errorMessage,
+        variant: 'destructive',
+      });
     }
   };
 
@@ -79,46 +120,72 @@ export default function NotificationsCenter() {
     toast({ title: 'Préférences sauvegardées' });
   };
 
-  const markAsRead = async (id: string) => {
-    const { error } = await (supabase.from as any)('notifications')
-      .update({ is_read: true })
-      .eq('id', id);
+  const getErrorMessage = (error: any): string => {
+    if (typeof error === 'string') return error;
+    if (error instanceof Error) return error.message;
+    if (typeof error === 'object' && error !== null) {
+      if ('message' in error && typeof error.message === 'string') return error.message;
+      if ('code' in error && typeof error.code === 'string') return `Erreur (${error.code})`;
+    }
+    return 'Une erreur est survenue';
+  };
 
-    if (!error) fetchNotifications();
+  const markAsRead = async (id: string) => {
+    try {
+      const { error } = await supabase
+        .from('notifications')
+        .update({ is_read: true })
+        .eq('id', id);
+
+      if (error) throw error;
+      fetchNotifications();
+    } catch (error: any) {
+      toast({ title: 'Erreur', description: getErrorMessage(error), variant: 'destructive' });
+    }
   };
 
   const markAllAsRead = async () => {
-    const { error } = await (supabase.from as any)('notifications')
-      .update({ is_read: true })
-      .eq('user_id', user?.id)
-      .eq('is_read', false);
+    try {
+      const { error } = await supabase
+        .from('notifications')
+        .update({ is_read: true })
+        .eq('user_id', user?.id)
+        .eq('is_read', false);
 
-    if (error) {
-      toast({ title: 'Erreur', description: error.message, variant: 'destructive' });
-    } else {
+      if (error) throw error;
       toast({ title: 'Succès', description: 'Toutes les notifications marquées comme lues' });
       fetchNotifications();
+    } catch (error: any) {
+      toast({ title: 'Erreur', description: getErrorMessage(error), variant: 'destructive' });
     }
   };
 
   const deleteNotification = async (id: string) => {
-    const { error } = await (supabase.from as any)('notifications')
-      .delete()
-      .eq('id', id);
+    try {
+      const { error } = await supabase
+        .from('notifications')
+        .delete()
+        .eq('id', id);
 
-    if (!error) fetchNotifications();
+      if (error) throw error;
+      fetchNotifications();
+    } catch (error: any) {
+      toast({ title: 'Erreur', description: getErrorMessage(error), variant: 'destructive' });
+    }
   };
 
   const deleteAll = async () => {
-    const { error } = await (supabase.from as any)('notifications')
-      .delete()
-      .eq('user_id', user?.id);
+    try {
+      const { error } = await supabase
+        .from('notifications')
+        .delete()
+        .eq('user_id', user?.id);
 
-    if (error) {
-      toast({ title: 'Erreur', description: error.message, variant: 'destructive' });
-    } else {
+      if (error) throw error;
       toast({ title: 'Succès', description: 'Toutes les notifications supprimées' });
       fetchNotifications();
+    } catch (error: any) {
+      toast({ title: 'Erreur', description: getErrorMessage(error), variant: 'destructive' });
     }
   };
 

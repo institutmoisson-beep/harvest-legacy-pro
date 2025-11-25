@@ -120,7 +120,8 @@ export default function TontinePaymentCalendar({ userId }: TontinePaymentCalenda
       });
 
     if (error) {
-      toast({ title: 'Erreur', description: error.message, variant: 'destructive' });
+      const errorMessage = error?.message || JSON.stringify(error) || 'Une erreur est survenue';
+      toast({ title: 'Erreur', description: errorMessage, variant: 'destructive' });
     } else {
       toast({ title: 'Succès', description: 'Rappels activés pour cette tontine' });
     }

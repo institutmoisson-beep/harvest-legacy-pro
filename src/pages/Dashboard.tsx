@@ -22,6 +22,7 @@ import CryptoPaymentOptions from '@/components/dashboard/CryptoPaymentOptions';
 import PromoCodesWidget from '@/components/dashboard/PromoCodesWidget';
 import NotificationsPanel from '@/components/dashboard/NotificationsPanel';
 import OfflineIndicator from '@/components/OfflineIndicator';
+import CommunityDeliveryDashboardCard from '@/components/dashboard/CommunityDeliveryDashboardCard';
 import { useDashboardData } from '@/hooks/useDashboardData';
 import { useQueryClient } from '@tanstack/react-query';
 
@@ -170,6 +171,10 @@ export default function Dashboard() {
             <Button onClick={() => navigate('/proposer')} variant="default" size="sm">
               Mettre à disposition
             </Button>
+            <Button onClick={() => navigate('/establish')} variant="outline" size="sm">
+              <Store className="h-4 w-4 mr-2" />
+              QR Menu
+            </Button>
             <Button onClick={() => navigate('/agent')} variant="outline" size="sm">
               <Users className="h-4 w-4 mr-2" />
               Agent Dashboard
@@ -280,6 +285,11 @@ export default function Dashboard() {
             <CareerProgressSection userId={user.id} />
           </div>
         )}
+
+        {/* Community Delivery Dashboard Card */}
+        <div className="mb-8">
+          <CommunityDeliveryDashboardCard />
+        </div>
 
         {/* Investment Button */}
         <div className="mb-8 grid grid-cols-1 md:grid-cols-2 gap-4">

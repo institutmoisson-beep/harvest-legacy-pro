@@ -6,6 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ArrowLeft } from 'lucide-react';
 import AvailableDeliveries from '@/components/dashboard/AvailableDeliveries';
 import MyDeliveryMissions from '@/components/dashboard/MyDeliveryMissions';
+import MembersNearby from '@/components/delivery/MembersNearby';
 
 export default function CommunityDelivery() {
   const { user } = useAuth();
@@ -27,7 +28,7 @@ export default function CommunityDelivery() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5 py-12 px-4">
-      <div className="container mx-auto max-w-6xl">
+      <div className="container mx-auto max-w-7xl">
         <div className="flex items-center gap-4 mb-8">
           <Button onClick={() => navigate('/dashboard')} variant="outline" size="sm">
             <ArrowLeft className="h-4 w-4 mr-2" />
@@ -38,15 +39,16 @@ export default function CommunityDelivery() {
               🚚 Livraison Communautaire
             </h1>
             <p className="text-muted-foreground mt-2">
-              Gagnez de l'argent en livrant des colis près de chez vous
+              Gagnez de l'argent en livrant des colis près de chez vous avec géolocalisation en temps réel
             </p>
           </div>
         </div>
 
         <Tabs defaultValue="available" className="w-full">
-          <TabsList className="grid w-full grid-cols-2">
+          <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="available">📦 Livraisons disponibles</TabsTrigger>
             <TabsTrigger value="missions">🎯 Mes missions</TabsTrigger>
+            <TabsTrigger value="members">👥 Membres disponibles</TabsTrigger>
           </TabsList>
 
           <TabsContent value="available" className="mt-6">
@@ -55,6 +57,10 @@ export default function CommunityDelivery() {
 
           <TabsContent value="missions" className="mt-6">
             <MyDeliveryMissions />
+          </TabsContent>
+
+          <TabsContent value="members" className="mt-6">
+            <MembersNearby />
           </TabsContent>
         </Tabs>
       </div>
