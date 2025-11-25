@@ -23,9 +23,17 @@ interface DeliveryMarker {
   distance: number;
 }
 
+interface ActiveUser {
+  id: string;
+  latitude: number;
+  longitude: number;
+  distance?: number;
+}
+
 interface DeliveryMapProps {
   userLocation: UserLocation | null;
   deliveries: DeliveryMarker[];
+  activeUsers?: ActiveUser[];
   selectedDeliveryId: string | null;
   onSelectDelivery: (deliveryId: string) => void;
   onPropose: (deliveryId: string) => void;
@@ -34,6 +42,7 @@ interface DeliveryMapProps {
 export default function DeliveryMap({
   userLocation,
   deliveries,
+  activeUsers = [],
   selectedDeliveryId,
   onSelectDelivery,
   onPropose,
@@ -41,6 +50,7 @@ export default function DeliveryMap({
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
   const markersRef = useRef<Map<string, mapboxgl.Marker>>(new Map());
+  const userMarkersRef = useRef<Map<string, mapboxgl.Marker>>(new Map());
   const userMarkerRef = useRef<mapboxgl.Marker | null>(null);
 
   // Initialize map
