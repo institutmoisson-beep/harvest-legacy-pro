@@ -255,10 +255,28 @@ export default function DeliveryMap({
 
   const selectedDelivery = deliveries.find((d) => d.id === selectedDeliveryId);
 
+  if (!userLocation) {
+    return (
+      <div className="text-center py-12 text-muted-foreground">
+        <MapPin className="w-12 h-12 mx-auto mb-4 opacity-50" />
+        <p>Chargement de la localisation...</p>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-4">
-      <div style={{ width: '100%', height: '600px' }} className="rounded-lg overflow-hidden border border-gray-200">
-        <div ref={mapContainer} style={{ width: '100%', height: '100%' }} />
+      <div style={{ width: '100%', height: '600px', position: 'relative' }} className="rounded-lg overflow-hidden border border-gray-200 bg-gray-100">
+        <div
+          ref={mapContainer}
+          style={{
+            width: '100%',
+            height: '100%',
+            position: 'absolute',
+            top: 0,
+            left: 0,
+          }}
+        />
       </div>
 
       <div className="grid grid-cols-1 gap-4">
