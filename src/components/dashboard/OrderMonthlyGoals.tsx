@@ -187,3 +187,5 @@ function OrderMonthlyGoalsComponent({ userId }: OrderMonthlyGoalsProps) {
     </Card>
   );
 }
+
+export default memo(OrderMonthlyGoalsComponent);
