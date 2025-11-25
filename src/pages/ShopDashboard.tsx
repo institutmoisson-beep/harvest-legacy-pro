@@ -632,7 +632,16 @@ export default function ShopDashboard() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {products.map((product) => (
-                <Card key={product.id}>
+                <Card key={product.id} className="overflow-hidden">
+                  {product.image_url && (
+                    <div className="w-full h-48 bg-muted overflow-hidden">
+                      <img
+                        src={product.image_url}
+                        alt={product.product_name}
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                  )}
                   <CardContent className="pt-6 space-y-4">
                     <div className="flex justify-between items-start">
                       <div className="flex-1">
@@ -648,7 +657,9 @@ export default function ShopDashboard() {
 
                     <div className="flex justify-between text-sm">
                       <span className="font-medium">{product.price.toLocaleString()} FCFA</span>
-                      <span className="text-muted-foreground">Stock: {product.stock}</span>
+                      <span className="text-muted-foreground">
+                        {product.product_type === 'digital' ? 'Numérique' : `Stock: ${product.stock}`}
+                      </span>
                     </div>
 
                     {product.payment_link && (
