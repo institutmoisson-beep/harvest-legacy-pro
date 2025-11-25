@@ -209,27 +209,23 @@ export default function DeliveryMap({
   const selectedDelivery = deliveries.find((d) => d.id === selectedDeliveryId);
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 h-[600px]">
-      <div className="lg:col-span-2">
-        <Card className="h-full">
-          <CardContent className="p-0 h-full rounded-lg overflow-hidden">
-            <div ref={mapContainer} className="w-full h-full" />
-          </CardContent>
-        </Card>
+    <div className="space-y-4">
+      <div style={{ width: '100%', height: '600px' }} className="rounded-lg overflow-hidden border border-gray-200">
+        <div ref={mapContainer} style={{ width: '100%', height: '100%' }} />
       </div>
 
-      <div className="space-y-4">
-        <Card className="h-full overflow-auto">
-          <CardHeader className="sticky top-0 bg-background/95 border-b z-10">
+      <div className="grid grid-cols-1 gap-4">
+        <Card>
+          <CardHeader>
             <CardTitle className="text-lg flex items-center gap-2">
               <Package className="w-4 h-4" />
-              Livraisons
+              Livraisons disponibles
             </CardTitle>
             <p className="text-xs text-muted-foreground mt-1">
               {deliveries.length} livraison(s) disponible(s)
             </p>
           </CardHeader>
-          <CardContent className="space-y-3 p-4">
+          <CardContent className="space-y-3 max-h-[300px] overflow-y-auto">
             {deliveries.length === 0 ? (
               <div className="text-center py-8 text-muted-foreground">
                 <Package className="w-8 h-8 mx-auto mb-2 opacity-50" />
