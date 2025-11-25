@@ -333,7 +333,11 @@ export default function ShopDashboard() {
       stock: product.stock.toString(),
       payment_link: product.payment_link || '',
       product_type: product.product_type || 'physical',
+      image_url: product.image_url || '',
+      file_url: product.file_url || '',
     });
+    setImagePreview(product.image_url || null);
+    setFilePreview(product.file_url ? product.file_url.split('/').pop() : null);
     setEditProductOpen(true);
   };
 
