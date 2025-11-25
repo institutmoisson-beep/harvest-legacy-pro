@@ -103,6 +103,8 @@ const AppContent = () => {
         <Route path="/menu/:slug" element={<QRMenu />} />
         <Route path="/checkout" element={<QRCheckout />} />
         <Route path="/order-confirmation" element={<OrderConfirmation />} />
+        <Route path="/product/:productId/payment" element={<ProductPayment />} />
+        <Route path="/order/:orderId/downloads" element={<OrderDownloads />} />
         {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
         <Route path="*" element={<NotFound />} />
       </Routes>
