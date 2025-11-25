@@ -599,9 +599,12 @@ export default function ShopDashboard() {
                           onChange={async (e) => {
                             const file = e.target.files?.[0];
                             if (file) {
+                              if (file.size > 5 * 1024 * 1024) {
+                                toast({ title: 'Erreur', description: 'L\'image ne doit pas dépasser 5MB', variant: 'destructive' });
+                                return;
+                              }
                               const url = await uploadProductImage(file);
                               if (url) {
-                                setProductData({ ...productData, image_url: url });
                                 setImagePreview(url);
                               }
                             }
@@ -717,7 +720,7 @@ export default function ShopDashboard() {
                     </div>
 
                     <Button onClick={addProduct} className="w-full" disabled={uploading}>
-                      {uploading ? 'T��léchargement...' : 'Ajouter le produit'}
+                      {uploading ? 'Téléchargement...' : 'Ajouter le produit'}
                     </Button>
                   </div>
                 </DialogContent>
