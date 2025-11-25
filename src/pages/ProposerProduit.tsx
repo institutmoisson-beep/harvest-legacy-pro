@@ -110,18 +110,9 @@ export default function ProposerProduit() {
       productSchema.parse(formData);
 
       setLoading(true);
-      setUploading(true);
 
-      // Upload images first
-      let imageUrls: string[] = [];
-      if (images.length > 0) {
-        imageUrls = await uploadImages();
-      }
-
-      setUploading(false);
-
-      // Create product listing
-      const { error } = await supabase
+      // Create product listing without images
+      const { data, error } = await supabase
         .from('product_listings')
         .insert({
           user_id: user.id,
@@ -130,17 +121,21 @@ export default function ProposerProduit() {
           quantity: formData.quantity,
           price: formData.price,
           location: formData.location,
-          images: imageUrls,
-        });
+          images: [], // Empty array, images will be added via ProductImageUploader
+        })
+        .select();
 
       if (error) throw error;
+      if (!data || data.length === 0) throw new Error('Erreur lors de la création du produit');
+
+      const productId = data[0].id;
+      setCreatedProductId(productId);
+      setProductCreated(true);
 
       toast({
         title: "Succès",
-        description: "Votre produit a été mis à disposition avec succès",
+        description: "Produit créé! Vous pouvez maintenant ajouter des images.",
       });
-
-      navigate('/dashboard');
 
     } catch (error: any) {
       if (error instanceof z.ZodError) {
@@ -160,8 +155,15 @@ export default function ProposerProduit() {
       }
     } finally {
       setLoading(false);
-      setUploading(false);
     }
+  };
+
+  const handleImagesComplete = () => {
+    toast({
+      title: "Succès!",
+      description: "Votre produit a été mis à disposition avec succès",
+    });
+    navigate('/dashboard');
   };
 
   return (
