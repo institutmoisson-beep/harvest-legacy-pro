@@ -220,12 +220,12 @@ export default function ShopDashboard() {
       return;
     }
 
-    if (productData.product_type === 'digital' && !productData.file_url) {
+    if (productData.product_type === 'digital' && !filePreview) {
       toast({ title: 'Erreur', description: 'Un fichier téléchargeable est requis pour les produits numériques', variant: 'destructive' });
       return;
     }
 
-    const { error } = await supabase
+    const { data: newProduct, error } = await supabase
       .from('shop_products')
       .insert({
         shop_id: shop.id,
@@ -235,11 +235,13 @@ export default function ShopDashboard() {
         stock: parseInt(productData.stock),
         payment_link: productData.payment_link,
         product_type: productData.product_type,
-        image_url: productData.image_url || null,
-        file_url: productData.file_url || null,
+        image_url: imagePreview ? 'stored_in_media' : null,
+        file_url: filePreview ? 'stored_in_media' : null,
         is_active: true,
         is_approved: true,
-      });
+      })
+      .select()
+      .single();
 
     if (error) {
       toast({ title: 'Erreur', description: error.message, variant: 'destructive' });
@@ -715,7 +717,7 @@ export default function ShopDashboard() {
                     </div>
 
                     <Button onClick={addProduct} className="w-full" disabled={uploading}>
-                      {uploading ? 'Téléchargement...' : 'Ajouter le produit'}
+                      {uploading ? 'T��léchargement...' : 'Ajouter le produit'}
                     </Button>
                   </div>
                 </DialogContent>
