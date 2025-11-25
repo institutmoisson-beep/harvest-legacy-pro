@@ -48,23 +48,70 @@ export default function MembersNearby() {
   useEffect(() => {
     if (!mapContainer.current || !location) return;
 
-    if (map.current) return;
+    if (map.current) {
+      // Update center if location changes
+      if (map.current.isStyleLoaded()) {
+        map.current.flyTo({
+          center: [location.longitude, location.latitude],
+          zoom: 13,
+          duration: 1000,
+        });
+      }
+      return;
+    }
 
-    map.current = new mapboxgl.Map({
-      container: mapContainer.current,
-      style: 'mapbox://styles/mapbox/streets-v12',
-      center: [location.longitude, location.latitude],
-      zoom: 13,
-    });
+    const initializeMap = async () => {
+      if (!mapContainer.current) return;
 
-    map.current.addControl(
-      new mapboxgl.GeolocateControl({
-        positionOptions: {
-          enableHighAccuracy: true,
-        },
-        trackUserLocation: false,
-      })
-    );
+      try {
+        // Wait a tick to ensure DOM is ready
+        await new Promise(resolve => setTimeout(resolve, 0));
+
+        map.current = new mapboxgl.Map({
+          container: mapContainer.current!,
+          style: 'mapbox://styles/mapbox/streets-v12',
+          center: [location.longitude, location.latitude],
+          zoom: 13,
+          preserveDrawingBuffer: true,
+          antialias: true,
+        });
+
+        map.current.on('load', () => {
+          if (map.current) {
+            try {
+              map.current.addControl(
+                new mapboxgl.GeolocateControl({
+                  positionOptions: {
+                    enableHighAccuracy: true,
+                  },
+                  trackUserLocation: false,
+                }),
+                'top-left'
+              );
+
+              map.current.addControl(
+                new mapboxgl.NavigationControl(),
+                'top-right'
+              );
+            } catch (error) {
+              console.warn('Error adding controls:', error);
+            }
+          }
+        });
+
+        map.current.on('error', (error) => {
+          console.error('Map error:', error);
+        });
+      } catch (error) {
+        console.error('Error initializing map:', error);
+      }
+    };
+
+    initializeMap();
+
+    return () => {
+      // Don't destroy the map on unmount to prevent flickering
+    };
   }, [location]);
 
   // Fetch nearby members
