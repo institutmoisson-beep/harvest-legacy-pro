@@ -89,52 +89,56 @@ function OrdersAnalyticsComponent({ userId }: OrdersAnalyticsProps) {
     );
   }
 
+  const { statusData, ordersData, profitTrend } = analyticsData;
+
   return (
     <div className="space-y-6 mb-8">
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Orders Trend */}
         <Card className="glass-card">
           <CardHeader>
-            <CardTitle>Évolution des Commandes (30 jours)</CardTitle>
+            <CardTitle>Évolution des Commandes (14 jours)</CardTitle>
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={300}>
               <LineChart data={ordersData}>
                 <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                <XAxis 
-                  dataKey="date" 
+                <XAxis
+                  dataKey="date"
                   stroke="hsl(var(--muted-foreground))"
                   tick={{ fontSize: 10 }}
                 />
                 <YAxis stroke="hsl(var(--muted-foreground))" />
-                <Tooltip 
-                  contentStyle={{ 
+                <Tooltip
+                  contentStyle={{
                     backgroundColor: 'hsl(var(--background))',
                     border: '1px solid hsl(var(--border))',
                     borderRadius: '8px'
                   }}
                 />
                 <Legend />
-                <Line 
-                  type="monotone" 
-                  dataKey="commandes" 
-                  stroke="hsl(var(--primary))" 
-                  name="Total Commandes" 
-                  strokeWidth={2} 
+                <Line
+                  type="monotone"
+                  dataKey="commandes"
+                  stroke="hsl(var(--primary))"
+                  name="Total Commandes"
+                  strokeWidth={2}
+                  dot={false}
+                  isAnimationActive={false}
                 />
-                <Line 
-                  type="monotone" 
-                  dataKey="validées" 
-                  stroke="hsl(var(--secondary))" 
-                  name="Validées" 
-                  strokeWidth={2} 
+                <Line
+                  type="monotone"
+                  dataKey="validées"
+                  stroke="hsl(var(--secondary))"
+                  name="Validées"
+                  strokeWidth={2}
+                  dot={false}
+                  isAnimationActive={false}
                 />
               </LineChart>
             </ResponsiveContainer>
           </CardContent>
         </Card>
 
-        {/* Status Distribution */}
         <Card className="glass-card">
           <CardHeader>
             <CardTitle>Répartition par Statut</CardTitle>
@@ -151,13 +155,14 @@ function OrdersAnalyticsComponent({ userId }: OrdersAnalyticsProps) {
                   outerRadius={100}
                   fill="#8884d8"
                   dataKey="value"
+                  isAnimationActive={false}
                 >
                   {statusData.map((entry, index) => (
                     <Cell key={`cell-${index}`} fill={COLORS[entry.status as keyof typeof COLORS]} />
                   ))}
                 </Pie>
-                <Tooltip 
-                  contentStyle={{ 
+                <Tooltip
+                  contentStyle={{
                     backgroundColor: 'hsl(var(--background))',
                     border: '1px solid hsl(var(--border))',
                     borderRadius: '8px'
@@ -169,12 +174,11 @@ function OrdersAnalyticsComponent({ userId }: OrdersAnalyticsProps) {
         </Card>
       </div>
 
-      {/* Profit Evolution */}
       <Card className="glass-card">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <TrendingUp className="h-5 w-5 text-secondary" />
-            Évolution des Profits (12 mois)
+            Évolution des Profits (6 mois)
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -183,8 +187,8 @@ function OrdersAnalyticsComponent({ userId }: OrdersAnalyticsProps) {
               <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
               <XAxis dataKey="month" stroke="hsl(var(--muted-foreground))" />
               <YAxis stroke="hsl(var(--muted-foreground))" />
-              <Tooltip 
-                contentStyle={{ 
+              <Tooltip
+                contentStyle={{
                   backgroundColor: 'hsl(var(--background))',
                   border: '1px solid hsl(var(--border))',
                   borderRadius: '8px'
@@ -192,7 +196,7 @@ function OrdersAnalyticsComponent({ userId }: OrdersAnalyticsProps) {
                 formatter={(value: number) => `${value.toLocaleString()} FCFA`}
               />
               <Legend />
-              <Bar dataKey="profit" fill="hsl(var(--secondary))" name="Profits (FCFA)" />
+              <Bar dataKey="profit" fill="hsl(var(--secondary))" name="Profits (FCFA)" isAnimationActive={false} />
             </BarChart>
           </ResponsiveContainer>
         </CardContent>
@@ -200,3 +204,5 @@ function OrdersAnalyticsComponent({ userId }: OrdersAnalyticsProps) {
     </div>
   );
 }
+
+export default memo(OrdersAnalyticsComponent);
