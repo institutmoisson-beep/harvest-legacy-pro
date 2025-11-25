@@ -11,6 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Slider } from '@/components/ui/slider';
 import { AlertCircle, Loader2, Users, Navigation, Phone } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import MapSearch from './MapSearch';
 
 const MAPBOX_TOKEN = 'pk.eyJ1IjoiY2VsdnVzIiwiYSI6ImNtZjVvcm1zejA2dWsyanM5cGdxOTM5NWkifQ.1I0VU-32Ek6bg3sZvpUS0w';
 
