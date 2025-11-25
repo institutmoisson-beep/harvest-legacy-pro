@@ -157,11 +157,22 @@ export default function AvailableDeliveriesMap() {
             </CardTitle>
             <div className="flex gap-2">
               <Button
-                onClick={handleToggleLocationSharing}
-                variant={locationSharing ? 'default' : 'outline'}
+                onClick={handleToggleTracking}
+                variant={isTracking ? 'default' : 'outline'}
                 size="sm"
+                className={isTracking ? 'bg-green-600 hover:bg-green-700' : ''}
               >
-                {locationSharing ? '📍 Partage activé' : '📍 Partager location'}
+                {isTracking ? (
+                  <>
+                    <Zap className="w-4 h-4 mr-2 animate-pulse" />
+                    Suivi actif
+                  </>
+                ) : (
+                  <>
+                    <MapPin className="w-4 h-4 mr-2" />
+                    Activer suivi
+                  </>
+                )}
               </Button>
               <Button onClick={getCurrentLocation} variant="outline" size="sm" disabled={geoLoading}>
                 {geoLoading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : '🔄'}
@@ -171,10 +182,19 @@ export default function AvailableDeliveriesMap() {
           </div>
         </CardHeader>
         <CardContent className="space-y-3">
-          {geoError && (
+          {(geoError || trackingError) && (
             <Alert variant="destructive">
               <AlertCircle className="h-4 w-4" />
-              <AlertDescription>{geoError}</AlertDescription>
+              <AlertDescription>{geoError || trackingError}</AlertDescription>
+            </Alert>
+          )}
+
+          {isTracking && (
+            <Alert className="border-green-200 bg-green-50">
+              <Zap className="h-4 w-4 text-green-600" />
+              <AlertDescription className="text-green-800">
+                Suivi en temps réel activé - Votre position se met à jour automatiquement
+              </AlertDescription>
             </Alert>
           )}
 
@@ -183,7 +203,7 @@ export default function AvailableDeliveriesMap() {
               <AlertCircle className="h-4 w-4" />
               <AlertDescription>
                 Position: {location.latitude.toFixed(4)}, {location.longitude.toFixed(4)} ±{' '}
-                {location.accuracy.toFixed(0)}m
+                {location.accuracy.toFixed(0)}m {isTracking && '(en direct)'}
               </AlertDescription>
             </Alert>
           )}
