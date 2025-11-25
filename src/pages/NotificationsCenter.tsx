@@ -63,18 +63,26 @@ export default function NotificationsCenter() {
         .order('created_at', { ascending: false });
 
       if (error) {
-        console.error('Erreur notifications complète:', error);
         let errorMessage = 'Impossible de récupérer les notifications';
 
         if (typeof error === 'object' && error !== null) {
-          if ('message' in error && typeof error.message === 'string') {
-            errorMessage = error.message;
-          } else if ('code' in error && typeof error.code === 'string') {
-            errorMessage = `Erreur (${error.code})`;
+          const errorObj = error as any;
+          if (errorObj.message) {
+            errorMessage = errorObj.message;
+          } else if (errorObj.code) {
+            errorMessage = `Erreur (${errorObj.code})`;
+          } else if (errorObj.details) {
+            errorMessage = errorObj.details;
           }
+        } else if (typeof error === 'string') {
+          errorMessage = error;
         }
 
-        console.error('Message d\'erreur affiché:', errorMessage);
+        console.error('❌ Erreur lors de la récupération des notifications:', {
+          message: errorMessage,
+          fullError: error,
+        });
+
         toast({
           title: 'Erreur',
           description: errorMessage,
