@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, memo } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
@@ -16,7 +16,7 @@ interface LeaderboardEntry {
   rank: number;
 }
 
-export default function OrdersLeaderboard() {
+function OrdersLeaderboardComponent() {
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [timeFilter, setTimeFilter] = useState<'week' | 'month' | 'year' | 'all'>('month');
