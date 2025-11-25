@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, memo } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
@@ -42,17 +42,16 @@ const goalConfig: Record<string, { label: string; icon: any; color: string; form
   }
 };
 
-export default function OrderMonthlyGoals({ userId }: OrderMonthlyGoalsProps) {
+function OrderMonthlyGoalsComponent({ userId }: OrderMonthlyGoalsProps) {
   const [goals, setGoals] = useState<Goal[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (userId) {
       fetchGoals();
-      
-      // Subscribe to real-time updates
+
       const channel = supabase
-        .channel('order-goals')
+        .channel(`order-goals-${userId}`)
         .on('postgres_changes', {
           event: '*',
           schema: 'public',
@@ -79,10 +78,10 @@ export default function OrderMonthlyGoals({ userId }: OrderMonthlyGoalsProps) {
     try {
       const currentMonth = new Date();
       currentMonth.setDate(1);
-      
+
       const { data, error } = await supabase
         .from('order_monthly_goals' as any)
-        .select('*')
+        .select('id,goal_type,target_value,current_value,progress_percentage,status,reward_amount,reward_claimed')
         .eq('broker_id', userId)
         .eq('month', currentMonth.toISOString().split('T')[0])
         .order('goal_type');
