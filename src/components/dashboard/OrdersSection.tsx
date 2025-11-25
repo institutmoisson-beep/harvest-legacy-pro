@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, memo } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -13,7 +13,7 @@ interface OrdersSectionProps {
   brokerCode: string;
 }
 
-export default function OrdersSection({ userId, brokerCode }: OrdersSectionProps) {
+function OrdersSectionComponent({ userId, brokerCode }: OrdersSectionProps) {
   const MSN_TO_FCFA = 750;
   
   const [customerName, setCustomerName] = useState('');
