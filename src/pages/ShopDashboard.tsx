@@ -381,7 +381,7 @@ export default function ShopDashboard() {
               <Store className="h-16 w-16 mx-auto mb-4 text-primary" />
               <CardTitle>Créer votre boutique</CardTitle>
               <CardDescription>
-                Commencez à vendre vos produits en ligne avec votre propre boutique
+                Commencez �� vendre vos produits en ligne avec votre propre boutique
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -977,9 +977,12 @@ export default function ShopDashboard() {
                     onChange={async (e) => {
                       const file = e.target.files?.[0];
                       if (file) {
-                        const url = await uploadProductImage(file);
+                        if (file.size > 5 * 1024 * 1024) {
+                          toast({ title: 'Erreur', description: 'L\'image ne doit pas dépasser 5MB', variant: 'destructive' });
+                          return;
+                        }
+                        const url = await uploadProductImage(file, selectedProduct?.id);
                         if (url) {
-                          setProductData({ ...productData, image_url: url });
                           setImagePreview(url);
                         }
                       }
