@@ -11,7 +11,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { toast } from '@/hooks/use-toast';
-import { Plus, Edit2, Trash2, QrCode, Copy, Loader2, MapPin, Phone, Mail } from 'lucide-react';
+import { Plus, Edit2, Trash2, QrCode, Copy, Loader2, MapPin, Phone, Mail, ArrowLeft } from 'lucide-react';
 import { z } from 'zod';
 
 interface Establishment {
@@ -166,6 +166,16 @@ export default function EstablishmentDashboard() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5 py-12 px-4">
       <div className="container mx-auto max-w-6xl">
+        {/* Back Button */}
+        <Button
+          variant="ghost"
+          className="mb-6"
+          onClick={() => navigate('/dashboard')}
+        >
+          <ArrowLeft className="h-4 w-4 mr-2" />
+          Retour au tableau de bord
+        </Button>
+
         {/* Header */}
         <div className="flex justify-between items-start mb-8">
           <div>
