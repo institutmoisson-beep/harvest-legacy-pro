@@ -381,7 +381,7 @@ export default function ShopDashboard() {
               <Store className="h-16 w-16 mx-auto mb-4 text-primary" />
               <CardTitle>Créer votre boutique</CardTitle>
               <CardDescription>
-                Commencez �� vendre vos produits en ligne avec votre propre boutique
+                Commencez à vendre vos produits en ligne avec votre propre boutique
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -1059,9 +1059,12 @@ export default function ShopDashboard() {
                       onChange={async (e) => {
                         const file = e.target.files?.[0];
                         if (file) {
-                          const url = await uploadProductFile(file);
-                          if (url) {
-                            setProductData({ ...productData, file_url: url });
+                          if (file.size > 100 * 1024 * 1024) {
+                            toast({ title: 'Erreur', description: 'Le fichier ne doit pas dépasser 100MB', variant: 'destructive' });
+                            return;
+                          }
+                          const fileName = await uploadProductFile(file, selectedProduct?.id);
+                          if (fileName) {
                             setFilePreview(file.name);
                           }
                         }
