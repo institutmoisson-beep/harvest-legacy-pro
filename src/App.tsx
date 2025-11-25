@@ -86,6 +86,7 @@ const AppContent = () => {
         <Route path="/support" element={<SupportChat />} />
         <Route path="/level-admin" element={<LevelAdmin />} />
         <Route path="/community-delivery" element={<CommunityDelivery />} />
+        <Route path="/admin/job-domains" element={<AdminJobDomains />} />
         {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
         <Route path="*" element={<NotFound />} />
       </Routes>
