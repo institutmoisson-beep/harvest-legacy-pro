@@ -55,58 +55,51 @@ export default function AvailableDeliveriesMap() {
     }
   }, [location, radiusKm]);
 
-  const saveUserLocation = async (loc: any) => {
-    if (!user) return;
+  const fetchActiveUsers = async () => {
+    if (!location) return;
 
     try {
-      await supabase.from('user_locations').upsert(
-        {
-          user_id: user.id,
-          latitude: loc.latitude,
-          longitude: loc.longitude,
-          accuracy: loc.accuracy,
-          is_active: true,
-          updated_at: new Date().toISOString(),
-        },
-        { onConflict: 'user_id' }
-      );
+      const { data, error } = await supabase
+        .from('active_locations')
+        .select('*')
+        .eq('is_active', true);
+
+      if (error) throw error;
+
+      // Filter out current user and calculate distances
+      const nearbyUsers = (data || [])
+        .filter((u: any) => u.user_id !== user?.id)
+        .map((u: any) => ({
+          ...u,
+          distance: calculateDistance(
+            location.latitude,
+            location.longitude,
+            u.latitude,
+            u.longitude
+          ),
+        }))
+        .filter((u: any) => u.distance <= radiusKm);
+
+      setActiveUsers(nearbyUsers);
     } catch (err: any) {
-      console.error('Erreur lors de la sauvegarde de la localisation:', err);
+      console.error('Erreur lors de la récupération des utilisateurs actifs:', err);
     }
   };
 
-  const handleToggleLocationSharing = async () => {
-    if (!user) return;
-
+  const handleToggleTracking = async () => {
     try {
-      if (locationSharing) {
-        // Stop sharing - delete location
-        await supabase.from('user_locations').delete().eq('user_id', user.id);
-        setLocationSharing(false);
+      if (isTracking) {
+        await stopTracking();
         toast({
-          title: 'Partage de localisation désactivé',
-          description: 'Votre localisation n\'est plus visible',
+          title: 'Suivi en temps réel arrêté',
+          description: 'Votre position n\'est plus mise à jour en continu',
         });
       } else {
-        // Start sharing - save location with is_active = true
-        if (location) {
-          await supabase.from('user_locations').upsert(
-            {
-              user_id: user.id,
-              latitude: location.latitude,
-              longitude: location.longitude,
-              accuracy: location.accuracy,
-              is_active: true,
-              updated_at: new Date().toISOString(),
-            },
-            { onConflict: 'user_id' }
-          );
-          setLocationSharing(true);
-          toast({
-            title: 'Partage de localisation activé',
-            description: 'Autres membres peuvent voir votre localisation',
-          });
-        }
+        await startTracking();
+        toast({
+          title: 'Suivi en temps réel activé',
+          description: 'Votre position se met à jour en continu',
+        });
       }
     } catch (err: any) {
       toast({
