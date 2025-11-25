@@ -1,8 +1,8 @@
-import { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import { useMemo, lazy, Suspense, memo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { LineChart, Line, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { TrendingUp, Activity } from 'lucide-react';
+import { useOrdersData } from '@/hooks/useOrdersData';
 
 interface OrdersAnalyticsProps {
   userId: string;
@@ -15,92 +15,69 @@ const COLORS = {
   cancelled: 'hsl(var(--muted))'
 };
 
-export default function OrdersAnalytics({ userId }: OrdersAnalyticsProps) {
-  const [ordersData, setOrdersData] = useState<any[]>([]);
-  const [statusData, setStatusData] = useState<any[]>([]);
-  const [profitTrend, setProfitTrend] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+function OrdersAnalyticsComponent({ userId }: OrdersAnalyticsProps) {
+  const { orders, loading } = useOrdersData(userId);
 
-  useEffect(() => {
-    if (userId) {
-      fetchAnalytics();
+  const analyticsData = useMemo(() => {
+    if (!orders || orders.length === 0) {
+      return { statusData: [], ordersData: [], profitTrend: [] };
     }
-  }, [userId]);
 
-  const fetchAnalytics = async () => {
-    try {
-      const { data: orders } = await supabase
-        .from('orders')
-        .select('*')
-        .eq('broker_id', userId)
-        .order('created_at', { ascending: false });
+    // Status distribution
+    const statusCount = orders.reduce((acc: any, order) => {
+      acc[order.status] = (acc[order.status] || 0) + 1;
+      return acc;
+    }, {});
 
-      if (!orders) return;
+    const statusChartData = Object.entries(statusCount).map(([status, count]) => ({
+      name: status === 'pending' ? 'En attente' :
+            status === 'completed' ? 'Complétée' :
+            status === 'rejected' ? 'Rejetée' : 'Annulée',
+      value: count as number,
+      status
+    }));
 
-      // Status distribution
-      const statusCount = orders.reduce((acc: any, order) => {
-        acc[order.status] = (acc[order.status] || 0) + 1;
-        return acc;
-      }, {});
+    // Last 14 days trend (reduced from 30 for performance)
+    const last14Days = Array.from({ length: 14 }, (_, i) => {
+      const date = new Date();
+      date.setDate(date.getDate() - (13 - i));
+      return date.toISOString().split('T')[0];
+    });
 
-      const statusChartData = Object.entries(statusCount).map(([status, count]) => ({
-        name: status === 'pending' ? 'En attente' : 
-              status === 'completed' ? 'Complétée' :
-              status === 'rejected' ? 'Rejetée' : 'Annulée',
-        value: count as number,
-        status
-      }));
+    const dailyData = last14Days.map(date => {
+      const dayOrders = orders.filter(o => o.created_at.startsWith(date));
+      const completed = dayOrders.filter(o => o.status === 'completed');
 
-      setStatusData(statusChartData);
+      return {
+        date: new Date(date).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short' }),
+        commandes: dayOrders.length,
+        validées: completed.length
+      };
+    });
 
-      // Last 30 days trend
-      const last30Days = Array.from({ length: 30 }, (_, i) => {
-        const date = new Date();
-        date.setDate(date.getDate() - (29 - i));
-        return date.toISOString().split('T')[0];
-      });
+    // Profit trend (last 6 months instead of 12 for better performance)
+    const last6Months = Array.from({ length: 6 }, (_, i) => {
+      const date = new Date();
+      date.setMonth(date.getMonth() - (5 - i));
+      return {
+        month: date.toISOString().slice(0, 7),
+        label: date.toLocaleDateString('fr-FR', { month: 'short', year: '2-digit' })
+      };
+    });
 
-      const dailyData = last30Days.map(date => {
-        const dayOrders = orders.filter(o => o.created_at.startsWith(date));
-        const completed = dayOrders.filter(o => o.status === 'completed');
-        
-        return {
-          date: new Date(date).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short' }),
-          commandes: dayOrders.length,
-          validées: completed.length
-        };
-      });
+    const profitMonthly = last6Months.map(({ month, label }) => {
+      const monthOrders = orders.filter(o =>
+        o.created_at.startsWith(month) && o.status === 'completed'
+      );
 
-      setOrdersData(dailyData);
+      return {
+        month: label,
+        profit: monthOrders.reduce((sum, o) => sum + Number(o.profit), 0)
+      };
+    });
 
-      // Profit trend (last 12 months)
-      const last12Months = Array.from({ length: 12 }, (_, i) => {
-        const date = new Date();
-        date.setMonth(date.getMonth() - (11 - i));
-        return {
-          month: date.toISOString().slice(0, 7),
-          label: date.toLocaleDateString('fr-FR', { month: 'short', year: '2-digit' })
-        };
-      });
-
-      const profitMonthly = last12Months.map(({ month, label }) => {
-        const monthOrders = orders.filter(o => 
-          o.created_at.startsWith(month) && o.status === 'completed'
-        );
-        
-        return {
-          month: label,
-          profit: monthOrders.reduce((sum, o) => sum + Number(o.profit), 0)
-        };
-      });
-
-      setProfitTrend(profitMonthly);
-    } catch (error) {
-      console.error('Error fetching orders analytics:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
+    return { statusData: statusChartData, ordersData: dailyData, profitTrend: profitMonthly };
+  }, [orders]);
 
   if (loading) {
     return (
