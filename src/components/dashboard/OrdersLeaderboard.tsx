@@ -211,10 +211,12 @@ function OrdersLeaderboardComponent() {
         </div>
       </CardContent>
 
-      <BrokerDetailsModal 
-        brokerId={selectedBroker} 
-        onClose={() => setSelectedBroker(null)} 
+      <BrokerDetailsModal
+        brokerId={selectedBroker}
+        onClose={() => setSelectedBroker(null)}
       />
     </Card>
   );
 }
+
+export default memo(OrdersLeaderboardComponent);
