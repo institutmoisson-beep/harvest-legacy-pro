@@ -247,18 +247,34 @@ export default function MembersNearby() {
 
     nearbyMembers.forEach((member) => {
       const el = document.createElement('div');
-      el.className = 'w-7 h-7 rounded-full border-2 border-white shadow-md bg-purple-500 flex items-center justify-center';
-      el.innerHTML = '<svg class="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20"><path d="M10 10a3 3 0 100-6 3 3 0 000 6zM3 10a7 7 0 1114 0 7 7 0 01-14 0z"/></svg>';
+      el.style.width = '28px';
+      el.style.height = '28px';
+      el.style.backgroundColor = '#a855f7';
+      el.style.borderRadius = '50%';
+      el.style.border = '2px solid white';
+      el.style.boxShadow = '0 10px 15px -3px rgba(0, 0, 0, 0.2)';
+      el.style.display = 'flex';
+      el.style.alignItems = 'center';
+      el.style.justifyContent = 'center';
+      el.style.cursor = 'pointer';
+
+      const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+      svg.setAttribute('width', '14');
+      svg.setAttribute('height', '14');
+      svg.setAttribute('viewBox', '0 0 20 20');
+      svg.setAttribute('fill', 'white');
+      svg.innerHTML = '<path d="M10 10a3 3 0 100-6 3 3 0 000 6zM3 10a7 7 0 1114 0 7 7 0 01-14 0z"/>';
+      el.appendChild(svg);
 
       const marker = new mapboxgl.Marker({ element: el })
         .setLngLat([member.longitude, member.latitude])
         .addTo(map.current!);
 
       const popup = new mapboxgl.Popup({ offset: 25 }).setHTML(
-        `<div class="p-2">
-          <div class="font-semibold text-sm">${member.user_name}</div>
-          <div class="text-xs text-gray-600">${member.distance.toFixed(1)} km</div>
-          <div class="text-xs text-gray-500">Mis à jour: ${member.last_updated}</div>
+        `<div style="padding: 8px; font-size: 12px;">
+          <div style="font-weight: bold;">${member.user_name}</div>
+          <div style="color: #666; margin-top: 4px;">${member.distance.toFixed(1)} km</div>
+          <div style="color: #999;">Mis à jour: ${member.last_updated}</div>
         </div>`
       );
 
