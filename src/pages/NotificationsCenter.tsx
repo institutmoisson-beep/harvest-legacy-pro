@@ -55,14 +55,34 @@ export default function NotificationsCenter() {
   }, [user, navigate]);
 
   const fetchNotifications = async () => {
-    const { data } = await (supabase.from as any)('notifications')
-      .select('*')
-      .eq('user_id', user?.id)
-      .order('created_at', { ascending: false });
-    
-    if (data) {
-      setNotifications(data);
-      setUnreadCount(data.filter((n: any) => !n.is_read).length);
+    try {
+      const { data, error } = await supabase
+        .from('notifications')
+        .select('*')
+        .eq('user_id', user?.id)
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        console.error('Erreur notifications:', error);
+        toast({
+          title: 'Erreur',
+          description: `Erreur lors de la récupération des notifications: ${error.message}`,
+          variant: 'destructive',
+        });
+        return;
+      }
+
+      if (data) {
+        setNotifications(data);
+        setUnreadCount(data.filter((n: any) => !n.is_read).length);
+      }
+    } catch (error: any) {
+      console.error('Erreur lors de la récupération des notifications:', error);
+      toast({
+        title: 'Erreur',
+        description: error?.message || 'Une erreur est survenue',
+        variant: 'destructive',
+      });
     }
   };
 
