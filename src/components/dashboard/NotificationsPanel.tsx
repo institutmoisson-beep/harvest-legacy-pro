@@ -94,6 +94,16 @@ export default function NotificationsPanel({ userId }: NotificationsPanelProps) 
     }
   };
 
+  const getErrorMessage = (error: any): string => {
+    if (typeof error === 'string') return error;
+    if (error instanceof Error) return error.message;
+    if (typeof error === 'object' && error !== null) {
+      if ('message' in error && typeof error.message === 'string') return error.message;
+      if ('code' in error && typeof error.code === 'string') return `Erreur (${error.code})`;
+    }
+    return 'Une erreur est survenue';
+  };
+
   const markAsRead = async (id: string) => {
     try {
       const { error } = await supabase
@@ -104,8 +114,7 @@ export default function NotificationsPanel({ userId }: NotificationsPanelProps) 
       if (error) throw error;
       fetchNotifications();
     } catch (error: any) {
-      const errorMessage = error?.message || JSON.stringify(error) || 'Une erreur est survenue';
-      toast({ title: 'Erreur', description: errorMessage, variant: 'destructive' });
+      toast({ title: 'Erreur', description: getErrorMessage(error), variant: 'destructive' });
     }
   };
 
@@ -121,8 +130,7 @@ export default function NotificationsPanel({ userId }: NotificationsPanelProps) 
       toast({ title: 'Succès', description: 'Toutes les notifications marquées comme lues' });
       fetchNotifications();
     } catch (error: any) {
-      const errorMessage = error?.message || JSON.stringify(error) || 'Une erreur est survenue';
-      toast({ title: 'Erreur', description: errorMessage, variant: 'destructive' });
+      toast({ title: 'Erreur', description: getErrorMessage(error), variant: 'destructive' });
     }
   };
 
@@ -136,8 +144,7 @@ export default function NotificationsPanel({ userId }: NotificationsPanelProps) 
       if (error) throw error;
       fetchNotifications();
     } catch (error: any) {
-      const errorMessage = error?.message || JSON.stringify(error) || 'Une erreur est survenue';
-      toast({ title: 'Erreur', description: errorMessage, variant: 'destructive' });
+      toast({ title: 'Erreur', description: getErrorMessage(error), variant: 'destructive' });
     }
   };
 
