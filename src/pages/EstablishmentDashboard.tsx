@@ -60,6 +60,17 @@ export default function EstablishmentDashboard() {
     }
   }, [user, navigate]);
 
+  const getErrorMessage = (error: any): string => {
+    if (typeof error === 'string') return error;
+    if (error instanceof Error) return error.message;
+    if (typeof error === 'object' && error !== null) {
+      if ('message' in error && typeof error.message === 'string') return error.message;
+      if ('code' in error && typeof error.code === 'string') return `Erreur (${error.code})`;
+      if ('hint' in error && typeof error.hint === 'string') return error.hint;
+    }
+    return 'Une erreur est survenue lors du chargement des établissements';
+  };
+
   const fetchEstablishments = async () => {
     try {
       setLoading(true);
@@ -72,9 +83,10 @@ export default function EstablishmentDashboard() {
       if (error) throw error;
       setEstablishments(data || []);
     } catch (error: any) {
+      console.error('Erreur lors du chargement des établissements:', error);
       toast({
         title: 'Erreur',
-        description: error.message,
+        description: getErrorMessage(error),
         variant: 'destructive',
       });
     } finally {
@@ -143,9 +155,10 @@ export default function EstablishmentDashboard() {
         });
         setErrors(fieldErrors);
       } else {
+        console.error('Erreur lors de la création:', error);
         toast({
           title: 'Erreur',
-          description: error.message,
+          description: getErrorMessage(error),
           variant: 'destructive',
         });
       }
