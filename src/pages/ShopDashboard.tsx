@@ -145,9 +145,70 @@ export default function ShopDashboard() {
     }
   };
 
+  const uploadProductImage = async (file: File): Promise<string | null> => {
+    try {
+      setUploading(true);
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${shop.id}-${Date.now()}.${fileExt}`;
+
+      const { data, error } = await supabase.storage
+        .from('shop-product-images')
+        .upload(fileName, file, { upsert: true });
+
+      if (error) {
+        toast({ title: 'Erreur', description: `Erreur lors du téléchargement: ${error.message}`, variant: 'destructive' });
+        return null;
+      }
+
+      const { data: urlData } = supabase.storage
+        .from('shop-product-images')
+        .getPublicUrl(fileName);
+
+      return urlData?.publicUrl || null;
+    } catch (err: any) {
+      toast({ title: 'Erreur', description: err.message, variant: 'destructive' });
+      return null;
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const uploadProductFile = async (file: File): Promise<string | null> => {
+    try {
+      setUploading(true);
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${shop.id}-${Date.now()}.${fileExt}`;
+
+      const { data, error } = await supabase.storage
+        .from('shop-product-files')
+        .upload(fileName, file, { upsert: true });
+
+      if (error) {
+        toast({ title: 'Erreur', description: `Erreur lors du téléchargement: ${error.message}`, variant: 'destructive' });
+        return null;
+      }
+
+      const { data: urlData } = supabase.storage
+        .from('shop-product-files')
+        .getPublicUrl(fileName);
+
+      return urlData?.publicUrl || null;
+    } catch (err: any) {
+      toast({ title: 'Erreur', description: err.message, variant: 'destructive' });
+      return null;
+    } finally {
+      setUploading(false);
+    }
+  };
+
   const addProduct = async () => {
     if (!productData.product_name || !productData.price || !productData.stock) {
       toast({ title: 'Erreur', description: 'Nom, prix et stock requis', variant: 'destructive' });
+      return;
+    }
+
+    if (productData.product_type === 'digital' && !productData.file_url) {
+      toast({ title: 'Erreur', description: 'Un fichier téléchargeable est requis pour les produits numériques', variant: 'destructive' });
       return;
     }
 
@@ -161,6 +222,8 @@ export default function ShopDashboard() {
         stock: parseInt(productData.stock),
         payment_link: productData.payment_link,
         product_type: productData.product_type,
+        image_url: productData.image_url || null,
+        file_url: productData.file_url || null,
         is_active: true,
         is_approved: true,
       });
@@ -170,7 +233,9 @@ export default function ShopDashboard() {
     } else {
       toast({ title: 'Succès', description: 'Produit ajouté!' });
       setAddProductOpen(false);
-      setProductData({ product_name: '', description: '', price: '', stock: '', payment_link: '', product_type: 'physical' });
+      setProductData({ product_name: '', description: '', price: '', stock: '', payment_link: '', product_type: 'physical', image_url: '', file_url: '' });
+      setImagePreview(null);
+      setFilePreview(null);
       fetchProducts(shop.id);
     }
   };
