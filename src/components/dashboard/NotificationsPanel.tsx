@@ -50,12 +50,21 @@ export default function NotificationsPanel({ userId }: NotificationsPanelProps) 
         .limit(50);
 
       if (error) {
-        console.error('Erreur notifications:', error);
-        const errorMessage = error?.message || JSON.stringify(error) || 'Une erreur inconnue est survenue';
-        console.error('Message d\'erreur complet:', errorMessage);
+        console.error('Erreur notifications complète:', error);
+        let errorMessage = 'Impossible de récupérer les notifications';
+
+        if (typeof error === 'object' && error !== null) {
+          if ('message' in error && typeof error.message === 'string') {
+            errorMessage = error.message;
+          } else if ('code' in error && typeof error.code === 'string') {
+            errorMessage = `Erreur (${error.code})`;
+          }
+        }
+
+        console.error('Message d\'erreur affiché:', errorMessage);
         toast({
           title: 'Erreur',
-          description: `Erreur lors de la récupération des notifications: ${errorMessage}`,
+          description: errorMessage,
           variant: 'destructive',
         });
         return;
@@ -66,8 +75,17 @@ export default function NotificationsPanel({ userId }: NotificationsPanelProps) 
         setUnreadCount(data.filter((n: any) => !n.is_read).length);
       }
     } catch (error: any) {
-      console.error('Erreur lors de la récupération des notifications:', error);
-      const errorMessage = error?.message || JSON.stringify(error) || 'Une erreur est survenue';
+      console.error('Exception lors de la récupération des notifications:', error);
+      let errorMessage = 'Une erreur est survenue';
+
+      if (typeof error === 'string') {
+        errorMessage = error;
+      } else if (error instanceof Error) {
+        errorMessage = error.message;
+      } else if (typeof error === 'object' && error !== null && 'message' in error) {
+        errorMessage = String(error.message);
+      }
+
       toast({
         title: 'Erreur',
         description: errorMessage,
