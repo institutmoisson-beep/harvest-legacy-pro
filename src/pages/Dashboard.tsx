@@ -22,6 +22,7 @@ import CryptoPaymentOptions from '@/components/dashboard/CryptoPaymentOptions';
 import PromoCodesWidget from '@/components/dashboard/PromoCodesWidget';
 import NotificationsPanel from '@/components/dashboard/NotificationsPanel';
 import OfflineIndicator from '@/components/OfflineIndicator';
+import CommunityDeliveryDashboardCard from '@/components/dashboard/CommunityDeliveryDashboardCard';
 import { useDashboardData } from '@/hooks/useDashboardData';
 import { useQueryClient } from '@tanstack/react-query';
 
