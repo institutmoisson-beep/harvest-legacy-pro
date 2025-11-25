@@ -41,7 +41,13 @@ export default function ShopDashboard() {
     stock: '',
     payment_link: '',
     product_type: 'physical',
+    image_url: '',
+    file_url: '',
   });
+
+  const [uploading, setUploading] = useState(false);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [filePreview, setFilePreview] = useState<string | null>(null);
 
   useEffect(() => {
     if (user) {
