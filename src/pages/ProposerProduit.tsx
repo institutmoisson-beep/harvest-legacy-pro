@@ -14,7 +14,7 @@ import ProductImageUploader from '@/components/dashboard/ProductImageUploader';
 const productSchema = z.object({
   productName: z.string().min(2, { message: "Le nom du produit doit contenir au moins 2 caractères" }),
   brand: z.string().min(2, { message: "La marque doit contenir au moins 2 caractères" }),
-  quantity: z.number().min(1, { message: "La quantité doit être d'au moins 1" }),
+  quantity: z.number().min(1, { message: "La quantité doit ��tre d'au moins 1" }),
   price: z.number().min(0.01, { message: "Le prix doit être supérieur à 0" }),
   location: z.string().min(2, { message: "La localisation doit contenir au moins 2 caractères" }),
 });
@@ -181,13 +181,20 @@ export default function ProposerProduit() {
         <Card className="glass-card">
           <CardHeader>
             <CardTitle className="text-3xl font-bold gradient-text-cosmic">
-              Mettre à disposition
+              {productCreated ? '📸 Ajouter des images' : 'Mettre à disposition'}
             </CardTitle>
             <CardDescription>
-              Proposez vos produits à la communauté des Moissonneurs
+              {productCreated ? 'Ajoutez des images pour montrer votre produit' : 'Proposez vos produits à la communauté des Moissonneurs'}
             </CardDescription>
           </CardHeader>
           <CardContent>
+            {productCreated && createdProductId ? (
+              <ProductImageUploader
+                productListingId={createdProductId}
+                onImagesChange={handleImagesComplete}
+                maxImages={5}
+              />
+            ) : (
             <form onSubmit={handleSubmit} className="space-y-6">
               <div className="space-y-2">
                 <Label htmlFor="productName">Nom du produit *</Label>
@@ -307,6 +314,7 @@ export default function ProposerProduit() {
                 {uploading ? 'Téléchargement des images...' : loading ? 'Enregistrement...' : 'Mettre à disposition'}
               </Button>
             </form>
+            )}
           </CardContent>
         </Card>
       </div>
