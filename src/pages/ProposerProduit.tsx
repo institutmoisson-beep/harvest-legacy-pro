@@ -9,6 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { toast } from '@/hooks/use-toast';
 import { Loader2, Upload, X, ArrowLeft } from 'lucide-react';
 import { z } from 'zod';
+import ProductImageUploader from '@/components/dashboard/ProductImageUploader';
 
 const productSchema = z.object({
   productName: z.string().min(2, { message: "Le nom du produit doit contenir au moins 2 caractères" }),
