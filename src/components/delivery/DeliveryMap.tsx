@@ -286,9 +286,62 @@ export default function DeliveryMap({
     });
   }, [activeUsers]);
 
+  // Handle search location - zoom and place marker
+  useEffect(() => {
+    if (!map.current || !searchLocation) return;
+
+    // Remove old search marker
+    if (searchMarkerRef.current) {
+      searchMarkerRef.current.remove();
+    }
+
+    // Create search location marker
+    const el = document.createElement('div');
+    el.style.width = '36px';
+    el.style.height = '36px';
+    el.style.backgroundColor = '#ef4444';
+    el.style.borderRadius = '50%';
+    el.style.border = '3px solid white';
+    el.style.boxShadow = '0 6px 16px rgba(239, 68, 68, 0.4)';
+    el.style.display = 'flex';
+    el.style.alignItems = 'center';
+    el.style.justifyContent = 'center';
+    el.style.cursor = 'pointer';
+    el.style.zIndex = '20';
+
+    const innerDot = document.createElement('div');
+    innerDot.style.width = '6px';
+    innerDot.style.height = '6px';
+    innerDot.style.backgroundColor = 'white';
+    innerDot.style.borderRadius = '50%';
+    el.appendChild(innerDot);
+
+    searchMarkerRef.current = new mapboxgl.Marker({ element: el })
+      .setLngLat([searchLocation.longitude, searchLocation.latitude])
+      .addTo(map.current);
+
+    // Add popup for search location
+    const popup = new mapboxgl.Popup({ offset: 25 }).setHTML(
+      `<div style="padding: 8px; font-size: 12px;">
+        <div style="font-weight: bold; color: #ef4444;">📍 Résultat de recherche</div>
+        <div style="color: #666; margin-top: 4px;">${searchLocation.name}</div>
+        <div style="color: #999; font-size: 11px;">Lat: ${searchLocation.latitude.toFixed(4)}</div>
+        <div style="color: #999; font-size: 11px;">Lng: ${searchLocation.longitude.toFixed(4)}</div>
+      </div>`
+    );
+    searchMarkerRef.current.setPopup(popup);
+
+    // Zoom to search location
+    map.current.flyTo({
+      center: [searchLocation.longitude, searchLocation.latitude],
+      zoom: 15,
+      duration: 1500,
+    });
+  }, [searchLocation]);
+
   // Fit bounds when deliveries change
   useEffect(() => {
-    if (!map.current || (deliveries.length === 0 && activeUsers.length === 0) || !userLocation) return;
+    if (!map.current || (deliveries.length === 0 && activeUsers.length === 0) || !userLocation || searchLocation) return;
 
     const bounds = new mapboxgl.LngLatBounds(
       [userLocation.longitude, userLocation.latitude],
@@ -304,7 +357,7 @@ export default function DeliveryMap({
     });
 
     map.current.fitBounds(bounds, { padding: 50 });
-  }, [deliveries, activeUsers, userLocation]);
+  }, [deliveries, activeUsers, userLocation, searchLocation]);
 
   const selectedDelivery = deliveries.find((d) => d.id === selectedDeliveryId);
 
