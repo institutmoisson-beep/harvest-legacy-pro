@@ -53,7 +53,7 @@ export const usePWABadge = () => {
         .from('notifications' as any)
         .select('*', { count: 'exact', head: true })
         .eq('user_id', user.id)
-        .eq('read', false);
+        .eq('is_read', false);
 
       if (error) throw error;
 
