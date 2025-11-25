@@ -251,6 +251,13 @@ export default function AvailableDeliveriesMap() {
               </TabsList>
 
               <TabsContent value="map" className="p-0">
+                <div className="p-4">
+                  <MapSearch
+                    onLocationFound={setSearchLocation}
+                    placeholder="Rechercher une adresse pour les livraisons..."
+                    searchType="delivery"
+                  />
+                </div>
                 {nearbyDeliveries.length > 0 || activeUsers.length > 0 ? (
                   <div className="space-y-3 p-4">
                     {activeUsers.length > 0 && (
@@ -274,6 +281,7 @@ export default function AvailableDeliveriesMap() {
                       selectedDeliveryId={selectedDeliveryId}
                       onSelectDelivery={setSelectedDeliveryId}
                       onPropose={handlePropose}
+                      searchLocation={searchLocation}
                     />
                   </div>
                 ) : (
