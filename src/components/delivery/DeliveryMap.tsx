@@ -181,13 +181,29 @@ export default function DeliveryMap({
     deliveries.forEach((delivery) => {
       const el = document.createElement('div');
       const isSelected = delivery.id === selectedDeliveryId;
-      el.className = `w-8 h-8 rounded-full border-2 flex items-center justify-center cursor-pointer transition-all ${
-        isSelected
-          ? 'bg-orange-500 border-white shadow-xl scale-125'
-          : 'bg-green-500 border-white shadow-md hover:scale-110'
-      }`;
-      el.innerHTML =
-        '<svg class="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20"><path d="M10.5 1.5H9.5V3h1V1.5zM14.5 5.5L13.5 6.5L14.9 7.9L15.9 6.9L14.5 5.5zM5.5 5.5L4.1 6.9L5.1 7.9L6.5 6.5L5.5 5.5zM10 5C7.24 5 5 7.24 5 10s2.24 5 5 5 5-2.24 5-5-2.24-5-5-5zm0 1c2.21 0 4 1.79 4 4s-1.79 4-4 4-4-1.79-4-4 1.79-4 4-4z"/></svg>';
+
+      el.style.width = '32px';
+      el.style.height = '32px';
+      el.style.borderRadius = '50%';
+      el.style.border = '2px solid white';
+      el.style.display = 'flex';
+      el.style.alignItems = 'center';
+      el.style.justifyContent = 'center';
+      el.style.cursor = 'pointer';
+      el.style.transition = 'all 0.3s ease';
+      el.style.backgroundColor = isSelected ? '#f97316' : '#22c55e';
+      el.style.boxShadow = isSelected
+        ? '0 20px 25px -5px rgba(0, 0, 0, 0.3)'
+        : '0 10px 15px -3px rgba(0, 0, 0, 0.1)';
+      el.style.transform = isSelected ? 'scale(1.25)' : 'scale(1)';
+
+      const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+      svg.setAttribute('width', '16');
+      svg.setAttribute('height', '16');
+      svg.setAttribute('viewBox', '0 0 20 20');
+      svg.setAttribute('fill', 'white');
+      svg.innerHTML = '<path d="M10.5 1.5H9.5V3h1V1.5zM14.5 5.5L13.5 6.5L14.9 7.9L15.9 6.9L14.5 5.5zM5.5 5.5L4.1 6.9L5.1 7.9L6.5 6.5L5.5 5.5zM10 5C7.24 5 5 7.24 5 10s2.24 5 5 5 5-2.24 5-5-2.24-5-5-5zm0 1c2.21 0 4 1.79 4 4s-1.79 4-4 4-4-1.79-4-4 1.79-4 4-4z"/>';
+      el.appendChild(svg);
 
       el.addEventListener('click', () => {
         onSelectDelivery(delivery.id);
