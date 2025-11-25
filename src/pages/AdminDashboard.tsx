@@ -255,6 +255,9 @@ export default function AdminDashboard() {
             </p>
           </div>
           <div className="flex gap-2">
+            <Button onClick={() => navigate('/admin/deliveries')} variant="outline">
+              📦 Livraisons
+            </Button>
             <Button onClick={() => navigate('/dashboard')} variant="outline">
               Mon Dashboard
             </Button>
