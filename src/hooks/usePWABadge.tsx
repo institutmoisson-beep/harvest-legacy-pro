@@ -50,16 +50,25 @@ export const usePWABadge = () => {
 
     try {
       const { count, error } = await supabase
-        .from('notifications' as any)
-        .select('*', { count: 'exact', head: true })
+        .from('notifications')
+        .select('id', { count: 'exact', head: true })
         .eq('user_id', user.id)
         .eq('is_read', false);
 
-      if (error) throw error;
+      if (error) {
+        console.error('❌ Erreur lors de la récupération des notifications:', {
+          message: error.message,
+          code: error.code,
+          details: error.details,
+          hint: error.hint,
+        });
+        return 0;
+      }
 
       return count || 0;
-    } catch (error) {
-      console.error('❌ Erreur lors de la récupération des notifications:', error);
+    } catch (error: any) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      console.error('❌ Erreur lors de la récupération des notifications:', errorMessage);
       return 0;
     }
   }, [user]);
