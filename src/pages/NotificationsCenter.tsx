@@ -100,45 +100,61 @@ export default function NotificationsCenter() {
   };
 
   const markAsRead = async (id: string) => {
-    const { error } = await (supabase.from as any)('notifications')
-      .update({ is_read: true })
-      .eq('id', id);
+    try {
+      const { error } = await supabase
+        .from('notifications')
+        .update({ is_read: true })
+        .eq('id', id);
 
-    if (!error) fetchNotifications();
+      if (error) throw error;
+      fetchNotifications();
+    } catch (error: any) {
+      toast({ title: 'Erreur', description: error.message, variant: 'destructive' });
+    }
   };
 
   const markAllAsRead = async () => {
-    const { error } = await (supabase.from as any)('notifications')
-      .update({ is_read: true })
-      .eq('user_id', user?.id)
-      .eq('is_read', false);
+    try {
+      const { error } = await supabase
+        .from('notifications')
+        .update({ is_read: true })
+        .eq('user_id', user?.id)
+        .eq('is_read', false);
 
-    if (error) {
-      toast({ title: 'Erreur', description: error.message, variant: 'destructive' });
-    } else {
+      if (error) throw error;
       toast({ title: 'Succès', description: 'Toutes les notifications marquées comme lues' });
       fetchNotifications();
+    } catch (error: any) {
+      toast({ title: 'Erreur', description: error.message, variant: 'destructive' });
     }
   };
 
   const deleteNotification = async (id: string) => {
-    const { error } = await (supabase.from as any)('notifications')
-      .delete()
-      .eq('id', id);
+    try {
+      const { error } = await supabase
+        .from('notifications')
+        .delete()
+        .eq('id', id);
 
-    if (!error) fetchNotifications();
+      if (error) throw error;
+      fetchNotifications();
+    } catch (error: any) {
+      toast({ title: 'Erreur', description: error.message, variant: 'destructive' });
+    }
   };
 
   const deleteAll = async () => {
-    const { error } = await (supabase.from as any)('notifications')
-      .delete()
-      .eq('user_id', user?.id);
+    try {
+      const { error } = await supabase
+        .from('notifications')
+        .delete()
+        .eq('user_id', user?.id);
 
-    if (error) {
-      toast({ title: 'Erreur', description: error.message, variant: 'destructive' });
-    } else {
+      if (error) throw error;
       toast({ title: 'Succès', description: 'Toutes les notifications supprimées' });
       fetchNotifications();
+    } catch (error: any) {
+      toast({ title: 'Erreur', description: error.message, variant: 'destructive' });
     }
   };
 
