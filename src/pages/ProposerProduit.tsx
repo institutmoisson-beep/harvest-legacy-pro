@@ -27,7 +27,9 @@ export default function ProposerProduit() {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [images, setImages] = useState<File[]>([]);
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
-  
+  const [createdProductId, setCreatedProductId] = useState<string | null>(null);
+  const [productCreated, setProductCreated] = useState(false);
+
   const [formData, setFormData] = useState({
     productName: '',
     brand: '',
