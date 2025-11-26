@@ -120,7 +120,60 @@ export const generateLygosQRCode = async (amount: number, orderId: string): Prom
 };
 
 /**
- * Générer une adresse de paiement CoinPayments
+ * Rediriger vers CoinPayments pour le paiement
+ */
+export const redirectToCoinPaymentsPayment = async (
+  amount: number,
+  orderId: string,
+  currency: string = 'BTC'
+): Promise<void> => {
+  try {
+    const clientId = '3c672fcda81649908790a70d863a6b2e';
+
+    // Create a transaction via CoinPayments API
+    const response = await fetch('https://a-api.coinpayments.net/api.php', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: new URLSearchParams({
+        version: 'v1',
+        cmd: 'create_transaction',
+        key: clientId,
+        currency1: 'FCFA',
+        currency2: currency,
+        amount: String(amount),
+        address: '', // Let CoinPayments generate
+        buyer_email: 'no-reply@moisson.app',
+        item_name: `Order ${orderId}`,
+        item_number: orderId,
+        invoice: orderId,
+        ipn_url: `${window.location.origin}/api/webhooks/coinpayments`,
+        success_url: `${window.location.origin}/order-confirmation/${orderId}`,
+        cancel_url: `${window.location.origin}/orders`,
+      }).toString(),
+    });
+
+    if (!response.ok) {
+      throw new Error('Erreur lors de la création de la transaction CoinPayments');
+    }
+
+    const data = await response.json();
+
+    if (data.error === 'ok' && data.result && data.result.checkout_url) {
+      // Redirect to CoinPayments checkout
+      window.location.href = data.result.checkout_url;
+    } else {
+      throw new Error(data.error || 'Erreur CoinPayments');
+    }
+  } catch (error) {
+    console.error('Erreur CoinPayments:', error);
+    throw error;
+  }
+};
+
+/**
+ * Générer une adresse de paiement CoinPayments (backward compatibility)
  */
 export const generateCoinPaymentsAddress = async (
   amount: number,
