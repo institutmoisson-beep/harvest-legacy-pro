@@ -427,7 +427,7 @@ export default function ShopDashboard() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="gradient-purple">Dégradé Violet</SelectItem>
-                    <SelectItem value="gradient-blue">Dégradé Bleu</SelectItem>
+                    <SelectItem value="gradient-blue">Dégrad�� Bleu</SelectItem>
                     <SelectItem value="gradient-green">Dégradé Vert</SelectItem>
                     <SelectItem value="gradient-orange">Dégradé Orange</SelectItem>
                     <SelectItem value="gradient-pink">Dégradé Rose</SelectItem>
@@ -731,7 +731,7 @@ export default function ShopDashboard() {
               </Dialog>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
               {products.map((product) => (
                 <Card key={product.id} className="overflow-hidden">
                   {product.image_url && (
