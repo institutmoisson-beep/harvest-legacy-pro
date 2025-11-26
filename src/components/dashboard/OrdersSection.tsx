@@ -154,7 +154,7 @@ function OrdersSectionComponent({ userId, brokerCode }: OrdersSectionProps) {
           }
 
           toast({
-            title: "Paiement en attente de validation",
+            title: "Commande effectuée avec succès",
             description: `${amountFCFA.toLocaleString()} FCFA débité de votre portefeuille. Votre commande est en attente de validation admin.`,
           });
 
@@ -190,7 +190,7 @@ function OrdersSectionComponent({ userId, brokerCode }: OrdersSectionProps) {
           setOrderImages([]);
         } else {
           toast({
-            title: "Commande créée",
+            title: "Commande effectuée avec succès",
             description: `Commande créée. En attente de validation admin. Redirection vers ${paymentMethodName === 'wave' ? 'Wave' : paymentMethodName === 'lygos' ? 'Lygos' : paymentMethodName === 'coinpayments' ? 'CoinPayments' : 'la livraison'}...`,
           });
 
@@ -222,7 +222,7 @@ function OrdersSectionComponent({ userId, brokerCode }: OrdersSectionProps) {
             await redirectToCoinPaymentsPayment(amountFCFA, orderId);
           } else if (paymentMethodName === 'cash_on_delivery') {
             toast({
-              title: "Commande créée",
+              title: "Commande effectuée avec succès",
               description: "Votre commande a été créée. Le paiement se fera à la livraison.",
             });
 
@@ -303,7 +303,7 @@ function OrdersSectionComponent({ userId, brokerCode }: OrdersSectionProps) {
           />
         </div>
 
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="space-y-2">
             <Label htmlFor="purchasePriceMSN">Prix du produit (MSN) *</Label>
             <Input
