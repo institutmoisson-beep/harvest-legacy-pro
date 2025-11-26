@@ -45,12 +45,54 @@ export const generateWavePaymentLink = (amount: number, orderId: string): string
 };
 
 /**
- * Générer un code QR Lygos
+ * Rediriger vers Lygos pour le paiement
+ */
+export const redirectToLygosPayment = async (amount: number, orderId: string): Promise<void> => {
+  try {
+    const lygosMerchantId = 'lygosapp-1857270e-82b3-4072-a565-4e1c3de4cf4c';
+
+    // Appel à l'API Lygos pour créer une session de paiement
+    const response = await fetch('https://api.lygos.com/payment/create', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${lygosMerchantId}`,
+      },
+      body: JSON.stringify({
+        amount: amount,
+        reference: orderId,
+        currency: 'XAF',
+        return_url: `${window.location.origin}/order-confirmation/${orderId}`,
+        cancel_url: `${window.location.origin}/orders`,
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error('Erreur lors de la création de la session Lygos');
+    }
+
+    const data = await response.json();
+    if (data.payment_url) {
+      window.location.href = data.payment_url;
+    } else if (data.qr_code) {
+      // Afficher le QR code si pas d'URL directe
+      window.location.href = data.qr_code;
+    } else {
+      throw new Error('Pas de lien de paiement fourni par Lygos');
+    }
+  } catch (error) {
+    console.error('Erreur Lygos:', error);
+    throw error;
+  }
+};
+
+/**
+ * Générer un code QR Lygos (backward compatibility)
  */
 export const generateLygosQRCode = async (amount: number, orderId: string): Promise<string> => {
   try {
     const lygosMerchantId = 'lygosapp-1857270e-82b3-4072-a565-4e1c3de4cf4c';
-    
+
     // Appel à l'API Lygos pour générer un code QR
     const response = await fetch('https://api.lygos.com/qr/generate', {
       method: 'POST',
