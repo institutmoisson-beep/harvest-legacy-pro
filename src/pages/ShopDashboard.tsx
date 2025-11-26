@@ -459,29 +459,30 @@ export default function ShopDashboard() {
   return (
     <div className="min-h-screen bg-background px-4 sm:px-6 py-6">
       <div className="max-w-7xl mx-auto space-y-6">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <Button variant="ghost" onClick={() => navigate('/dashboard')}>
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Retour
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div className="flex items-start sm:items-center gap-2 sm:gap-4 w-full sm:w-auto">
+            <Button variant="ghost" size="sm" onClick={() => navigate('/dashboard')} className="flex-shrink-0">
+              <ArrowLeft className="h-4 w-4" />
             </Button>
-            <div>
-              <h1 className="text-2xl font-bold flex items-center gap-2">
-                <Store className="h-6 w-6 text-primary" />
-                {shop.shop_name}
+            <div className="flex-1 sm:flex-none">
+              <h1 className="text-xl sm:text-2xl font-bold flex items-center gap-2">
+                <Store className="h-5 sm:h-6 w-5 sm:w-6 text-primary flex-shrink-0" />
+                <span className="truncate">{shop.shop_name}</span>
               </h1>
-              <p className="text-sm text-muted-foreground">{shop.description}</p>
+              <p className="text-xs sm:text-sm text-muted-foreground truncate">{shop.description}</p>
             </div>
           </div>
 
-          <div className="flex gap-2">
-            <Button variant="outline" onClick={copyShopUrl}>
-              <Copy className="h-4 w-4 mr-2" />
-              Copier le lien
+          <div className="flex gap-2 w-full sm:w-auto">
+            <Button variant="outline" size="sm" onClick={copyShopUrl} className="flex-1 sm:flex-none text-xs sm:text-sm">
+              <Copy className="h-3 sm:h-4 w-3 sm:w-4 mr-1 sm:mr-2" />
+              <span className="hidden sm:inline">Copier le lien</span>
+              <span className="sm:hidden">Copier</span>
             </Button>
-            <Button onClick={() => window.open(`/shop/${shop.shop_url_slug}`, '_blank')}>
-              <ExternalLink className="h-4 w-4 mr-2" />
-              Voir la boutique
+            <Button size="sm" onClick={() => window.open(`/shop/${shop.shop_url_slug}`, '_blank')} className="flex-1 sm:flex-none text-xs sm:text-sm">
+              <ExternalLink className="h-3 sm:h-4 w-3 sm:w-4 mr-1 sm:mr-2" />
+              <span className="hidden sm:inline">Voir la boutique</span>
+              <span className="sm:hidden">Voir</span>
             </Button>
           </div>
         </div>
