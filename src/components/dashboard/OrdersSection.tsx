@@ -252,7 +252,19 @@ function OrdersSectionComponent({ userId, brokerCode }: OrdersSectionProps) {
           />
         </div>
 
-        <Button onClick={handleSubmit} disabled={loading} className="w-full" variant="cosmic">
+        {/* Sélecteur de moyen de paiement */}
+        <div className="border-t pt-4">
+          <PaymentMethodSelector
+            value={paymentMethodId}
+            onChange={(methodId, methodName) => {
+              setPaymentMethodId(methodId);
+              setPaymentMethodName(methodName);
+            }}
+            disabled={loading}
+          />
+        </div>
+
+        <Button onClick={handleSubmit} disabled={loading || !paymentMethodId} className="w-full" variant="cosmic">
           <Plus className="h-4 w-4 mr-2" />
           Créer la commande
         </Button>
