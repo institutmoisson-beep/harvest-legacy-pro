@@ -99,7 +99,7 @@ function OrdersSectionComponent({ userId, brokerCode }: OrdersSectionProps) {
           profit: calculatedProfit,
           geographic_zone: geographicZone || null,
           payment_method_id: paymentMethodId,
-          status: paymentMethodName === 'cash_on_delivery' ? 'pending_delivery' : 'pending_admin_review'
+          status: 'pending_admin_review'
         })
         .select();
 
