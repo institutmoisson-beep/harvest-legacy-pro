@@ -116,10 +116,11 @@ export default function AdminDashboard() {
 
   const fetchData = async () => {
     try {
-      // Fetch all orders
+      // Fetch recent orders with limit
       const { data: ordersData, error: ordersError } = await supabase
         .from('orders')
         .select('*')
+        .limit(100)
         .order('created_at', { ascending: false });
 
       if (ordersError) throw ordersError;
