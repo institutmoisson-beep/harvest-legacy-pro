@@ -126,10 +126,11 @@ export default function AdminDashboard() {
       if (ordersError) throw ordersError;
       setOrders(ordersData || []);
 
-      // Fetch all wallets with user info
+      // Fetch wallets with user info and limit
       const { data: walletsData, error: walletsError } = await supabase
         .from('wallets')
-        .select('user_id, balance');
+        .select('user_id, balance')
+        .limit(100);
 
       if (walletsError) throw walletsError;
 
