@@ -375,6 +375,7 @@ export default function AdminDashboard() {
                     <TableHead>Prix</TableHead>
                     <TableHead>Profit</TableHead>
                     <TableHead>Code</TableHead>
+                    <TableHead>Moyen de paiement</TableHead>
                     <TableHead>Statut</TableHead>
                     <TableHead>Date</TableHead>
                     <TableHead>Actions</TableHead>
