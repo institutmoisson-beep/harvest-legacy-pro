@@ -7,7 +7,43 @@
 -- - Investments (management)
 -- - All other system functionalities
 
--- 1. Ensure all modules and actions are properly defined
+-- 1. Add missing roles to app_role enum (if they don't exist)
+DO $$ BEGIN
+  ALTER TYPE public.app_role ADD VALUE IF NOT EXISTS 'shop_manager';
+EXCEPTION WHEN duplicate_object THEN null;
+END $$;
+
+DO $$ BEGIN
+  ALTER TYPE public.app_role ADD VALUE IF NOT EXISTS 'relay_agent';
+EXCEPTION WHEN duplicate_object THEN null;
+END $$;
+
+DO $$ BEGIN
+  ALTER TYPE public.app_role ADD VALUE IF NOT EXISTS 'developer';
+EXCEPTION WHEN duplicate_object THEN null;
+END $$;
+
+DO $$ BEGIN
+  ALTER TYPE public.app_role ADD VALUE IF NOT EXISTS 'moissonneur';
+EXCEPTION WHEN duplicate_object THEN null;
+END $$;
+
+DO $$ BEGIN
+  ALTER TYPE public.app_role ADD VALUE IF NOT EXISTS 'operational_admin';
+EXCEPTION WHEN duplicate_object THEN null;
+END $$;
+
+DO $$ BEGIN
+  ALTER TYPE public.app_role ADD VALUE IF NOT EXISTS 'financial_manager';
+EXCEPTION WHEN duplicate_object THEN null;
+END $$;
+
+DO $$ BEGIN
+  ALTER TYPE public.app_role ADD VALUE IF NOT EXISTS 'tontine_manager';
+EXCEPTION WHEN duplicate_object THEN null;
+END $$;
+
+-- 2. Ensure all modules and actions are properly defined
 INSERT INTO public.permissions (module, action, name, description) VALUES
   -- Orders management
   ('orders', 'approve', 'Approuver commandes', 'Approuver les commandes'),
@@ -77,8 +113,7 @@ INSERT INTO public.permissions (module, action, name, description) VALUES
   ('system', 'view_analytics', 'Voir analytiques', 'Accéder aux analytiques du système')
 ON CONFLICT (module, action) DO NOTHING;
 
--- 2. Grant admin role all permissions
--- First, get all permission IDs and insert them into role_permissions for admin role
+-- 3. Grant admin role all permissions
 INSERT INTO public.role_permissions (role, permission_id)
 SELECT 'admin'::app_role, p.id
 FROM public.permissions p
@@ -89,26 +124,7 @@ WHERE NOT EXISTS (
 )
 ON CONFLICT (role, permission_id) DO NOTHING;
 
--- 3. Also grant super_admin all permissions
-INSERT INTO public.role_permissions (role, permission_id)
-SELECT 'super_admin'::app_role, p.id
-FROM public.permissions p
-WHERE NOT EXISTS (
-  SELECT 1 FROM public.role_permissions rp
-  WHERE rp.role = 'super_admin'::app_role
-  AND rp.permission_id = p.id
-)
-ON CONFLICT (role, permission_id) DO NOTHING;
-
--- 4. Ensure admin role has access_level set properly in user_roles
--- This is handled at the application level, but we ensure RLS policies check for both role and access_level
-
--- 5. Ensure all critical RLS policies allow admin role
--- Note: These policies are already in place from previous migrations,
--- but we verify the critical ones here by ensuring they use has_role('admin') OR has_access_level >= 90
-
--- 6. Create/update comprehensive RLS policies for full admin access
--- Update wallet transactions policy to ensure admin full access
+-- 4. Update wallet transactions policy to ensure admin full access
 DROP POLICY IF EXISTS "Admin full transaction access" ON public.wallet_transactions;
 CREATE POLICY "Admin full transaction access"
   ON public.wallet_transactions
@@ -125,7 +141,7 @@ CREATE POLICY "Admin full transaction access"
     public.has_access_level(auth.uid(), 90)
   );
 
--- Update orders policy to ensure admin can do everything
+-- 5. Update orders policy to ensure admin can do everything
 DROP POLICY IF EXISTS "Admin full order access" ON public.orders;
 CREATE POLICY "Admin full order access"
   ON public.orders
@@ -141,7 +157,7 @@ CREATE POLICY "Admin full order access"
     public.has_access_level(auth.uid(), 90)
   );
 
--- Update wallets policy to ensure admin full access
+-- 6. Update wallets policy to ensure admin full access
 DROP POLICY IF EXISTS "Admin full wallet access" ON public.wallets;
 CREATE POLICY "Admin full wallet access"
   ON public.wallets
@@ -157,7 +173,7 @@ CREATE POLICY "Admin full wallet access"
     public.has_access_level(auth.uid(), 90)
   );
 
--- 7. Ensure user_roles table allows admin to manage all roles
+-- 7. Update user_roles table policies for admin management
 DROP POLICY IF EXISTS "Admin full user roles access" ON public.user_roles;
 CREATE POLICY "Admin full user roles access"
   ON public.user_roles
@@ -173,6 +189,22 @@ CREATE POLICY "Admin full user roles access"
     public.has_access_level(auth.uid(), 90)
   );
 
--- 8. Comment for clarity
+-- 8. Update commissions policy to allow admin full access
+DROP POLICY IF EXISTS "Admin full commission access" ON public.commissions;
+CREATE POLICY "Admin full commission access"
+  ON public.commissions
+  FOR ALL
+  TO authenticated
+  USING (
+    auth.uid() = user_id OR
+    public.has_role(auth.uid(), 'admin'::app_role) OR
+    public.has_access_level(auth.uid(), 90)
+  )
+  WITH CHECK (
+    public.has_role(auth.uid(), 'admin'::app_role) OR
+    public.has_access_level(auth.uid(), 90)
+  );
+
+-- 9. Comment for clarity
 COMMENT ON TABLE public.role_permissions IS 
-'Maps roles to permissions. Admin role is granted ALL permissions to enable full system management.';
+'Maps roles to permissions. Admin role is granted ALL permissions to enable full system management of orders, wallets, transactions, tontines, shops, investments, and all other functionalities.';
