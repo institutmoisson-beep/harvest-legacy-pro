@@ -159,7 +159,7 @@ export default function PaymentHistoryDashboard({ userId }: PaymentHistoryDashbo
                           : '-'}
                       </TableCell>
                       <TableCell className="font-mono text-xs">
-                        {transaction.orders?.customer_name || transaction.order_id.substring(0, 8)}
+                        {transaction.orders?.customer_name || (transaction.order_id ? transaction.order_id.substring(0, 8) : '-')}
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center gap-2">
