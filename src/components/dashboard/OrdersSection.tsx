@@ -52,10 +52,10 @@ function OrdersSectionComponent({ userId, brokerCode }: OrdersSectionProps) {
   };
 
   const handleSubmit = async () => {
-    if (!customerName || !productName || !purchasePriceMSN || !quantity) {
+    if (!customerName || !productName || !purchasePriceMSN || !quantity || !paymentMethodId) {
       toast({
         title: "Champs manquants",
-        description: "Veuillez remplir tous les champs obligatoires",
+        description: "Veuillez remplir tous les champs obligatoires, y compris le moyen de paiement",
         variant: "destructive",
       });
       return;
@@ -67,7 +67,7 @@ function OrdersSectionComponent({ userId, brokerCode }: OrdersSectionProps) {
       const totalPrice = parseFloat(purchasePriceMSN) * parseInt(quantity);
       const calculatedProfit = totalPrice * 0.05;
 
-      const { error } = await supabase
+      const { data: orderData, error } = await supabase
         .from('orders')
         .insert({
           broker_id: userId,
@@ -79,8 +79,10 @@ function OrdersSectionComponent({ userId, brokerCode }: OrdersSectionProps) {
           quantity: parseInt(quantity),
           profit: calculatedProfit,
           geographic_zone: geographicZone || null,
+          payment_method_id: paymentMethodId,
           status: 'pending'
-        });
+        })
+        .select();
 
       if (error) throw error;
 
