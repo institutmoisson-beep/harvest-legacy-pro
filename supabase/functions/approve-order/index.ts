@@ -292,6 +292,42 @@ Deno.serve(async (req) => {
 
       console.log(`Order ${orderId} approved and commissions distributed`);
     } else if (action === 'reject') {
+      // Get payment transaction to check payment method
+      const { data: paymentTrans, error: paymentError } = await supabaseAdmin
+        .from('payment_transactions')
+        .select(`
+          id,
+          amount,
+          payment_methods:payment_method_id (name)
+        `)
+        .eq('order_id', orderId)
+        .single();
+
+      if (paymentError) {
+        console.log('No payment transaction found for order:', orderId);
+      }
+
+      // If paid with wallet, refund the payment
+      if (paymentTrans && paymentTrans.payment_methods && paymentTrans.payment_methods.name === 'wallet') {
+        console.log(`Processing wallet refund for order ${orderId}. Amount: ${order.purchase_price * order.quantity} MSN`);
+
+        // Refund the wallet
+        const { error: refundError } = await supabaseAdmin
+          .rpc('refund_wallet_payment', {
+            p_user_id: order.broker_id,
+            p_amount: order.purchase_price * order.quantity, // Amount in MSN
+            p_order_id: orderId,
+            p_reason: 'Commande rejetée par l\'administrateur'
+          });
+
+        if (refundError) {
+          console.error('Error refunding wallet:', refundError);
+          throw refundError;
+        }
+
+        console.log(`Wallet refunded for user ${order.broker_id}. Amount: ${order.purchase_price * order.quantity} MSN`);
+      }
+
       // Update order status to rejected using admin client
       const { error: updateError } = await supabaseAdmin
         .from('orders')
@@ -305,7 +341,19 @@ Deno.serve(async (req) => {
         throw updateError;
       }
 
-      console.log(`Order ${orderId} rejected`);
+      // Update payment transaction status to failed (if exists)
+      if (paymentTrans) {
+        const { error: paymentUpdateError } = await supabaseAdmin
+          .from('payment_transactions')
+          .update({ status: 'failed' })
+          .eq('id', paymentTrans.id);
+
+        if (paymentUpdateError) {
+          console.error('Error updating payment transaction status:', paymentUpdateError);
+        }
+      }
+
+      console.log(`Order ${orderId} rejected and refund processed if applicable`);
     }
 
     return new Response(
