@@ -124,13 +124,10 @@ export default function PermissionsManager() {
 
   const fetchRolePermissions = async (role: string) => {
     try {
-      // Query role_permissions directly instead of using RPC to avoid enum casting issues
+      // Query role_permissions directly to avoid enum casting issues
       const { data, error } = await supabase
         .from('role_permissions' as any)
-        .select(`
-          permission_id,
-          permissions:permission_id(id, module, action, name, description)
-        `)
+        .select('permission_id')
         .eq('role', role as any);
 
       if (error) throw error;
@@ -141,7 +138,7 @@ export default function PermissionsManager() {
       }));
 
       // Update selected permissions set
-      const permissionIds = new Set<string>((data || []).map((p: RolePermission) => p.permission_id));
+      const permissionIds = new Set<string>((data || []).map((p: any) => p.permission_id));
       setSelectedPermissions(permissionIds);
     } catch (error: any) {
       let errorMessage = 'Impossible de récupérer les permissions';
