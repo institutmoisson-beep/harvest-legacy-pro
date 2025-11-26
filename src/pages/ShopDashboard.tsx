@@ -657,7 +657,7 @@ export default function ShopDashboard() {
                     </div>
 
                     <div>
-                      <Label>Type de produit</Label>
+                      <Label className="block mb-2">Type de produit</Label>
                       <Select
                         value={productData.product_type}
                         onValueChange={(value) => {
@@ -667,7 +667,7 @@ export default function ShopDashboard() {
                           }
                         }}
                       >
-                        <SelectTrigger>
+                        <SelectTrigger className="w-full">
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
