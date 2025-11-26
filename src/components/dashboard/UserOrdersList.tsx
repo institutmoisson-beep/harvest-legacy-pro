@@ -100,8 +100,8 @@ function UserOrdersListComponent({ userId }: { userId: string }) {
                           <TableRow key={order.id}>
                             <TableCell>{order.customer_name}</TableCell>
                             <TableCell className="max-w-xs truncate">{order.product_name}</TableCell>
-                            <TableCell>{order.purchase_price.toLocaleString()} FCFA</TableCell>
-                            <TableCell className="text-secondary">{order.profit.toLocaleString()} FCFA</TableCell>
+                            <TableCell>{(order.purchase_price * MSN_TO_FCFA).toLocaleString()} FCFA</TableCell>
+                            <TableCell className="text-secondary">{(order.profit * MSN_TO_FCFA).toLocaleString()} FCFA</TableCell>
                             <TableCell className="font-mono text-sm">{order.broker_code}</TableCell>
                             <TableCell>
                               <span className={`px-2 py-1 rounded text-xs ${
