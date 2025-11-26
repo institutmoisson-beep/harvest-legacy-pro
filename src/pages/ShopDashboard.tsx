@@ -570,23 +570,25 @@ export default function ShopDashboard() {
                   <DialogHeader>
                     <DialogTitle>Ajouter un produit</DialogTitle>
                   </DialogHeader>
-                  <div className="space-y-4 overflow-y-auto flex-1">
+                  <div className="space-y-4 overflow-y-auto flex-1 pr-4">
                     <div>
-                      <Label>Nom du produit</Label>
+                      <Label className="block mb-2">Nom du produit</Label>
                       <Input
                         value={productData.product_name}
                         onChange={(e) => setProductData({ ...productData, product_name: e.target.value })}
                         placeholder="iPhone 15 Pro Max"
+                        className="w-full"
                       />
                     </div>
 
                     <div>
-                      <Label>Description</Label>
+                      <Label className="block mb-2">Description</Label>
                       <Textarea
                         value={productData.description}
                         onChange={(e) => setProductData({ ...productData, description: e.target.value })}
                         placeholder="Description détaillée du produit..."
                         rows={3}
+                        className="w-full"
                       />
                     </div>
 
