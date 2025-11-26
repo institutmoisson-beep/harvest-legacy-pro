@@ -373,6 +373,17 @@ function OrdersSectionComponent({ userId, brokerCode }: OrdersSectionProps) {
           />
         </div>
 
+        {/* Image uploader for product images */}
+        <div className="border-t pt-4">
+          <Label className="block mb-3">Images du produit (optionnel)</Label>
+          <OrderImageUploader
+            orderId="pending"
+            onImagesChange={setOrderImages}
+            maxImages={3}
+            disabled={loading}
+          />
+        </div>
+
         {/* Sélecteur de moyen de paiement */}
         <div className="border-t pt-4">
           <PaymentMethodSelector
