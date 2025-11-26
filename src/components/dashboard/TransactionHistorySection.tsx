@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
-import { History, ArrowUpRight, ArrowDownLeft, Send, ChevronDown, Search } from 'lucide-react';
+import { History, ArrowUpRight, ArrowDownLeft, Send, ChevronDown, Search, TrendingUp } from 'lucide-react';
 
 const MSN_TO_FCFA = 750;
 
