@@ -79,8 +79,7 @@ export default function OrderImageUploader({
       onImagesChange?.(updatedImages);
 
       toast({
-        title: 'ОК',
-        description: 'Image ajoutée ✓',
+        title: 'Image ajoutée ✓',
       });
     } catch (error: any) {
       toast({
