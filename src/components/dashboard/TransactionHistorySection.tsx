@@ -96,10 +96,12 @@ export default function TransactionHistorySection({ userId }: TransactionHistory
     if (type === 'deposit') return <ArrowDownLeft className="h-4 w-4 text-green-500" />;
     if (type === 'withdrawal') return <ArrowUpRight className="h-4 w-4 text-red-500" />;
     if (type === 'transfer') {
-      return fromUserId === userId 
-        ? <Send className="h-4 w-4 text-blue-500" /> 
+      return fromUserId === userId
+        ? <Send className="h-4 w-4 text-blue-500" />
         : <ArrowDownLeft className="h-4 w-4 text-green-500" />;
     }
+    if (type === 'order_payment') return <ArrowUpRight className="h-4 w-4 text-orange-500" />;
+    if (type === 'commission') return <TrendingUp className="h-4 w-4 text-green-500" />;
     return <History className="h-4 w-4" />;
   };
 
