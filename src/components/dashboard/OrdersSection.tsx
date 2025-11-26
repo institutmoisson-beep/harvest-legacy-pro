@@ -7,6 +7,7 @@ import { Plus } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import PaymentMethodSelector from '@/components/payment/PaymentMethodSelector';
+import OrderImageUploader from '@/components/dashboard/OrderImageUploader';
 import { redirectToWavePayment, redirectToLygosPayment, redirectToCoinPaymentsPayment } from '@/services/paymentService';
 import { useState, memo } from 'react';
 
