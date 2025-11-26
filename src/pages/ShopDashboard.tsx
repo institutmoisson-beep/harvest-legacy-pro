@@ -566,11 +566,11 @@ export default function ShopDashboard() {
                     Ajouter un produit
                   </Button>
                 </DialogTrigger>
-                <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+                <DialogContent className="max-w-2xl h-auto max-h-[95vh] flex flex-col">
                   <DialogHeader>
                     <DialogTitle>Ajouter un produit</DialogTitle>
                   </DialogHeader>
-                  <div className="space-y-4">
+                  <div className="space-y-4 overflow-y-auto flex-1">
                     <div>
                       <Label>Nom du produit</Label>
                       <Input
