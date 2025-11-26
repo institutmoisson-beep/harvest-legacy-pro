@@ -593,8 +593,8 @@ export default function ShopDashboard() {
                     </div>
 
                     <div>
-                      <Label>Image du produit</Label>
-                      <div className="border-2 border-dashed border-border rounded-lg p-4 text-center cursor-pointer hover:border-primary transition">
+                      <Label className="block mb-2">Image du produit</Label>
+                      <div className="border-2 border-dashed border-border rounded-lg p-4 text-center cursor-pointer hover:border-primary transition w-full">
                         <input
                           type="file"
                           accept="image/*"
