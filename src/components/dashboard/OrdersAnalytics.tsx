@@ -16,6 +16,7 @@ const COLORS = {
 };
 
 function OrdersAnalyticsComponent({ userId }: OrdersAnalyticsProps) {
+  const MSN_TO_FCFA = 750;
   const { orders, loading } = useOrdersData(userId);
 
   const analyticsData = useMemo(() => {
