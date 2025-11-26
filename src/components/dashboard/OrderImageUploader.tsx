@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
@@ -22,6 +22,50 @@ export default function OrderImageUploader({
   const { user } = useAuth();
   const [images, setImages] = useState<any[]>([]);
   const [uploading, setUploading] = useState(false);
+  const [bucketReady, setBucketReady] = useState(false);
+
+  // Initialize storage bucket on component mount
+  useEffect(() => {
+    const initializeBucket = async () => {
+      try {
+        // Try to create the bucket using the edge function
+        const response = await fetch('/init-storage', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+        }).catch(() => null);
+
+        if (response?.ok) {
+          setBucketReady(true);
+          return;
+        }
+
+        // If edge function doesn't work, try direct API call
+        const { data: buckets, error } = await supabase.storage.listBuckets();
+
+        if (!error && buckets?.some(b => b.name === 'order-images')) {
+          setBucketReady(true);
+        } else {
+          // Try to create the bucket directly
+          const { error: createError } = await supabase.storage.createBucket(
+            'order-images',
+            { public: true }
+          );
+
+          if (!createError || createError.message?.includes('already exists')) {
+            setBucketReady(true);
+          } else {
+            console.warn('Bucket creation warning:', createError);
+            setBucketReady(true); // Continue anyway
+          }
+        }
+      } catch (error) {
+        console.warn('Bucket initialization warning:', error);
+        setBucketReady(true); // Continue anyway
+      }
+    };
+
+    initializeBucket();
+  }, []);
 
   const handleImageUpload = async (file: File) => {
     if (!user || !orderId) {
