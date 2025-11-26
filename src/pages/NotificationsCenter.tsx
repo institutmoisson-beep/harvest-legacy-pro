@@ -67,25 +67,35 @@ export default function NotificationsCenter() {
 
         if (typeof error === 'object' && error !== null) {
           const errorObj = error as any;
-          if (errorObj.message && typeof errorObj.message === 'string') {
-            errorMessage = errorObj.message;
+          if (errorObj.message) {
+            const msg = errorObj.message;
+            if (typeof msg === 'string') {
+              errorMessage = msg;
+            } else if (typeof msg === 'object') {
+              errorMessage = JSON.stringify(msg);
+            }
           } else if (errorObj.code && typeof errorObj.code === 'string') {
             errorMessage = `Erreur (${errorObj.code})`;
           } else if (errorObj.details) {
-            if (typeof errorObj.details === 'string') {
-              errorMessage = errorObj.details;
-            } else if (typeof errorObj.details === 'object') {
-              errorMessage = JSON.stringify(errorObj.details);
+            const details = errorObj.details;
+            if (typeof details === 'string') {
+              errorMessage = details;
+            } else if (typeof details === 'object') {
+              errorMessage = JSON.stringify(details);
             }
           }
         } else if (typeof error === 'string') {
           errorMessage = error;
+        } else if (error instanceof Error) {
+          errorMessage = error.message;
         }
 
-        console.error('❌ Erreur lors de la récupération des notifications:', {
-          message: errorMessage,
-          fullError: error,
-        });
+        // Ensure errorMessage is always a string
+        if (typeof errorMessage !== 'string') {
+          errorMessage = String(errorMessage || 'Erreur inconnue');
+        }
+
+        console.error('❌ Erreur lors de la récupération des notifications:', errorMessage);
 
         toast({
           title: 'Erreur',
@@ -100,17 +110,27 @@ export default function NotificationsCenter() {
         setUnreadCount(data.filter((n: any) => !n.is_read).length);
       }
     } catch (error: any) {
-      console.error('Exception lors de la récupération des notifications:', error);
       let errorMessage = 'Une erreur est survenue';
 
       if (typeof error === 'string') {
         errorMessage = error;
       } else if (error instanceof Error) {
         errorMessage = error.message;
-      } else if (typeof error === 'object' && error !== null && 'message' in error) {
+      } else if (typeof error === 'object' && error !== null) {
         const msg = error.message;
-        errorMessage = typeof msg === 'string' ? msg : String(msg);
+        if (typeof msg === 'string') {
+          errorMessage = msg;
+        } else if (typeof msg === 'object') {
+          errorMessage = JSON.stringify(msg);
+        }
       }
+
+      // Ensure errorMessage is always a string
+      if (typeof errorMessage !== 'string') {
+        errorMessage = String(errorMessage || 'Erreur inconnue');
+      }
+
+      console.error('Exception lors de la récupération des notifications:', errorMessage);
 
       toast({
         title: 'Erreur',
