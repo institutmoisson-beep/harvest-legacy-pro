@@ -56,18 +56,36 @@ export const usePWABadge = () => {
         .eq('is_read', false);
 
       if (error) {
+        let errorMessage = 'Impossible de récupérer les notifications';
+
+        if (error.message) {
+          errorMessage = error.message;
+        } else if (error.code) {
+          errorMessage = `Erreur (${error.code})`;
+        } else if (error.details) {
+          errorMessage = error.details;
+        }
+
         console.error('❌ Erreur lors de la récupération des notifications:', {
-          message: error.message,
-          code: error.code,
-          details: error.details,
-          hint: error.hint,
+          message: errorMessage,
+          code: error.code || 'N/A',
+          details: error.details || 'N/A',
         });
         return 0;
       }
 
       return count || 0;
     } catch (error: any) {
-      const errorMessage = error instanceof Error ? error.message : String(error);
+      let errorMessage = 'Une erreur est survenue';
+
+      if (typeof error === 'string') {
+        errorMessage = error;
+      } else if (error instanceof Error) {
+        errorMessage = error.message;
+      } else if (typeof error === 'object' && error !== null && 'message' in error) {
+        errorMessage = String(error.message);
+      }
+
       console.error('❌ Erreur lors de la récupération des notifications:', errorMessage);
       return 0;
     }
