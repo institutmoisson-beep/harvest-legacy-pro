@@ -719,11 +719,12 @@ export default function ShopDashboard() {
                     )}
 
                     <div>
-                      <Label>Lien de paiement (optionnel)</Label>
+                      <Label className="block mb-2">Lien de paiement (optionnel)</Label>
                       <Input
                         value={productData.payment_link}
                         onChange={(e) => setProductData({ ...productData, payment_link: e.target.value })}
                         placeholder="https://pay.exemple.com/..."
+                        className="w-full"
                       />
                     </div>
 
