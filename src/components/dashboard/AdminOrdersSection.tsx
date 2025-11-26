@@ -255,9 +255,9 @@ export default function AdminOrdersSection() {
                       </div>
                     </TableCell>
                     <TableCell className="text-right">{order.quantity}</TableCell>
-                    <TableCell className="text-right">{formatCurrency(order.purchase_price)}</TableCell>
+                    <TableCell className="text-right">{formatCurrency(order.purchase_price * MSN_TO_FCFA)}</TableCell>
                     <TableCell className="text-right font-semibold text-primary">
-                      {formatCurrency(order.profit)}
+                      {formatCurrency(order.profit * MSN_TO_FCFA)}
                     </TableCell>
                     <TableCell className="text-center">
                       <Dialog>
