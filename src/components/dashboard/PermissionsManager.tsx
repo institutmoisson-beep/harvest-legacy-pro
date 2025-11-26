@@ -124,9 +124,14 @@ export default function PermissionsManager() {
 
   const fetchRolePermissions = async (role: string) => {
     try {
-      const { data, error } = await supabase.rpc('get_role_permissions' as any, {
-        _role: role,
-      }) as any;
+      // Query role_permissions directly instead of using RPC to avoid enum casting issues
+      const { data, error } = await supabase
+        .from('role_permissions' as any)
+        .select(`
+          permission_id,
+          permissions:permission_id(id, module, action, name, description)
+        `)
+        .eq('role', role as any);
 
       if (error) throw error;
 
