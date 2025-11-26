@@ -170,7 +170,7 @@ export default function AdminTransactionsSection() {
               <TableHead>Montant</TableHead>
               <TableHead>Moyen de paiement</TableHead>
               <TableHead>Contact</TableHead>
-              <TableHead>Date</TableHead>
+              <TableHead>Date et Heure</TableHead>
               <TableHead>Actions</TableHead>
             </TableRow>
           </TableHeader>
