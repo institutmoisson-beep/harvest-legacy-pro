@@ -59,7 +59,11 @@ export default function NotificationsPanel({ userId }: NotificationsPanelProps) 
             if (typeof msg === 'string') {
               errorMessage = msg;
             } else if (typeof msg === 'object') {
-              errorMessage = JSON.stringify(msg);
+              try {
+                errorMessage = JSON.stringify(msg);
+              } catch {
+                errorMessage = 'Erreur de format du message';
+              }
             }
           } else if (errorObj.code && typeof errorObj.code === 'string') {
             errorMessage = `Erreur (${errorObj.code})`;
@@ -68,7 +72,11 @@ export default function NotificationsPanel({ userId }: NotificationsPanelProps) 
             if (typeof details === 'string') {
               errorMessage = details;
             } else if (typeof details === 'object') {
-              errorMessage = JSON.stringify(details);
+              try {
+                errorMessage = JSON.stringify(details);
+              } catch {
+                errorMessage = 'Erreur de détails';
+              }
             }
           }
         } else if (typeof error === 'string') {
@@ -82,7 +90,7 @@ export default function NotificationsPanel({ userId }: NotificationsPanelProps) 
           errorMessage = String(errorMessage || 'Erreur inconnue');
         }
 
-        console.error('❌ Erreur lors de la récupération des notifications:', errorMessage);
+        console.error('❌ Erreur lors de la récupération des notifications:', { message: errorMessage, error });
 
         // Silently fail - don't show toast for notification errors
         // as it's not critical functionality
