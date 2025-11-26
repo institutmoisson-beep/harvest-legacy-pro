@@ -256,16 +256,26 @@ export default function AgentCommissions({ agentId }: AgentCommissionsProps) {
                       </TableCell>
                       <TableCell>
                         <Badge
-                          variant={earning.transaction_type === 'deposit' ? 'default' : 'secondary'}
+                          variant={
+                            earning.transaction_type === 'deposit'
+                              ? 'default'
+                              : earning.transaction_type === 'order'
+                              ? 'outline'
+                              : 'secondary'
+                          }
                         >
-                          {earning.transaction_type === 'deposit' ? 'Dépôt' : 'Retrait'}
+                          {earning.transaction_type === 'deposit'
+                            ? 'Dépôt'
+                            : earning.transaction_type === 'order'
+                            ? `Commande${earning.level ? ` (Niv. ${earning.level})` : ''}`
+                            : 'Retrait'}
                         </Badge>
                       </TableCell>
                       <TableCell className="text-right font-medium">
                         {Number(earning.transaction_amount).toFixed(2)} MSN
                       </TableCell>
                       <TableCell className="text-right">
-                        {earning.commission_rate}%
+                        {Number(earning.commission_rate).toFixed(1)}%
                       </TableCell>
                       <TableCell className="text-right font-bold text-primary">
                         +{Number(earning.commission_amount).toFixed(2)} MSN
