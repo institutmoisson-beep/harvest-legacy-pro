@@ -390,6 +390,11 @@ export default function AdminDashboard() {
                       <TableCell className="text-secondary">{order.profit.toLocaleString()} FCFA</TableCell>
                       <TableCell className="font-mono text-sm">{order.broker_code}</TableCell>
                       <TableCell>
+                        <span className="px-2 py-1 rounded text-xs bg-blue-500/20 text-blue-500 font-medium">
+                          {order.payment_method}
+                        </span>
+                      </TableCell>
+                      <TableCell>
                         <span className={`px-2 py-1 rounded text-xs ${
                           order.status === 'validated' ? 'bg-secondary/20 text-secondary' :
                           order.status === 'pending' ? 'bg-accent/20 text-accent' :
