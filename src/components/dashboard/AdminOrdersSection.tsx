@@ -258,6 +258,52 @@ export default function AdminOrdersSection() {
                     <TableCell className="text-right font-semibold text-primary">
                       {formatCurrency(order.profit)}
                     </TableCell>
+                    <TableCell className="text-center">
+                      <Dialog>
+                        <DialogTrigger asChild>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => fetchOrderImages(order.id)}
+                          >
+                            <ImageIcon className="h-4 w-4 mr-1" />
+                            Voir
+                          </Button>
+                        </DialogTrigger>
+                        <DialogContent className="max-w-4xl">
+                          <DialogHeader>
+                            <DialogTitle>
+                              Images du produit - {order.product_name}
+                            </DialogTitle>
+                          </DialogHeader>
+                          <div className="space-y-4">
+                            {(!orderImages[order.id] || orderImages[order.id].length === 0) ? (
+                              <p className="text-center text-muted-foreground py-8">
+                                Aucune image disponible
+                              </p>
+                            ) : (
+                              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                                {orderImages[order.id].map((img) => (
+                                  <div key={img.id} className="rounded-lg overflow-hidden border">
+                                    <img
+                                      src={img.image_url}
+                                      alt={img.file_name}
+                                      className="w-full h-48 object-cover"
+                                    />
+                                    <div className="p-2 bg-secondary text-sm">
+                                      <p className="truncate font-medium">{img.file_name}</p>
+                                      <p className="text-xs text-muted-foreground">
+                                        {format(new Date(img.created_at), 'dd MMM yyyy HH:mm', { locale: fr })}
+                                      </p>
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        </DialogContent>
+                      </Dialog>
+                    </TableCell>
                     <TableCell>
                       <div className="flex items-center justify-center gap-3">
                         <Button
