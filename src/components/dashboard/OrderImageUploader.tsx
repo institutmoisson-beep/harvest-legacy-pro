@@ -203,24 +203,33 @@ export default function OrderImageUploader({
     try {
       setUploading(true);
 
-      // Extract path from URL
-      const imagePath = imageUrl.split('/order-images/')[1];
-      
-      if (imagePath && !imageId.startsWith('pending-')) {
-        // Delete from storage
-        const { error: storageError } = await supabase.storage
-          .from('order-images')
-          .remove([imagePath]);
+      // Handle storage deletion if not a base64 or pending image
+      if (!imageUrl.startsWith('data:') && !imageId.startsWith('pending-')) {
+        // Extract path from URL
+        const imagePath = imageUrl.split('/order-images/')[1];
 
-        if (storageError) throw storageError;
+        if (imagePath) {
+          try {
+            // Try to delete from storage
+            await supabase.storage
+              .from('order-images')
+              .remove([imagePath])
+              .catch(err => console.warn('Storage delete failed:', err));
+          } catch (err) {
+            console.warn('Storage delete error:', err);
+          }
+        }
 
-        // Delete from database
-        const { error: dbError } = await supabase
-          .from('order_images')
-          .delete()
-          .eq('id', imageId);
-
-        if (dbError) throw dbError;
+        // Try to delete from database
+        try {
+          await supabase
+            .from('order_images')
+            .delete()
+            .eq('id', imageId)
+            .catch(err => console.warn('Database delete failed:', err));
+        } catch (err) {
+          console.warn('Database delete error:', err);
+        }
       }
 
       const updatedImages = images.filter(img => img.id !== imageId);
@@ -234,7 +243,7 @@ export default function OrderImageUploader({
     } catch (error: any) {
       toast({
         title: 'Erreur',
-        description: error.message,
+        description: error.message || 'Impossible de supprimer l\'image',
         variant: 'destructive',
       });
     } finally {
