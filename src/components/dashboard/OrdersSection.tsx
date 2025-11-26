@@ -158,6 +158,25 @@ function OrdersSectionComponent({ userId, brokerCode }: OrdersSectionProps) {
             description: `${amountFCFA.toLocaleString()} FCFA débité de votre portefeuille. Votre commande est en attente de validation admin.`,
           });
 
+          // Save pending images to database now that order is created
+          if (orderImages.length > 0) {
+            for (const img of orderImages) {
+              if (img.isPending) {
+                await supabase
+                  .from('order_images')
+                  .insert({
+                    order_id: orderId,
+                    image_url: img.image_url,
+                    file_name: img.file_name,
+                    file_size: img.file_size,
+                    mime_type: img.mime_type,
+                    uploaded_by: userId,
+                  })
+                  .catch(err => console.warn('Could not save image to database:', err));
+              }
+            }
+          }
+
           // Reset form
           setCustomerName('');
           setCustomerPhone('');
@@ -168,11 +187,31 @@ function OrdersSectionComponent({ userId, brokerCode }: OrdersSectionProps) {
           setGeographicZone('');
           setPaymentMethodId('');
           setPaymentMethodName('');
+          setOrderImages([]);
         } else {
           toast({
             title: "Commande créée",
             description: `Commande créée. En attente de validation admin. Redirection vers ${paymentMethodName === 'wave' ? 'Wave' : paymentMethodName === 'lygos' ? 'Lygos' : paymentMethodName === 'coinpayments' ? 'CoinPayments' : 'la livraison'}...`,
           });
+
+          // Save pending images to database now that order is created
+          if (orderImages.length > 0) {
+            for (const img of orderImages) {
+              if (img.isPending) {
+                await supabase
+                  .from('order_images')
+                  .insert({
+                    order_id: orderId,
+                    image_url: img.image_url,
+                    file_name: img.file_name,
+                    file_size: img.file_size,
+                    mime_type: img.mime_type,
+                    uploaded_by: userId,
+                  })
+                  .catch(err => console.warn('Could not save image to database:', err));
+              }
+            }
+          }
 
           // Redirect to payment provider based on payment method
           if (paymentMethodName === 'wave') {
@@ -197,6 +236,7 @@ function OrdersSectionComponent({ userId, brokerCode }: OrdersSectionProps) {
             setGeographicZone('');
             setPaymentMethodId('');
             setPaymentMethodName('');
+            setOrderImages([]);
           }
         }
       }
