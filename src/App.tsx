@@ -50,6 +50,7 @@ const OrderConfirmation = lazy(() => import("./pages/OrderConfirmation"));
 const ProductPayment = lazy(() => import("./pages/ProductPayment"));
 const OrderDownloads = lazy(() => import("./pages/OrderDownloads"));
 const AdminPayments = lazy(() => import("./pages/AdminPayments"));
+const StorageSetup = lazy(() => import("./pages/StorageSetup"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 // Composant interne pour utiliser les hooks après AuthProvider
