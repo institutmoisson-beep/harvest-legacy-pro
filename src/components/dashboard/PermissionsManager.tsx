@@ -90,10 +90,31 @@ export default function PermissionsManager() {
 
       setPermissions((data as any) || []);
     } catch (error: any) {
-      console.error('Error fetching permissions:', error);
+      let errorMessage = 'Impossible de charger les permissions';
+
+      if (typeof error === 'string') {
+        errorMessage = error;
+      } else if (error instanceof Error) {
+        errorMessage = error.message;
+      } else if (typeof error === 'object' && error !== null) {
+        if (error.message && typeof error.message === 'string') {
+          errorMessage = error.message;
+        } else if (error.code && typeof error.code === 'string') {
+          errorMessage = `Erreur (${error.code})`;
+        } else if (error.details) {
+          const details = error.details;
+          if (typeof details === 'string') {
+            errorMessage = details;
+          } else if (typeof details === 'object') {
+            errorMessage = JSON.stringify(details);
+          }
+        }
+      }
+
+      console.error('Error fetching permissions:', errorMessage);
       toast({
         title: 'Erreur',
-        description: 'Impossible de charger les permissions',
+        description: errorMessage,
         variant: 'destructive',
       });
     } finally {
