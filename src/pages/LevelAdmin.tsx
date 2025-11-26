@@ -80,11 +80,11 @@ export default function LevelAdmin() {
       <div className="flex justify-between items-center mb-6">
         <Button
           variant="outline"
-          onClick={() => navigate('/')}
+          onClick={() => navigate('/dashboard')}
           className="gap-2"
         >
           <Home className="w-4 h-4" />
-          Retour à l'accueil
+          Retour au Tableau de Bord
         </Button>
       </div>
       
