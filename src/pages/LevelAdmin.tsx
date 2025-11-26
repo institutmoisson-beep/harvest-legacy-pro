@@ -76,17 +76,18 @@ export default function LevelAdmin() {
   if (!allowed) return null;
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="flex justify-between items-center mb-6">
-        <Button
-          variant="outline"
-          onClick={() => navigate('/dashboard')}
-          className="gap-2"
-        >
-          <Home className="w-4 h-4" />
-          Retour au Tableau de Bord
-        </Button>
-      </div>
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5 py-8 px-4">
+      <div className="container mx-auto max-w-7xl">
+        <div className="mb-8">
+          <Button
+            variant="outline"
+            onClick={() => navigate('/dashboard')}
+            className="gap-2"
+          >
+            <Home className="w-4 h-4" />
+            Retour au Tableau de Bord
+          </Button>
+        </div>
       
       <Card className="mb-6">
         <CardHeader>
@@ -187,6 +188,7 @@ export default function LevelAdmin() {
           <MemberManagement />
         </TabsContent>
       </Tabs>
+      </div>
     </div>
   );
 }
