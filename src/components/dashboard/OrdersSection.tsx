@@ -7,6 +7,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { Plus } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
+import PaymentMethodSelector from '@/components/payment/PaymentMethodSelector';
+import { useState, useEffect, memo } from 'react';
 
 interface OrdersSectionProps {
   userId: string;
