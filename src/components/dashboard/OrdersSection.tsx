@@ -66,6 +66,25 @@ function OrdersSectionComponent({ userId, brokerCode }: OrdersSectionProps) {
       // Calculer automatiquement le profit = 5% du prix total
       const totalPrice = parseFloat(purchasePriceMSN) * parseInt(quantity);
       const calculatedProfit = totalPrice * 0.05;
+      const amountFCFA = totalPrice * MSN_TO_FCFA;
+
+      // Check wallet balance if paying with wallet
+      if (paymentMethodName === 'wallet') {
+        const { data: walletData, error: walletError } = await supabase
+          .from('wallets')
+          .select('balance')
+          .eq('user_id', userId)
+          .single();
+
+        if (walletError || !walletData) {
+          throw new Error('Impossible de vérifier le solde du portefeuille');
+        }
+
+        // Check if balance is sufficient (balance is in MSN)
+        if (walletData.balance < totalPrice) {
+          throw new Error(`Solde insuffisant. Vous avez ${walletData.balance.toFixed(2)} MSN mais la commande coûte ${totalPrice.toFixed(2)} MSN`);
+        }
+      }
 
       const { data: orderData, error } = await supabase
         .from('orders')
@@ -80,7 +99,7 @@ function OrdersSectionComponent({ userId, brokerCode }: OrdersSectionProps) {
           profit: calculatedProfit,
           geographic_zone: geographicZone || null,
           payment_method_id: paymentMethodId,
-          status: 'pending'
+          status: paymentMethodName === 'wallet' ? 'validated' : 'pending'
         })
         .select();
 
@@ -89,37 +108,49 @@ function OrdersSectionComponent({ userId, brokerCode }: OrdersSectionProps) {
       // Créer une transaction de paiement
       if (orderData && orderData.length > 0) {
         const orderId = orderData[0].id;
-        const amount = parseFloat(purchasePriceMSN) * parseInt(quantity) * MSN_TO_FCFA;
 
-        await supabase
+        const { error: paymentError } = await supabase
           .from('payment_transactions')
           .insert({
             order_id: orderId,
             user_id: userId,
             payment_method_id: paymentMethodId,
-            amount: amount,
+            amount: amountFCFA,
             currency: 'FCFA',
-            status: paymentMethodName === 'cash_on_delivery' ? 'pending_delivery' : 'pending',
+            status: paymentMethodName === 'wallet' ? 'completed' : (paymentMethodName === 'cash_on_delivery' ? 'pending_delivery' : 'pending'),
             payment_details: {}
           });
 
-        toast({
-          title: "Commande créée",
-          description: `Redirection vers ${paymentMethodName === 'wave' ? 'Wave' : paymentMethodName === 'lygos' ? 'Lygos' : paymentMethodName === 'coinpayments' ? 'CoinPayments' : 'la livraison'}...`,
-        });
+        if (paymentError) throw paymentError;
 
-        // Redirect to payment provider based on payment method
-        if (paymentMethodName === 'wave') {
-          redirectToWavePayment(amount, orderId, customerPhone || '');
-        } else if (paymentMethodName === 'lygos') {
-          await redirectToLygosPayment(amount, orderId);
-        } else if (paymentMethodName === 'coinpayments') {
-          await redirectToCoinPaymentsPayment(amount, orderId);
-        } else if (paymentMethodName === 'cash_on_delivery') {
-          // For cash on delivery, just show success
+        // If paying with wallet, debit from wallet immediately
+        if (paymentMethodName === 'wallet') {
+          // Update wallet balance
+          const { error: updateWalletError } = await supabase
+            .from('wallets')
+            .update({
+              balance: supabase.rpc('subtract_balance', { user_id: userId, amount: totalPrice })
+            })
+            .eq('user_id', userId);
+
+          // Debit transaction from wallet_transactions
+          const { error: transactionError } = await supabase
+            .from('wallet_transactions')
+            .insert({
+              from_user_id: userId,
+              amount: amountFCFA / MSN_TO_FCFA, // Convert back to MSN
+              transaction_type: 'order_payment',
+              description: `Paiement de la commande ${orderId} - ${productName}`,
+              status: 'completed'
+            });
+
+          if (transactionError) {
+            console.error('Erreur lors de la création de la transaction:', transactionError);
+          }
+
           toast({
-            title: "Commande créée",
-            description: "Votre commande a été créée. Le paiement se fera à la livraison.",
+            title: "Paiement effectué",
+            description: `${amountFCFA.toLocaleString()} FCFA débité de votre portefeuille. Commande validée!`,
           });
 
           // Reset form
@@ -132,12 +163,42 @@ function OrdersSectionComponent({ userId, brokerCode }: OrdersSectionProps) {
           setGeographicZone('');
           setPaymentMethodId('');
           setPaymentMethodName('');
+        } else {
+          toast({
+            title: "Commande créée",
+            description: `Redirection vers ${paymentMethodName === 'wave' ? 'Wave' : paymentMethodName === 'lygos' ? 'Lygos' : paymentMethodName === 'coinpayments' ? 'CoinPayments' : 'la livraison'}...`,
+          });
+
+          // Redirect to payment provider based on payment method
+          if (paymentMethodName === 'wave') {
+            redirectToWavePayment(amountFCFA, orderId, customerPhone || '');
+          } else if (paymentMethodName === 'lygos') {
+            await redirectToLygosPayment(amountFCFA, orderId);
+          } else if (paymentMethodName === 'coinpayments') {
+            await redirectToCoinPaymentsPayment(amountFCFA, orderId);
+          } else if (paymentMethodName === 'cash_on_delivery') {
+            toast({
+              title: "Commande créée",
+              description: "Votre commande a été créée. Le paiement se fera à la livraison.",
+            });
+
+            // Reset form
+            setCustomerName('');
+            setCustomerPhone('');
+            setProductName('');
+            setPurchasePriceMSN('');
+            setPurchasePriceFCFA('');
+            setQuantity('1');
+            setGeographicZone('');
+            setPaymentMethodId('');
+            setPaymentMethodName('');
+          }
         }
       }
     } catch (error: any) {
       toast({
         title: "Erreur",
-        description: error.message,
+        description: error.message || "Une erreur est survenue",
         variant: "destructive",
       });
     } finally {
