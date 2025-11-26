@@ -17,7 +17,7 @@ interface OrdersSectionProps {
 
 function OrdersSectionComponent({ userId, brokerCode }: OrdersSectionProps) {
   const MSN_TO_FCFA = 750;
-  
+
   const [customerName, setCustomerName] = useState('');
   const [customerPhone, setCustomerPhone] = useState('');
   const [productName, setProductName] = useState('');
@@ -25,6 +25,8 @@ function OrdersSectionComponent({ userId, brokerCode }: OrdersSectionProps) {
   const [purchasePriceFCFA, setPurchasePriceFCFA] = useState('');
   const [quantity, setQuantity] = useState('1');
   const [geographicZone, setGeographicZone] = useState('');
+  const [paymentMethodId, setPaymentMethodId] = useState('');
+  const [paymentMethodName, setPaymentMethodName] = useState('');
   const [loading, setLoading] = useState(false);
 
   // Conversion MSN -> FCFA
