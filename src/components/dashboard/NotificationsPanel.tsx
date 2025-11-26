@@ -70,11 +70,8 @@ export default function NotificationsPanel({ userId }: NotificationsPanelProps) 
           fullError: error,
         });
 
-        toast({
-          title: 'Erreur',
-          description: errorMessage,
-          variant: 'destructive',
-        });
+        // Silently fail - don't show toast for notification errors
+        // as it's not critical functionality
         return;
       }
 
