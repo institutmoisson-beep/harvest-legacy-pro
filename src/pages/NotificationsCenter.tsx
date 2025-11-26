@@ -72,7 +72,11 @@ export default function NotificationsCenter() {
             if (typeof msg === 'string') {
               errorMessage = msg;
             } else if (typeof msg === 'object') {
-              errorMessage = JSON.stringify(msg);
+              try {
+                errorMessage = JSON.stringify(msg);
+              } catch {
+                errorMessage = 'Erreur de format du message';
+              }
             }
           } else if (errorObj.code && typeof errorObj.code === 'string') {
             errorMessage = `Erreur (${errorObj.code})`;
@@ -81,7 +85,11 @@ export default function NotificationsCenter() {
             if (typeof details === 'string') {
               errorMessage = details;
             } else if (typeof details === 'object') {
-              errorMessage = JSON.stringify(details);
+              try {
+                errorMessage = JSON.stringify(details);
+              } catch {
+                errorMessage = 'Erreur de détails';
+              }
             }
           }
         } else if (typeof error === 'string') {
@@ -95,7 +103,7 @@ export default function NotificationsCenter() {
           errorMessage = String(errorMessage || 'Erreur inconnue');
         }
 
-        console.error('❌ Erreur lors de la récupération des notifications:', errorMessage);
+        console.error('❌ Erreur lors de la récupération des notifications:', { message: errorMessage, error });
 
         toast({
           title: 'Erreur',
