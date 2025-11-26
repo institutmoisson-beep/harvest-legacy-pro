@@ -896,7 +896,7 @@ export default function ShopDashboard() {
           <TabsContent value="settings" className="space-y-4">
             <Card>
               <CardHeader>
-                <CardTitle>Paramètres de la boutique</CardTitle>
+                <CardTitle className="text-lg sm:text-xl">Paramètres de la boutique</CardTitle>
                 <CardDescription>Personnalisez l'apparence de votre boutique</CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
