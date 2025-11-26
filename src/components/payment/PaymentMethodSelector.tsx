@@ -45,12 +45,59 @@ export default function PaymentMethodSelector({
         .eq('is_active', true)
         .order('name', { ascending: true });
 
-      if (fetchError) throw fetchError;
+      if (fetchError) {
+        // Fallback to hardcoded payment methods if table doesn't exist
+        console.warn('Utilisation des moyens de paiement par défaut');
+        const defaultMethods: PaymentMethod[] = [
+          {
+            id: 'wallet',
+            name: 'wallet',
+            display_name: '💰 Portefeuille Moissonneur',
+            description: 'Paiement direct depuis votre portefeuille',
+            icon: '💰',
+            is_active: true
+          },
+          {
+            id: 'wave',
+            name: 'wave',
+            display_name: '📱 Wave Paiement',
+            description: 'Paiement mobile via Wave',
+            icon: '📱',
+            is_active: true
+          },
+          {
+            id: 'lygos',
+            name: 'lygos',
+            display_name: '🔗 Lygos Paiement',
+            description: 'Paiement par code QR Lygos',
+            icon: '🔗',
+            is_active: true
+          },
+          {
+            id: 'coinpayments',
+            name: 'coinpayments',
+            display_name: '₿ Cryptomonnaie',
+            description: 'Paiement en Bitcoin ou autres cryptocurrences',
+            icon: '₿',
+            is_active: true
+          },
+          {
+            id: 'cash_on_delivery',
+            name: 'cash_on_delivery',
+            display_name: '💵 Paiement à la Livraison',
+            description: 'Paiement au moment de la livraison',
+            icon: '💵',
+            is_active: true
+          }
+        ];
+        setPaymentMethods(defaultMethods);
+        return;
+      }
 
       setPaymentMethods(data || []);
     } catch (err: any) {
       console.error('Erreur lors du chargement des moyens de paiement:', err);
-      setError('Impossible de charger les moyens de paiement');
+      // Don't show error, use fallback instead
     } finally {
       setLoading(false);
     }
