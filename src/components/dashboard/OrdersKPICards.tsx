@@ -9,6 +9,7 @@ interface OrdersKPICardsProps {
 }
 
 function OrdersKPICardsComponent({ userId }: OrdersKPICardsProps) {
+  const MSN_TO_FCFA = 750;
   const [timeFilter, setTimeFilter] = useState<'today' | 'week' | 'month' | 'year'>('month');
   const { orders, kpis: allKpis, loading } = useOrdersData(userId);
 
@@ -34,7 +35,7 @@ function OrdersKPICardsComponent({ userId }: OrdersKPICardsProps) {
     const filteredOrders = orders.filter(o => new Date(o.created_at) >= startDate);
     const pending = filteredOrders.filter(o => o.status === 'pending');
     const completed = filteredOrders.filter(o => o.status === 'completed');
-    const totalProfit = completed.reduce((sum, o) => sum + Number(o.profit), 0);
+    const totalProfit = completed.reduce((sum, o) => sum + Number(o.profit), 0) * MSN_TO_FCFA;
     const successRate = filteredOrders.length > 0
       ? (completed.length / filteredOrders.length) * 100
       : 0;
