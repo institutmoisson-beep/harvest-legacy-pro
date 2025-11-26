@@ -285,6 +285,23 @@ export default function OrderImageUploader({
         </label>
       </div>
 
+      {/* Setup Helper */}
+      {!bucketReady && (
+        <div className="p-3 bg-blue-500/10 border border-blue-500/30 rounded-lg">
+          <p className="text-sm text-blue-700 dark:text-blue-400 mb-2">
+            💡 Si vous avez des problèmes de téléchargement, cliquez ici:
+          </p>
+          <a
+            href="/setup/storage"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-xs text-primary underline hover:no-underline"
+          >
+            Initialiser le stockage →
+          </a>
+        </div>
+      )}
+
       {/* Images Grid */}
       {images.length > 0 && (
         <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
