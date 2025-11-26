@@ -99,7 +99,7 @@ function OrdersSectionComponent({ userId, brokerCode }: OrdersSectionProps) {
           profit: calculatedProfit,
           geographic_zone: geographicZone || null,
           payment_method_id: paymentMethodId,
-          status: paymentMethodName === 'wallet' ? 'validated' : 'pending'
+          status: paymentMethodName === 'cash_on_delivery' ? 'pending_delivery' : 'pending_admin_review'
         })
         .select();
 
@@ -117,7 +117,7 @@ function OrdersSectionComponent({ userId, brokerCode }: OrdersSectionProps) {
             payment_method_id: paymentMethodId,
             amount: amountFCFA,
             currency: 'FCFA',
-            status: paymentMethodName === 'wallet' ? 'completed' : (paymentMethodName === 'cash_on_delivery' ? 'pending_delivery' : 'pending'),
+            status: paymentMethodName === 'cash_on_delivery' ? 'pending_delivery' : 'pending',
             payment_details: {}
           });
 
@@ -125,7 +125,7 @@ function OrdersSectionComponent({ userId, brokerCode }: OrdersSectionProps) {
 
         // If paying with wallet, debit from wallet immediately
         if (paymentMethodName === 'wallet') {
-          const { error: walletDebitError } = await supabase
+          const { data: debitResult, error: walletDebitError } = await supabase
             .rpc('debit_wallet_for_payment', {
               p_user_id: userId,
               p_amount: totalPrice, // Amount in MSN
@@ -138,8 +138,8 @@ function OrdersSectionComponent({ userId, brokerCode }: OrdersSectionProps) {
           }
 
           toast({
-            title: "Paiement effectué",
-            description: `${amountFCFA.toLocaleString()} FCFA débité de votre portefeuille. Commande validée!`,
+            title: "Paiement en attente de validation",
+            description: `${amountFCFA.toLocaleString()} FCFA débité de votre portefeuille. Votre commande est en attente de validation admin.`,
           });
 
           // Reset form
@@ -155,7 +155,7 @@ function OrdersSectionComponent({ userId, brokerCode }: OrdersSectionProps) {
         } else {
           toast({
             title: "Commande créée",
-            description: `Redirection vers ${paymentMethodName === 'wave' ? 'Wave' : paymentMethodName === 'lygos' ? 'Lygos' : paymentMethodName === 'coinpayments' ? 'CoinPayments' : 'la livraison'}...`,
+            description: `Commande créée. En attente de validation admin. Redirection vers ${paymentMethodName === 'wave' ? 'Wave' : paymentMethodName === 'lygos' ? 'Lygos' : paymentMethodName === 'coinpayments' ? 'CoinPayments' : 'la livraison'}...`,
           });
 
           // Redirect to payment provider based on payment method
