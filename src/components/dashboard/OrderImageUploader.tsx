@@ -161,7 +161,7 @@ export default function OrderImageUploader({
                 size="sm"
                 variant="destructive"
                 className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition"
-                onClick={() => handleDeleteImage(img.id, img.image_url)}
+                onClick={() => handleDeleteImage(img.id)}
                 disabled={uploading}
               >
                 <X className="w-4 h-4" />
