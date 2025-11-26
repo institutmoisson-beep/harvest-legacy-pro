@@ -647,49 +647,78 @@ export default function AdminDashboard() {
 
         {/* Transactions Table */}
         <Card className="glass-card mb-8">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Users className="h-5 w-5 text-secondary" />
-              Transactions récentes
-            </CardTitle>
-            <CardDescription>Les 50 dernières transactions</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Type</TableHead>
-                    <TableHead>De</TableHead>
-                    <TableHead>À</TableHead>
-                    <TableHead>Montant</TableHead>
-                    <TableHead>Description</TableHead>
-                    <TableHead>Date</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {transactions.map((transaction) => (
-                    <TableRow key={transaction.id}>
-                      <TableCell>
-                        <span className={`px-2 py-1 rounded text-xs ${
-                          transaction.transaction_type === 'deposit' ? 'bg-secondary/20 text-secondary' :
-                          transaction.transaction_type === 'withdrawal' ? 'bg-destructive/20 text-destructive' :
-                          'bg-primary/20 text-primary'
-                        }`}>
-                          {transaction.transaction_type}
-                        </span>
-                      </TableCell>
-                      <TableCell>{transaction.from_user_name || '-'}</TableCell>
-                      <TableCell>{transaction.to_user_name || '-'}</TableCell>
-                      <TableCell className="font-bold">{transaction.amount.toFixed(2)} MSN</TableCell>
-                      <TableCell className="max-w-xs truncate">{transaction.description}</TableCell>
-                      <TableCell>{new Date(transaction.created_at).toLocaleDateString()}</TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+          <CardHeader className="flex flex-row items-center justify-between">
+            <div className="flex items-center gap-2">
+              <CardTitle className="flex items-center gap-2">
+                <Users className="h-5 w-5 text-secondary" />
+                Transactions récentes
+              </CardTitle>
+              <CardDescription>Les 50 dernières transactions</CardDescription>
             </div>
-          </CardContent>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setTransactionsExpanded(!transactionsExpanded)}
+              className="ml-auto"
+            >
+              {transactionsExpanded ? (
+                <>
+                  <ChevronUp className="h-4 w-4 mr-1" />
+                  Réduire
+                </>
+              ) : (
+                <>
+                  <ChevronDown className="h-4 w-4 mr-1" />
+                  Agrandir
+                </>
+              )}
+            </Button>
+          </CardHeader>
+          {transactionsExpanded && (
+            <CardContent>
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Type</TableHead>
+                      <TableHead>De</TableHead>
+                      <TableHead>À</TableHead>
+                      <TableHead>Montant</TableHead>
+                      <TableHead>Description</TableHead>
+                      <TableHead>Date et Heure</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {transactions.map((transaction) => (
+                      <TableRow key={transaction.id}>
+                        <TableCell>
+                          <span className={`px-2 py-1 rounded text-xs ${
+                            transaction.transaction_type === 'deposit' ? 'bg-secondary/20 text-secondary' :
+                            transaction.transaction_type === 'withdrawal' ? 'bg-destructive/20 text-destructive' :
+                            'bg-primary/20 text-primary'
+                          }`}>
+                            {transaction.transaction_type}
+                          </span>
+                        </TableCell>
+                        <TableCell>{transaction.from_user_name || '-'}</TableCell>
+                        <TableCell>{transaction.to_user_name || '-'}</TableCell>
+                        <TableCell className="font-bold">{transaction.amount.toFixed(2)} MSN</TableCell>
+                        <TableCell className="max-w-xs truncate">{transaction.description}</TableCell>
+                        <TableCell className="text-sm">
+                          <div className="text-muted-foreground">
+                            {new Date(transaction.created_at).toLocaleDateString('fr-FR')}
+                          </div>
+                          <div className="text-xs text-muted-foreground">
+                            {new Date(transaction.created_at).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            </CardContent>
+          )}
         </Card>
       </div>
     </div>
