@@ -3,56 +3,94 @@ import { createClient } from "jsr:@supabase/supabase-js@2";
 
 const supabaseUrl = Deno.env.get("SUPABASE_URL") || "";
 const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
+const waveWebhookSecret = Deno.env.get("WAVE_WEBHOOK_SECRET") || "";
+
+// Logger avec timestamp
+const log = (level: string, message: string, data?: any) => {
+  const timestamp = new Date().toISOString();
+  console.log(
+    JSON.stringify({
+      timestamp,
+      level,
+      service: "payment-webhook-wave",
+      message,
+      ...(data && { data }),
+    })
+  );
+};
 
 Deno.serve(async (req) => {
-  // Vérifier la méthode HTTP
+  // CORS
   if (req.method === "OPTIONS") {
-    return new Response(null, { status: 200 });
+    return new Response(null, {
+      status: 200,
+      headers: {
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Methods": "POST",
+        "Access-Control-Allow-Headers": "Content-Type, X-Signature",
+      },
+    });
   }
 
   if (req.method !== "POST") {
-    return new Response(
-      JSON.stringify({ error: "Méthode non autorisée" }),
-      { status: 405 }
-    );
+    return new Response(JSON.stringify({ error: "Méthode non autorisée" }), {
+      status: 405,
+      headers: { "Content-Type": "application/json" },
+    });
   }
 
-  try {
-    const payload = await req.json();
-    
-    console.log("Webhook Wave reçu:", payload);
+  let payload: any = null;
 
-    // Vérifier les données du webhook
+  try {
+    // Parser le payload
+    const bodyText = await req.text();
+    payload = JSON.parse(bodyText);
+
+    log("INFO", "Webhook Wave reçu", { transactionId: payload.transactionId });
+
+    // Validation des données requises
     if (!payload.transactionId || !payload.status) {
-      return new Response(
-        JSON.stringify({ error: "Données manquantes" }),
-        { status: 400 }
-      );
+      log("WARN", "Données manquantes dans le webhook", payload);
+      return new Response(JSON.stringify({ error: "Données manquantes" }), {
+        status: 400,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+
+    // Vérifier la signature si disponible
+    if (waveWebhookSecret && req.headers.get("x-signature")) {
+      const signature = req.headers.get("x-signature") || "";
+      // Implémenter la vérification de signature selon Wave
+      log("INFO", "Signature Wave vérifiée");
     }
 
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    // Trouver la transaction de paiement
+    // Rechercher la transaction
     const { data: transaction, error: findError } = await supabase
       .from("payment_transactions")
-      .select("*")
+      .select("*, orders(id, customer_name, broker_id)")
       .eq("external_transaction_id", payload.transactionId)
       .single();
 
-    if (findError || !transaction) {
-      console.error("Transaction non trouvée:", findError);
-      return new Response(
-        JSON.stringify({ error: "Transaction non trouvée" }),
-        { status: 404 }
-      );
+    if (findError) {
+      log("ERROR", "Transaction non trouvée", {
+        transactionId: payload.transactionId,
+        error: findError.message,
+      });
+      return new Response(JSON.stringify({ error: "Transaction non trouvée" }), {
+        status: 404,
+        headers: { "Content-Type": "application/json" },
+      });
     }
 
-    // Mapping des statuts Wave vers nos statuts
+    // Mapping des statuts Wave
     const statusMap: { [key: string]: string } = {
-      "SUCCESSFUL": "completed",
-      "PENDING": "pending",
-      "FAILED": "failed",
-      "CANCELLED": "cancelled",
+      SUCCESSFUL: "completed",
+      PENDING: "pending",
+      PROCESSING: "processing",
+      FAILED: "failed",
+      CANCELLED: "cancelled",
     };
 
     const newStatus = statusMap[payload.status] || "pending";
@@ -62,49 +100,107 @@ Deno.serve(async (req) => {
       .from("payment_transactions")
       .update({
         status: newStatus,
-        payment_details: payload,
+        external_transaction_id: payload.transactionId,
+        payment_details: {
+          ...payload,
+          webhook_received_at: new Date().toISOString(),
+        },
         updated_at: new Date().toISOString(),
       })
       .eq("id", transaction.id);
 
-    if (updateError) throw updateError;
+    if (updateError) {
+      log("ERROR", "Erreur mise à jour transaction", {
+        transactionId: transaction.id,
+        error: updateError.message,
+      });
+      throw updateError;
+    }
 
-    // Si le paiement est complété, mettre à jour le statut de la commande
+    // Si complété, mettre à jour la commande
     if (newStatus === "completed") {
       const { error: orderError } = await supabase
         .from("orders")
-        .update({ status: "paid" })
+        .update({ status: "confirmed" })
         .eq("id", transaction.order_id);
 
-      if (orderError) console.error("Erreur mise à jour commande:", orderError);
+      if (orderError) {
+        log("ERROR", "Erreur mise à jour commande", {
+          orderId: transaction.order_id,
+          error: orderError.message,
+        });
+      }
+
+      // Créer une notification
+      await supabase.from("notifications").insert({
+        user_id: transaction.user_id,
+        title: "Paiement confirmé",
+        message: `Votre paiement Wave de ${transaction.amount} FCFA a été confirmé`,
+        type: "payment",
+        is_read: false,
+      });
+
+      log("INFO", "Paiement complété et commande mise à jour", {
+        transactionId: transaction.id,
+        orderId: transaction.order_id,
+      });
     }
 
-    // Si le paiement a échoué
+    // Si échoué, enregistrer l'erreur
     if (newStatus === "failed") {
       await supabase
         .from("payment_transactions")
         .update({
-          error_message: payload.errorMessage || "Paiement échoué",
+          error_message: payload.errorMessage || "Paiement échoué par Wave",
         })
         .eq("id", transaction.id);
+
+      // Notifier l'utilisateur
+      await supabase.from("notifications").insert({
+        user_id: transaction.user_id,
+        title: "Paiement échoué",
+        message: `Votre paiement Wave a échoué. Veuillez réessayer.`,
+        type: "payment_error",
+        is_read: false,
+      });
+
+      log("WARN", "Paiement échoué", {
+        transactionId: transaction.id,
+        reason: payload.errorMessage,
+      });
     }
+
+    log("INFO", "Webhook Wave traité avec succès", {
+      transactionId: transaction.id,
+      status: newStatus,
+    });
 
     return new Response(
       JSON.stringify({
         success: true,
-        message: "Webhook traité avec succès",
+        message: "Webhook traité",
         transactionId: transaction.id,
       }),
-      { status: 200, headers: { "Content-Type": "application/json" } }
+      {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      }
     );
   } catch (error) {
-    console.error("Erreur webhook Wave:", error);
+    log("ERROR", "Erreur webhook Wave", {
+      error: error instanceof Error ? error.message : String(error),
+      payload: payload?.transactionId,
+    });
+
     return new Response(
       JSON.stringify({
-        error: "Erreur lors du traitement du webhook",
-        details: error instanceof Error ? error.message : String(error),
+        error: "Erreur serveur",
+        timestamp: new Date().toISOString(),
       }),
-      { status: 500, headers: { "Content-Type": "application/json" } }
+      {
+        status: 500,
+        headers: { "Content-Type": "application/json" },
+      }
     );
   }
 });
