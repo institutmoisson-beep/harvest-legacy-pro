@@ -36,7 +36,7 @@ export default function AdminOrdersSection() {
       const { data: ordersData, error } = await supabase
         .from('orders')
         .select('*')
-        .eq('status', 'pending')
+        .eq('status', 'pending_admin_review')
         .order('created_at', { ascending: false });
 
       if (error) throw error;
