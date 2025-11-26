@@ -54,12 +54,16 @@ export default function NotificationsPanel({ userId }: NotificationsPanelProps) 
 
         if (typeof error === 'object' && error !== null) {
           const errorObj = error as any;
-          if (errorObj.message) {
+          if (errorObj.message && typeof errorObj.message === 'string') {
             errorMessage = errorObj.message;
-          } else if (errorObj.code) {
+          } else if (errorObj.code && typeof errorObj.code === 'string') {
             errorMessage = `Erreur (${errorObj.code})`;
           } else if (errorObj.details) {
-            errorMessage = errorObj.details;
+            if (typeof errorObj.details === 'string') {
+              errorMessage = errorObj.details;
+            } else if (typeof errorObj.details === 'object') {
+              errorMessage = JSON.stringify(errorObj.details);
+            }
           }
         } else if (typeof error === 'string') {
           errorMessage = error;
