@@ -193,7 +193,8 @@ export default function TransactionHistorySection({ userId }: TransactionHistory
                   </TableCell>
                   <TableCell>{getStatusBadge(tx.status)}</TableCell>
                   <TableCell className="text-sm text-muted-foreground">
-                    {new Date(tx.created_at).toLocaleDateString('fr-FR')}
+                    <div>{new Date(tx.created_at).toLocaleDateString('fr-FR')}</div>
+                    <div className="text-xs">{new Date(tx.created_at).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}</div>
                   </TableCell>
                 </TableRow>
               ))
