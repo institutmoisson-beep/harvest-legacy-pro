@@ -125,27 +125,16 @@ function OrdersSectionComponent({ userId, brokerCode }: OrdersSectionProps) {
 
         // If paying with wallet, debit from wallet immediately
         if (paymentMethodName === 'wallet') {
-          // Update wallet balance
-          const { error: updateWalletError } = await supabase
-            .from('wallets')
-            .update({
-              balance: supabase.rpc('subtract_balance', { user_id: userId, amount: totalPrice })
-            })
-            .eq('user_id', userId);
-
-          // Debit transaction from wallet_transactions
-          const { error: transactionError } = await supabase
-            .from('wallet_transactions')
-            .insert({
-              from_user_id: userId,
-              amount: amountFCFA / MSN_TO_FCFA, // Convert back to MSN
-              transaction_type: 'order_payment',
-              description: `Paiement de la commande ${orderId} - ${productName}`,
-              status: 'completed'
+          const { error: walletDebitError } = await supabase
+            .rpc('debit_wallet_for_payment', {
+              p_user_id: userId,
+              p_amount: totalPrice, // Amount in MSN
+              p_order_id: orderId,
+              p_product_name: productName
             });
 
-          if (transactionError) {
-            console.error('Erreur lors de la création de la transaction:', transactionError);
+          if (walletDebitError) {
+            throw new Error(walletDebitError.message || 'Erreur lors du débit du portefeuille');
           }
 
           toast({
