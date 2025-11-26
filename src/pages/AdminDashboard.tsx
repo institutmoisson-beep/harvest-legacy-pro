@@ -356,7 +356,14 @@ export default function AdminDashboard() {
                           {order.status}
                         </span>
                       </TableCell>
-                      <TableCell>{new Date(order.created_at).toLocaleDateString()}</TableCell>
+                      <TableCell>
+                        <div className="text-sm text-muted-foreground">
+                          {new Date(order.created_at).toLocaleDateString('fr-FR')}
+                        </div>
+                        <div className="text-xs text-muted-foreground">
+                          {new Date(order.created_at).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
+                        </div>
+                      </TableCell>
                       <TableCell>
                         {order.status === 'pending' && (
                           <div className="flex gap-2">
