@@ -228,6 +228,7 @@ export default function AdminOrdersSection() {
                   <TableHead className="text-right">Quantité</TableHead>
                   <TableHead className="text-right">Prix achat</TableHead>
                   <TableHead className="text-right">Profit</TableHead>
+                  <TableHead className="text-center">Images</TableHead>
                   <TableHead className="text-center">Actions</TableHead>
                 </TableRow>
               </TableHeader>
