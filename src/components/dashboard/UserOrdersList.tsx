@@ -10,6 +10,7 @@ import { useOrdersData } from '@/hooks/useOrdersData';
 const ITEMS_PER_PAGE = 10;
 
 function UserOrdersListComponent({ userId }: { userId: string }) {
+  const MSN_TO_FCFA = 750;
   const { orders, loading } = useOrdersData(userId);
   const [isOpen, setIsOpen] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
