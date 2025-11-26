@@ -86,9 +86,27 @@ function OrdersSectionComponent({ userId, brokerCode }: OrdersSectionProps) {
 
       if (error) throw error;
 
+      // Créer une transaction de paiement
+      if (orderData && orderData.length > 0) {
+        const orderId = orderData[0].id;
+        const amount = parseFloat(purchasePriceMSN) * parseInt(quantity) * MSN_TO_FCFA;
+
+        await supabase
+          .from('payment_transactions')
+          .insert({
+            order_id: orderId,
+            user_id: userId,
+            payment_method_id: paymentMethodId,
+            amount: amount,
+            currency: 'FCFA',
+            status: paymentMethodName === 'cash_on_delivery' ? 'pending_delivery' : 'pending',
+            payment_details: {}
+          });
+      }
+
       toast({
         title: "Commande créée",
-        description: "La commande a été initiée avec succès",
+        description: `Commande initiée avec le paiement ${paymentMethodName === 'cash_on_delivery' ? 'à la livraison' : 'en ligne'}`,
       });
 
       // Reset form
@@ -99,6 +117,8 @@ function OrdersSectionComponent({ userId, brokerCode }: OrdersSectionProps) {
       setPurchasePriceFCFA('');
       setQuantity('1');
       setGeographicZone('');
+      setPaymentMethodId('');
+      setPaymentMethodName('');
     } catch (error: any) {
       toast({
         title: "Erreur",
