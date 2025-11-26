@@ -457,7 +457,7 @@ export default function ShopDashboard() {
   const pendingOrders = orders.filter(o => o.order_status === 'pending').length;
 
   return (
-    <div className="min-h-screen bg-background p-6">
+    <div className="min-h-screen bg-background px-4 sm:px-6 py-6">
       <div className="max-w-7xl mx-auto space-y-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
