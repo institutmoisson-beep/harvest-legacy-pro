@@ -27,6 +27,7 @@ interface Order {
 }
 
 export default function AdminOrdersSection() {
+  const MSN_TO_FCFA = 750;
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [approving, setApproving] = useState<string | null>(null);
