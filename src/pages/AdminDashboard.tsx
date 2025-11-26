@@ -124,7 +124,47 @@ export default function AdminDashboard() {
         .order('created_at', { ascending: false });
 
       if (ordersError) throw ordersError;
-      setOrders(ordersData || []);
+
+      // Fetch payment methods for orders
+      let paymentMethodsMap: Record<string, any> = {};
+      if (ordersData && ordersData.length > 0) {
+        const orderIds = ordersData.map((o: any) => o.id);
+        const { data: paymentTransactions, error: paymentError } = await supabase
+          .from('payment_transactions')
+          .select('order_id, payment_method_id')
+          .in('order_id', orderIds);
+
+        if (!paymentError && paymentTransactions) {
+          // Get payment method names
+          const paymentMethodIds = Array.from(new Set(
+            paymentTransactions.map((pt: any) => pt.payment_method_id).filter(Boolean)
+          ));
+
+          if (paymentMethodIds.length > 0) {
+            const { data: paymentMethods } = await supabase
+              .from('payment_methods')
+              .select('id, name')
+              .in('id', paymentMethodIds);
+
+            if (paymentMethods) {
+              const methodsById = Object.fromEntries(
+                paymentMethods.map((pm: any) => [pm.id, pm.name])
+              );
+              paymentTransactions.forEach((pt: any) => {
+                paymentMethodsMap[pt.order_id] = methodsById[pt.payment_method_id] || 'Unknown';
+              });
+            }
+          }
+        }
+      }
+
+      // Enrich orders with payment methods
+      const enrichedOrders = (ordersData || []).map((order: any) => ({
+        ...order,
+        payment_method: paymentMethodsMap[order.id] || 'Non spécifiée',
+      }));
+
+      setOrders(enrichedOrders);
 
       // Fetch wallets with user info and limit
       const { data: walletsData, error: walletsError } = await supabase
