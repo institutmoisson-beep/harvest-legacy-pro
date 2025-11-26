@@ -98,7 +98,6 @@ function OrdersSectionComponent({ userId, brokerCode }: OrdersSectionProps) {
           quantity: parseInt(quantity),
           profit: calculatedProfit,
           geographic_zone: geographicZone || null,
-          payment_method_id: paymentMethodId,
           status: 'pending'
         })
         .select();
