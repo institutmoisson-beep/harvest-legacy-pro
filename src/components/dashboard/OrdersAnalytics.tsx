@@ -73,7 +73,7 @@ function OrdersAnalyticsComponent({ userId }: OrdersAnalyticsProps) {
 
       return {
         month: label,
-        profit: monthOrders.reduce((sum, o) => sum + Number(o.profit), 0)
+        profit: monthOrders.reduce((sum, o) => sum + Number(o.profit), 0) * MSN_TO_FCFA
       };
     });
 
