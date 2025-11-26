@@ -92,7 +92,8 @@ export default function NotificationsPanel({ userId }: NotificationsPanelProps) 
       } else if (error instanceof Error) {
         errorMessage = error.message;
       } else if (typeof error === 'object' && error !== null && 'message' in error) {
-        errorMessage = String(error.message);
+        const msg = error.message;
+        errorMessage = typeof msg === 'string' ? msg : String(msg);
       }
 
       toast({
