@@ -427,7 +427,7 @@ export default function ShopDashboard() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="gradient-purple">Dégradé Violet</SelectItem>
-                    <SelectItem value="gradient-blue">Dégrad�� Bleu</SelectItem>
+                    <SelectItem value="gradient-blue">Dégradé Bleu</SelectItem>
                     <SelectItem value="gradient-green">Dégradé Vert</SelectItem>
                     <SelectItem value="gradient-orange">Dégradé Orange</SelectItem>
                     <SelectItem value="gradient-pink">Dégradé Rose</SelectItem>
@@ -557,8 +557,8 @@ export default function ShopDashboard() {
 
           {/* Products Tab */}
           <TabsContent value="products" className="space-y-4">
-            <div className="flex justify-between items-center">
-              <h2 className="text-xl font-semibold">Mes produits</h2>
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+              <h2 className="text-lg sm:text-xl font-semibold">Mes produits</h2>
               <Dialog open={addProductOpen} onOpenChange={setAddProductOpen}>
                 <DialogTrigger asChild>
                   <Button>
