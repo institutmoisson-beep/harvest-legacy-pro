@@ -815,7 +815,7 @@ export default function ShopDashboard() {
 
           {/* Orders Tab */}
           <TabsContent value="orders" className="space-y-4">
-            <h2 className="text-xl font-semibold">Mes commandes</h2>
+            <h2 className="text-lg sm:text-xl font-semibold">Mes commandes</h2>
 
             <div className="space-y-4">
               {orders.map((order) => (
