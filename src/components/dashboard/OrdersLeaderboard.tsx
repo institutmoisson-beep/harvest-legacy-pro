@@ -17,6 +17,7 @@ interface LeaderboardEntry {
 }
 
 function OrdersLeaderboardComponent() {
+  const MSN_TO_FCFA = 750;
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [timeFilter, setTimeFilter] = useState<'week' | 'month' | 'year' | 'all'>('month');
@@ -199,7 +200,7 @@ function OrdersLeaderboardComponent() {
 
                 <div className="text-right">
                   <div className="text-lg font-bold text-secondary">
-                    {entry.total_profit.toLocaleString()} FCFA
+                    {(entry.total_profit * MSN_TO_FCFA).toLocaleString()} FCFA
                   </div>
                   <div className="text-xs text-muted-foreground">
                     Total Profits
