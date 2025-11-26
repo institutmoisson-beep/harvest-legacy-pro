@@ -29,6 +29,7 @@ function OrdersSectionComponent({ userId, brokerCode }: OrdersSectionProps) {
   const [paymentMethodId, setPaymentMethodId] = useState('');
   const [paymentMethodName, setPaymentMethodName] = useState('');
   const [loading, setLoading] = useState(false);
+  const [orderImages, setOrderImages] = useState<any[]>([]);
 
   // Conversion MSN -> FCFA
   const handleMSNChange = (value: string) => {
