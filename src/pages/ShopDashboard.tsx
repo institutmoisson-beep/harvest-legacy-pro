@@ -633,23 +633,25 @@ export default function ShopDashboard() {
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div>
-                        <Label>Prix (FCFA)</Label>
+                        <Label className="block mb-2">Prix (FCFA)</Label>
                         <Input
                           type="number"
                           value={productData.price}
                           onChange={(e) => setProductData({ ...productData, price: e.target.value })}
                           placeholder="50000"
+                          className="w-full"
                         />
                       </div>
 
                       <div>
-                        <Label>Stock</Label>
+                        <Label className="block mb-2">Stock</Label>
                         <Input
                           type="number"
                           value={productData.stock}
                           onChange={(e) => setProductData({ ...productData, stock: e.target.value })}
                           placeholder="10"
                           disabled={productData.product_type === 'digital'}
+                          className="w-full"
                         />
                       </div>
                     </div>
