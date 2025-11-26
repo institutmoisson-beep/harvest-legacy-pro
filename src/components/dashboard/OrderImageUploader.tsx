@@ -93,60 +93,16 @@ export default function OrderImageUploader({
     }
   };
 
-  const handleDeleteImage = async (imageId: string, imageUrl: string) => {
-    if (!confirm('Êtes-vous sûr de vouloir supprimer cette image?')) {
-      return;
-    }
+  const handleDeleteImage = (imageId: string) => {
+    if (!confirm('Supprimer cette image?')) return;
 
-    try {
-      setUploading(true);
+    const updatedImages = images.filter(img => img.id !== imageId);
+    setImages(updatedImages);
+    onImagesChange?.(updatedImages);
 
-      // Handle storage deletion if not a base64 or pending image
-      if (!imageUrl.startsWith('data:') && !imageId.startsWith('pending-')) {
-        // Extract path from URL
-        const imagePath = imageUrl.split('/order-images/')[1];
-
-        if (imagePath) {
-          try {
-            // Try to delete from storage
-            await supabase.storage
-              .from('order-images')
-              .remove([imagePath])
-              .catch(err => console.warn('Storage delete failed:', err));
-          } catch (err) {
-            console.warn('Storage delete error:', err);
-          }
-        }
-
-        // Try to delete from database
-        try {
-          await supabase
-            .from('order_images')
-            .delete()
-            .eq('id', imageId)
-            .catch(err => console.warn('Database delete failed:', err));
-        } catch (err) {
-          console.warn('Database delete error:', err);
-        }
-      }
-
-      const updatedImages = images.filter(img => img.id !== imageId);
-      setImages(updatedImages);
-      onImagesChange?.(updatedImages);
-
-      toast({
-        title: 'Succès!',
-        description: 'Image supprimée',
-      });
-    } catch (error: any) {
-      toast({
-        title: 'Erreur',
-        description: error.message || 'Impossible de supprimer l\'image',
-        variant: 'destructive',
-      });
-    } finally {
-      setUploading(false);
-    }
+    toast({
+      title: 'Image supprimée',
+    });
   };
 
   const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
