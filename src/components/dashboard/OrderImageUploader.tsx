@@ -117,8 +117,8 @@ export default function OrderImageUploader({
   return (
     <div className="space-y-4">
       {/* Upload Area */}
-      <div className="border-2 border-dashed rounded-lg p-6 text-center hover:border-primary/50 transition">
-        <label className="cursor-pointer">
+      <div className="border-2 border-dashed rounded-lg p-6 text-center hover:border-primary/50 transition cursor-pointer">
+        <label className="cursor-pointer block">
           <input
             type="file"
             multiple
@@ -130,31 +130,14 @@ export default function OrderImageUploader({
           <div className="space-y-2">
             <Upload className="w-8 h-8 mx-auto text-muted-foreground" />
             <div>
-              <p className="font-semibold">Cliquez ou glissez des images (optionnel)</p>
-              <p className="text-sm text-muted-foreground">
-                PNG, JPG, WebP jusqu'à 5 MB ({images.length}/{maxImages})
+              <p className="font-semibold text-sm">Cliquez ou glissez des images</p>
+              <p className="text-xs text-muted-foreground">
+                PNG, JPG, WebP - Max 5 MB ({images.length}/{maxImages})
               </p>
             </div>
           </div>
         </label>
       </div>
-
-      {/* Setup Helper */}
-      {!bucketReady && (
-        <div className="p-3 bg-blue-500/10 border border-blue-500/30 rounded-lg">
-          <p className="text-sm text-blue-700 dark:text-blue-400 mb-2">
-            💡 Si vous avez des problèmes de téléchargement, cliquez ici:
-          </p>
-          <a
-            href="/setup/storage"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-xs text-primary underline hover:no-underline"
-          >
-            Initialiser le stockage →
-          </a>
-        </div>
-      )}
 
       {/* Images Grid */}
       {images.length > 0 && (
