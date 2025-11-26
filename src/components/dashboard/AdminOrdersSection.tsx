@@ -34,6 +34,26 @@ export default function AdminOrdersSection() {
   const [orderImages, setOrderImages] = useState<Record<string, any[]>>({});
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
 
+  const fetchOrderImages = async (orderId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('order_images')
+        .select('*')
+        .eq('order_id', orderId)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      setOrderImages(prev => ({ ...prev, [orderId]: data || [] }));
+    } catch (error: any) {
+      console.error('Error fetching images:', error);
+      toast({
+        title: "Erreur",
+        description: "Impossible de charger les images",
+        variant: "destructive",
+      });
+    }
+  };
+
   const fetchPendingOrders = async () => {
     try {
       const { data: ordersData, error } = await supabase
