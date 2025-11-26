@@ -56,9 +56,11 @@ export default function Dashboard() {
   useEffect(() => {
     if (!user?.id) return;
     const channel = supabase.channel(`dashboard-${user.id}`)
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'wallets', filter: `user_id=eq.${user.id}` }, 
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'wallets', filter: `user_id=eq.${user.id}` },
         () => queryClient.invalidateQueries({ queryKey: ['wallet', user.id] }))
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'commissions', filter: `user_id=eq.${user.id}` }, 
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'commissions', filter: `user_id=eq.${user.id}` },
+        () => queryClient.invalidateQueries({ queryKey: ['dashboard-stats', user.id] }))
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'agent_commission_earnings', filter: `agent_id=eq.${user.id}` },
         () => queryClient.invalidateQueries({ queryKey: ['dashboard-stats', user.id] }))
       .subscribe();
     return () => {
