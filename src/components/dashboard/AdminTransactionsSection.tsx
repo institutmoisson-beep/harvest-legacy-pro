@@ -201,7 +201,7 @@ export default function AdminTransactionsSection() {
                   <TableCell>{tx.payment_method || '-'}</TableCell>
                   <TableCell>{tx.payment_contact || '-'}</TableCell>
                   <TableCell className="text-sm text-muted-foreground">
-                    {new Date(tx.created_at).toLocaleDateString('fr-FR')}
+                    {new Date(tx.created_at).toLocaleDateString('fr-FR')} {new Date(tx.created_at).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
                   </TableCell>
                   <TableCell>
                     <div className="flex gap-2">
