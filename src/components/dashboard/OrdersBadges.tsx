@@ -20,11 +20,12 @@ interface BadgeItem {
 }
 
 function OrdersBadgesComponent({ userId }: OrdersBadgesProps) {
+  const MSN_TO_FCFA = 750;
   const { orders, loading } = useOrdersData(userId);
 
   const badges = useMemo(() => {
     const completed = orders?.filter(o => o.status === 'completed') || [];
-    const totalProfit = completed.reduce((sum, o) => sum + Number(o.profit), 0);
+    const totalProfit = completed.reduce((sum, o) => sum + Number(o.profit), 0) * MSN_TO_FCFA;
 
     return [
       {
