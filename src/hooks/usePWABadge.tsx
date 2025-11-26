@@ -58,19 +58,36 @@ export const usePWABadge = () => {
       if (error) {
         let errorMessage = 'Impossible de récupérer les notifications';
 
+        // Properly handle error message - it could be a string or object
         if (error.message) {
-          errorMessage = error.message;
-        } else if (error.code) {
+          if (typeof error.message === 'string') {
+            errorMessage = error.message;
+          } else if (typeof error.message === 'object') {
+            errorMessage = JSON.stringify(error.message);
+          }
+        } else if (error.code && typeof error.code === 'string') {
           errorMessage = `Erreur (${error.code})`;
         } else if (error.details) {
-          errorMessage = error.details;
+          if (typeof error.details === 'string') {
+            errorMessage = error.details;
+          } else if (typeof error.details === 'object') {
+            errorMessage = JSON.stringify(error.details);
+          }
         }
 
-        console.error('❌ Erreur lors de la récupération des notifications:', {
+        // Ensure errorMessage is always a string
+        if (typeof errorMessage !== 'string') {
+          errorMessage = String(errorMessage || 'Erreur inconnue');
+        }
+
+        // Log the error with proper formatting
+        const errorLog: any = {
           message: errorMessage,
-          code: error.code || 'N/A',
-          details: error.details || 'N/A',
-        });
+        };
+        if (error.code) errorLog.code = error.code;
+        if (error.details) errorLog.details = error.details;
+
+        console.error('❌ Erreur lors de la récupération des notifications:', errorLog);
         return 0;
       }
 
