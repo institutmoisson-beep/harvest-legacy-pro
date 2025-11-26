@@ -66,6 +66,7 @@ export default function AdminDashboard() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [hasAccess, setHasAccess] = useState(false);
+  const [transactionsExpanded, setTransactionsExpanded] = useState(true);
   const [orders, setOrders] = useState<Order[]>([]);
   const [wallets, setWallets] = useState<UserWallet[]>([]);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
