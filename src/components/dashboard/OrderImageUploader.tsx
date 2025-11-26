@@ -26,7 +26,7 @@ export default function OrderImageUploader({
     if (!user) {
       toast({
         title: 'Erreur',
-        description: 'Vous devez être connecté pour ajouter des images',
+        description: 'Vous devez être connecté',
         variant: 'destructive',
       });
       return;
@@ -35,17 +35,16 @@ export default function OrderImageUploader({
     if (images.length >= maxImages) {
       toast({
         title: 'Limite atteinte',
-        description: `Vous pouvez ajouter maximum ${maxImages} images`,
+        description: `Maximum ${maxImages} images`,
         variant: 'destructive',
       });
       return;
     }
 
-    // Validate file size
     if (file.size > 5242880) {
       toast({
         title: 'Fichier trop volumineux',
-        description: 'Maximum 5 MB par image',
+        description: 'Maximum 5 MB',
         variant: 'destructive',
       });
       return;
@@ -53,81 +52,26 @@ export default function OrderImageUploader({
 
     try {
       setUploading(true);
-      let imageUrl = '';
-      const fileExt = file.name.split('.').pop();
       const timestamp = Date.now();
-      const fileName = `${user.id}/orders/${orderId || 'temp'}/${timestamp}.${fileExt}`;
 
-      // Method 1: Try Supabase Storage
-      try {
-        const { error: uploadError, data } = await supabase.storage
-          .from('order-images')
-          .upload(fileName, file, {
-            cacheControl: '3600',
-            upsert: false,
-          });
-
-        if (uploadError) {
-          throw uploadError;
-        }
-
-        // Get public URL
-        const { data: urlData } = supabase.storage
-          .from('order-images')
-          .getPublicUrl(fileName);
-
-        imageUrl = urlData.publicUrl;
-      } catch (storageError: any) {
-        console.warn('Storage upload failed:', storageError);
-
-        // Method 2: Fallback to base64 encoding
-        const reader = new FileReader();
-        await new Promise((resolve, reject) => {
-          reader.onload = () => resolve(reader.result);
-          reader.onerror = reject;
-          reader.readAsDataURL(file);
-        });
-
-        imageUrl = reader.result as string;
-
-        toast({
-          title: 'Upload indirect utilisé',
-          description: 'Image stockée temporairement en local',
-        });
-      }
-
-      // Create database record (but only if orderId is a real UUID)
-      if (orderId && orderId !== 'pending') {
-        try {
-          const { error: dbError } = await supabase
-            .from('order_images')
-            .insert({
-              order_id: orderId,
-              image_url: imageUrl,
-              file_name: file.name,
-              file_size: file.size,
-              mime_type: file.type,
-              uploaded_by: user.id,
-            });
-
-          if (dbError) {
-            console.warn('Could not save image to database:', dbError);
-          }
-        } catch (dbError) {
-          console.warn('Database insert failed:', dbError);
-        }
-      }
+      // Convert to base64
+      const reader = new FileReader();
+      const base64 = await new Promise<string>((resolve, reject) => {
+        reader.onload = () => resolve(reader.result as string);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
 
       const newImage = {
         id: `pending-${timestamp}`,
         order_id: orderId,
-        image_url: imageUrl,
+        image_url: base64,
         file_name: file.name,
         file_size: file.size,
         mime_type: file.type,
         uploaded_by: user.id,
         created_at: new Date().toISOString(),
-        isPending: !orderId || orderId === 'pending',
+        isPending: true,
       };
 
       const updatedImages = [...images, newImage];
@@ -135,14 +79,13 @@ export default function OrderImageUploader({
       onImagesChange?.(updatedImages);
 
       toast({
-        title: 'Succès!',
-        description: 'Image ajoutée avec succès',
+        title: 'ОК',
+        description: 'Image ajoutée ✓',
       });
     } catch (error: any) {
-      console.error('Image upload error:', error);
       toast({
         title: 'Erreur',
-        description: error.message || 'Erreur lors du téléchargement de l\'image',
+        description: 'Impossible d\'ajouter l\'image',
         variant: 'destructive',
       });
     } finally {
