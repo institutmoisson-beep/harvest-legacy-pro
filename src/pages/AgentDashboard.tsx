@@ -219,7 +219,10 @@ export default function AgentDashboard() {
                           {transaction.transaction_type === 'deposit' ? '+' : '-'}{transaction.amount} MSN
                         </p>
                         <p className="text-xs text-muted-foreground">
-                          {new Date(transaction.created_at).toLocaleDateString()}
+                          {new Date(transaction.created_at).toLocaleDateString('fr-FR')}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          {new Date(transaction.created_at).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
                         </p>
                       </div>
                     </div>
