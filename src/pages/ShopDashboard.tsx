@@ -728,7 +728,7 @@ export default function ShopDashboard() {
                       />
                     </div>
 
-                    <Button onClick={addProduct} className="w-full" disabled={uploading}>
+                    <Button onClick={addProduct} className="w-full flex-shrink-0 mt-4" disabled={uploading} variant="cosmic">
                       {uploading ? 'Téléchargement...' : 'Ajouter le produit'}
                     </Button>
                   </div>
