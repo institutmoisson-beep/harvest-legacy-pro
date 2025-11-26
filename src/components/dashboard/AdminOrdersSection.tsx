@@ -31,6 +31,8 @@ export default function AdminOrdersSection() {
   const [loading, setLoading] = useState(true);
   const [approving, setApproving] = useState<string | null>(null);
   const [rejecting, setRejecting] = useState<string | null>(null);
+  const [orderImages, setOrderImages] = useState<Record<string, any[]>>({});
+  const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
 
   const fetchPendingOrders = async () => {
     try {
