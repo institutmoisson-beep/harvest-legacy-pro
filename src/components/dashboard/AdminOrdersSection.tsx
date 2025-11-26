@@ -61,27 +61,37 @@ export default function AdminOrdersSection() {
         .from('orders')
         .select('*')
         .eq('status', 'pending')
+        .limit(50)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
 
-      // Fetch broker names
-      const ordersWithNames = await Promise.all(
-        ((ordersData || []) as any[]).map(async (order: any) => {
-          const { data: profile } = await supabase
-            .from('profiles')
-            .select('full_name')
-            .eq('id', order.broker_id)
-            .single();
-          
-          return { 
-            ...order, 
-            broker_name: profile?.full_name,
-            country: order.country || null,
-            city: order.city || null,
-          };
-        })
-      );
+      // Get unique broker IDs
+      const brokerIds = Array.from(new Set(
+        (ordersData || []).map((order: any) => order.broker_id).filter(Boolean)
+      ));
+
+      // Fetch all broker profiles in one batched query
+      let brokerMap: Record<string, string> = {};
+      if (brokerIds.length > 0) {
+        const { data: profiles, error: profilesError } = await supabase
+          .from('profiles')
+          .select('id, full_name')
+          .in('id', brokerIds);
+
+        if (profilesError) throw profilesError;
+        brokerMap = Object.fromEntries(
+          (profiles || []).map((p: any) => [p.id, p.full_name])
+        );
+      }
+
+      // Map broker names to orders
+      const ordersWithNames = (ordersData || []).map((order: any) => ({
+        ...order,
+        broker_name: brokerMap[order.broker_id] || 'Unknown',
+        country: order.country || null,
+        city: order.city || null,
+      }));
 
       setOrders(ordersWithNames as Order[]);
     } catch (error: any) {
