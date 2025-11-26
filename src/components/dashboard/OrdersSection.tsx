@@ -117,7 +117,7 @@ function OrdersSectionComponent({ userId, brokerCode }: OrdersSectionProps) {
             payment_method_id: paymentMethodId,
             amount: amountFCFA,
             currency: 'FCFA',
-            status: paymentMethodName === 'cash_on_delivery' ? 'pending_delivery' : 'pending',
+            status: 'pending',
             payment_details: {}
           });
 
