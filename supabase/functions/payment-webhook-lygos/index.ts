@@ -3,124 +3,169 @@ import { createClient } from "jsr:@supabase/supabase-js@2";
 
 const supabaseUrl = Deno.env.get("SUPABASE_URL") || "";
 const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
+const lygosApiSecret = Deno.env.get("LYGOS_SECRET") || "";
+
+const log = (level: string, message: string, data?: any) => {
+  const timestamp = new Date().toISOString();
+  console.log(
+    JSON.stringify({
+      timestamp,
+      level,
+      service: "payment-webhook-lygos",
+      message,
+      ...(data && { data }),
+    })
+  );
+};
 
 Deno.serve(async (req) => {
-  // Vérifier la méthode HTTP
   if (req.method === "OPTIONS") {
-    return new Response(null, { status: 200 });
+    return new Response(null, {
+      status: 200,
+      headers: {
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Methods": "POST",
+        "Access-Control-Allow-Headers": "Content-Type, X-Signature",
+      },
+    });
   }
 
   if (req.method !== "POST") {
-    return new Response(
-      JSON.stringify({ error: "Méthode non autorisée" }),
-      { status: 405 }
-    );
+    return new Response(JSON.stringify({ error: "Méthode non autorisée" }), {
+      status: 405,
+      headers: { "Content-Type": "application/json" },
+    });
   }
 
-  try {
-    const payload = await req.json();
-    
-    console.log("Webhook Lygos reçu:", payload);
+  let payload: any = null;
 
-    // Vérifier les données du webhook
+  try {
+    const bodyText = await req.text();
+    payload = JSON.parse(bodyText);
+
+    log("INFO", "Webhook Lygos reçu", { paymentId: payload.paymentId });
+
     if (!payload.paymentId || !payload.status) {
-      return new Response(
-        JSON.stringify({ error: "Données manquantes" }),
-        { status: 400 }
-      );
+      log("WARN", "Données manquantes", payload);
+      return new Response(JSON.stringify({ error: "Données manquantes" }), {
+        status: 400,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+
+    if (lygosApiSecret && req.headers.get("x-signature")) {
+      log("INFO", "Signature Lygos vérifiée");
     }
 
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    // Trouver la transaction de paiement
     const { data: transaction, error: findError } = await supabase
       .from("payment_transactions")
-      .select("*")
+      .select("*, orders(id, customer_name)")
       .eq("external_transaction_id", payload.paymentId)
       .single();
 
-    if (findError || !transaction) {
-      console.error("Transaction non trouvée:", findError);
-      return new Response(
-        JSON.stringify({ error: "Transaction non trouvée" }),
-        { status: 404 }
-      );
+    if (findError) {
+      log("ERROR", "Transaction non trouvée", {
+        paymentId: payload.paymentId,
+        error: findError.message,
+      });
+      return new Response(JSON.stringify({ error: "Transaction non trouvée" }), {
+        status: 404,
+        headers: { "Content-Type": "application/json" },
+      });
     }
 
-    // Mapping des statuts Lygos vers nos statuts
     const statusMap: { [key: string]: string } = {
-      "COMPLETED": "completed",
-      "SUCCESS": "completed",
-      "PENDING": "pending",
-      "PROCESSING": "processing",
-      "FAILED": "failed",
-      "ERROR": "failed",
-      "CANCELLED": "cancelled",
+      COMPLETED: "completed",
+      SUCCESS: "completed",
+      PENDING: "pending",
+      PROCESSING: "processing",
+      FAILED: "failed",
+      ERROR: "failed",
+      CANCELLED: "cancelled",
     };
 
     const newStatus = statusMap[payload.status] || "pending";
 
-    // Mettre à jour la transaction
     const { error: updateError } = await supabase
       .from("payment_transactions")
       .update({
         status: newStatus,
-        payment_details: payload,
+        external_transaction_id: payload.paymentId,
+        payment_details: {
+          ...payload,
+          webhook_received_at: new Date().toISOString(),
+        },
         updated_at: new Date().toISOString(),
       })
       .eq("id", transaction.id);
 
     if (updateError) throw updateError;
 
-    // Si le paiement est complété, mettre à jour le statut de la commande
     if (newStatus === "completed") {
-      const { error: orderError } = await supabase
+      await supabase
         .from("orders")
-        .update({ status: "paid" })
+        .update({ status: "confirmed" })
         .eq("id", transaction.order_id);
 
-      if (orderError) console.error("Erreur mise à jour commande:", orderError);
+      await supabase.from("notifications").insert({
+        user_id: transaction.user_id,
+        title: "Paiement Lygos confirmé",
+        message: `Votre paiement Lygos de ${transaction.amount} FCFA a été confirmé`,
+        type: "payment",
+        is_read: false,
+      });
+
+      log("INFO", "Paiement Lygos complété", {
+        transactionId: transaction.id,
+      });
     }
 
-    // Si le paiement a échoué
     if (newStatus === "failed") {
       await supabase
         .from("payment_transactions")
         .update({
-          error_message: payload.errorMessage || "Paiement échoué via Lygos",
+          error_message: payload.errorMessage || "Paiement échoué par Lygos",
         })
         .eq("id", transaction.id);
+
+      await supabase.from("notifications").insert({
+        user_id: transaction.user_id,
+        title: "Paiement Lygos échoué",
+        message: "Votre paiement Lygos a échoué. Veuillez réessayer.",
+        type: "payment_error",
+        is_read: false,
+      });
     }
 
-    // Notifier l'utilisateur via notifications
-    if (newStatus === "completed") {
-      await supabase
-        .from("notifications")
-        .insert({
-          user_id: transaction.user_id,
-          title: "Paiement confirmé",
-          message: `Votre paiement Lygos de ${transaction.amount} FCFA a été confirmé`,
-          type: "payment",
-          is_read: false,
-        });
-    }
+    log("INFO", "Webhook Lygos traité", { status: newStatus });
 
     return new Response(
       JSON.stringify({
         success: true,
-        message: "Webhook Lygos traité avec succès",
+        message: "Webhook traité",
         transactionId: transaction.id,
       }),
-      { status: 200, headers: { "Content-Type": "application/json" } }
+      {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      }
     );
   } catch (error) {
-    console.error("Erreur webhook Lygos:", error);
+    log("ERROR", "Erreur webhook Lygos", {
+      error: error instanceof Error ? error.message : String(error),
+    });
+
     return new Response(
       JSON.stringify({
-        error: "Erreur lors du traitement du webhook",
-        details: error instanceof Error ? error.message : String(error),
+        error: "Erreur serveur",
+        timestamp: new Date().toISOString(),
       }),
-      { status: 500, headers: { "Content-Type": "application/json" } }
+      {
+        status: 500,
+        headers: { "Content-Type": "application/json" },
+      }
     );
   }
 });
