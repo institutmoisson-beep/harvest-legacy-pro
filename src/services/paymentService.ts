@@ -19,12 +19,26 @@ export interface PaymentTransaction {
 }
 
 /**
- * Générer un lien de paiement Wave
+ * Rediriger vers Wave pour le paiement
+ */
+export const redirectToWavePayment = (amount: number, orderId: string, customerPhone: string): void => {
+  const merchantLink = 'https://pay.wave.com/m/M_ci_txFrj6YmGYT2/c/ci/';
+  const params = new URLSearchParams({
+    amount: (amount / 750).toString(), // Convertir FCFA en MSN
+    reference: orderId,
+    customer_phone: customerPhone,
+  });
+  const paymentUrl = `${merchantLink}?${params.toString()}`;
+  window.location.href = paymentUrl;
+};
+
+/**
+ * Générer un lien de paiement Wave (backward compatibility)
  */
 export const generateWavePaymentLink = (amount: number, orderId: string): string => {
   const merchantLink = 'https://pay.wave.com/m/M_ci_txFrj6YmGYT2/c/ci/';
   const params = new URLSearchParams({
-    amount: (amount / 750).toString(), // Convertir FCFA en MSN
+    amount: (amount / 750).toString(),
     reference: orderId,
   });
   return `${merchantLink}?${params.toString()}`;
