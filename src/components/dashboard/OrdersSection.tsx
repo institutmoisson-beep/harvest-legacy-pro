@@ -102,23 +102,38 @@ function OrdersSectionComponent({ userId, brokerCode }: OrdersSectionProps) {
             status: paymentMethodName === 'cash_on_delivery' ? 'pending_delivery' : 'pending',
             payment_details: {}
           });
+
+        toast({
+          title: "Commande créée",
+          description: `Redirection vers ${paymentMethodName === 'wave' ? 'Wave' : paymentMethodName === 'lygos' ? 'Lygos' : paymentMethodName === 'coinpayments' ? 'CoinPayments' : 'la livraison'}...`,
+        });
+
+        // Redirect to payment provider based on payment method
+        if (paymentMethodName === 'wave') {
+          redirectToWavePayment(amount, orderId, customerPhone || '');
+        } else if (paymentMethodName === 'lygos') {
+          await redirectToLygosPayment(amount, orderId);
+        } else if (paymentMethodName === 'coinpayments') {
+          await redirectToCoinPaymentsPayment(amount, orderId);
+        } else if (paymentMethodName === 'cash_on_delivery') {
+          // For cash on delivery, just show success
+          toast({
+            title: "Commande créée",
+            description: "Votre commande a été créée. Le paiement se fera à la livraison.",
+          });
+
+          // Reset form
+          setCustomerName('');
+          setCustomerPhone('');
+          setProductName('');
+          setPurchasePriceMSN('');
+          setPurchasePriceFCFA('');
+          setQuantity('1');
+          setGeographicZone('');
+          setPaymentMethodId('');
+          setPaymentMethodName('');
+        }
       }
-
-      toast({
-        title: "Commande créée",
-        description: `Commande initiée avec le paiement ${paymentMethodName === 'cash_on_delivery' ? 'à la livraison' : 'en ligne'}`,
-      });
-
-      // Reset form
-      setCustomerName('');
-      setCustomerPhone('');
-      setProductName('');
-      setPurchasePriceMSN('');
-      setPurchasePriceFCFA('');
-      setQuantity('1');
-      setGeographicZone('');
-      setPaymentMethodId('');
-      setPaymentMethodName('');
     } catch (error: any) {
       toast({
         title: "Erreur",
