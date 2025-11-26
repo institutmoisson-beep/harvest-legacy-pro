@@ -34,25 +34,37 @@ export default function AdminTransactionsSection() {
         .from('wallet_transactions')
         .select('*')
         .eq('status', 'pending')
+        .limit(50)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
 
-      // Fetch user names separately
-      const transactionsWithNames = await Promise.all(
-        (txData || []).map(async (tx) => {
-          if (tx.from_user_id) {
-            const { data: profile } = await supabase
-              .from('profiles')
-              .select('full_name')
-              .eq('id', tx.from_user_id)
-              .single();
-            
-            return { ...tx, user_name: profile?.full_name };
-          }
-          return tx;
-        })
-      );
+      // Get unique user IDs
+      const userIds = Array.from(new Set(
+        (txData || [])
+          .flatMap((tx: any) => [tx.from_user_id, tx.to_user_id])
+          .filter(Boolean)
+      ));
+
+      // Fetch all user profiles in one batched query
+      let userMap: Record<string, string> = {};
+      if (userIds.length > 0) {
+        const { data: profiles, error: profilesError } = await supabase
+          .from('profiles')
+          .select('id, full_name')
+          .in('id', userIds);
+
+        if (profilesError) throw profilesError;
+        userMap = Object.fromEntries(
+          (profiles || []).map((p: any) => [p.id, p.full_name])
+        );
+      }
+
+      // Map user names to transactions
+      const transactionsWithNames = (txData || []).map((tx: any) => ({
+        ...tx,
+        user_name: tx.from_user_id ? userMap[tx.from_user_id] : undefined,
+      }));
 
       setTransactions(transactionsWithNames);
     } catch (error: any) {
