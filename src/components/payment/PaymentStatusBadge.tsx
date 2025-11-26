@@ -1,5 +1,6 @@
 import { Badge } from '@/components/ui/badge';
 import { CheckCircle, Clock, AlertCircle, XCircle, Loader2 } from 'lucide-react';
+import type { ReactNode } from 'react';
 
 interface PaymentStatusBadgeProps {
   status: string;
@@ -12,44 +13,44 @@ export default function PaymentStatusBadge({ status, size = 'md' }: PaymentStatu
       [key: string]: {
         label: string;
         variant: 'default' | 'secondary' | 'destructive' | 'outline';
-        icon: React.ReactNode;
+        icon: ReactNode;
         color: string;
       };
     } = {
       'pending': {
         label: 'En attente',
         variant: 'outline',
-        icon: <Clock className={`w-${size === 'sm' ? '3' : '4'} h-${size === 'sm' ? '3' : '4'}`} />,
+        icon: <Clock className={size === 'sm' ? 'w-3 h-3' : 'w-4 h-4'} />,
         color: 'text-yellow-600',
       },
       'pending_delivery': {
         label: 'En attente de livraison',
         variant: 'outline',
-        icon: <Clock className={`w-${size === 'sm' ? '3' : '4'} h-${size === 'sm' ? '3' : '4'}`} />,
+        icon: <Clock className={size === 'sm' ? 'w-3 h-3' : 'w-4 h-4'} />,
         color: 'text-blue-600',
       },
       'processing': {
         label: 'En traitement',
         variant: 'secondary',
-        icon: <Loader2 className={`w-${size === 'sm' ? '3' : '4'} h-${size === 'sm' ? '3' : '4'} animate-spin`} />,
+        icon: <Loader2 className={`${size === 'sm' ? 'w-3 h-3' : 'w-4 h-4'} animate-spin`} />,
         color: 'text-blue-600',
       },
       'completed': {
         label: 'Complété',
         variant: 'default',
-        icon: <CheckCircle className={`w-${size === 'sm' ? '3' : '4'} h-${size === 'sm' ? '3' : '4'}`} />,
+        icon: <CheckCircle className={size === 'sm' ? 'w-3 h-3' : 'w-4 h-4'} />,
         color: 'text-green-600',
       },
       'failed': {
         label: 'Échoué',
         variant: 'destructive',
-        icon: <XCircle className={`w-${size === 'sm' ? '3' : '4'} h-${size === 'sm' ? '3' : '4'}`} />,
+        icon: <XCircle className={size === 'sm' ? 'w-3 h-3' : 'w-4 h-4'} />,
         color: 'text-red-600',
       },
       'cancelled': {
         label: 'Annulé',
         variant: 'destructive',
-        icon: <XCircle className={`w-${size === 'sm' ? '3' : '4'} h-${size === 'sm' ? '3' : '4'}`} />,
+        icon: <XCircle className={size === 'sm' ? 'w-3 h-3' : 'w-4 h-4'} />,
         color: 'text-red-600',
       },
     };
