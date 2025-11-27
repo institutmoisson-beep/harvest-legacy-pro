@@ -1,76 +1,53 @@
-import { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import { useState, useMemo, memo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ShoppingCart, Clock, CheckCircle, TrendingUp, DollarSign, Calendar } from 'lucide-react';
+import { useOrdersData } from '@/hooks/useOrdersData';
 
 interface OrdersKPICardsProps {
   userId: string;
 }
 
-export default function OrdersKPICards({ userId }: OrdersKPICardsProps) {
+function OrdersKPICardsComponent({ userId }: OrdersKPICardsProps) {
+  const MSN_TO_FCFA = 750;
   const [timeFilter, setTimeFilter] = useState<'today' | 'week' | 'month' | 'year'>('month');
-  const [kpis, setKpis] = useState({
-    totalOrders: 0,
-    pendingOrders: 0,
-    completedOrders: 0,
-    totalProfit: 0,
-    successRate: 0
-  });
-  const [loading, setLoading] = useState(true);
+  const { orders, kpis: allKpis, loading } = useOrdersData(userId);
 
-  useEffect(() => {
-    if (userId) {
-      fetchKPIs();
+  const kpis = useMemo(() => {
+    const now = new Date();
+    let startDate = new Date();
+
+    switch (timeFilter) {
+      case 'today':
+        startDate = new Date(now.toISOString().split('T')[0]);
+        break;
+      case 'week':
+        startDate.setDate(startDate.getDate() - 7);
+        break;
+      case 'month':
+        startDate.setMonth(startDate.getMonth() - 1);
+        break;
+      case 'year':
+        startDate.setFullYear(startDate.getFullYear() - 1);
+        break;
     }
-  }, [userId, timeFilter]);
 
-  const fetchKPIs = async () => {
-    try {
-      const now = new Date();
-      let startDate = new Date();
-      
-      switch (timeFilter) {
-        case 'today':
-          startDate = new Date(now.toISOString().split('T')[0]);
-          break;
-        case 'week':
-          startDate.setDate(startDate.getDate() - 7);
-          break;
-        case 'month':
-          startDate.setMonth(startDate.getMonth() - 1);
-          break;
-        case 'year':
-          startDate.setFullYear(startDate.getFullYear() - 1);
-          break;
-      }
+    const filteredOrders = orders.filter(o => new Date(o.created_at) >= startDate);
+    const pending = filteredOrders.filter(o => o.status === 'pending');
+    const completed = filteredOrders.filter(o => o.status === 'completed');
+    const totalProfit = completed.reduce((sum, o) => sum + Number(o.profit), 0) * MSN_TO_FCFA;
+    const successRate = filteredOrders.length > 0
+      ? (completed.length / filteredOrders.length) * 100
+      : 0;
 
-      const { data: orders } = await supabase
-        .from('orders')
-        .select('*')
-        .eq('broker_id', userId)
-        .gte('created_at', startDate.toISOString());
-
-      const pending = orders?.filter(o => o.status === 'pending') || [];
-      const completed = orders?.filter(o => o.status === 'completed') || [];
-      const totalProfit = completed.reduce((sum, o) => sum + Number(o.profit), 0);
-      const successRate = orders && orders.length > 0 
-        ? (completed.length / orders.length) * 100 
-        : 0;
-
-      setKpis({
-        totalOrders: orders?.length || 0,
-        pendingOrders: pending.length,
-        completedOrders: completed.length,
-        totalProfit,
-        successRate
-      });
-    } catch (error) {
-      console.error('Error fetching orders KPIs:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
+    return {
+      totalOrders: filteredOrders.length,
+      pendingOrders: pending.length,
+      completedOrders: completed.length,
+      totalProfit,
+      successRate
+    };
+  }, [orders, timeFilter]);
 
   if (loading) {
     return (
@@ -182,3 +159,5 @@ export default function OrdersKPICards({ userId }: OrdersKPICardsProps) {
     </div>
   );
 }
+
+export default memo(OrdersKPICardsComponent);

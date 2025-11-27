@@ -249,7 +249,7 @@ export default function AdminJobDomains() {
       <div className="container mx-auto max-w-6xl">
         <div className="flex items-center gap-4 mb-8">
           <Button
-            onClick={() => navigate('/admin-dashboard')}
+            onClick={() => navigate('/admin')}
             variant="outline"
             size="sm"
           >

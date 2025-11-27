@@ -113,10 +113,9 @@ export default function TontinePaymentCalendar({ userId }: TontinePaymentCalenda
     const { error } = await (supabase.from as any)('notifications')
       .insert({
         user_id: userId,
-        title: 'Rappels activés',
+        title: '🔔 Rappels Tontine Activés',
         message: 'Vous recevrez des notifications pour les paiements de cette tontine',
-        type: 'tontine',
-        related_id: tontineId
+        type: 'tontine'
       });
 
     if (error) {

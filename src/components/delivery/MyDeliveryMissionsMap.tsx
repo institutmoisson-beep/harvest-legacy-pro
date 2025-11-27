@@ -11,7 +11,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from '@/hooks/use-toast';
-import { Package, MapPin, Phone, User, CheckCircle, Navigation, Loader2, AlertCircle } from 'lucide-react';
+import { Package, MapPin, Phone, User, CheckCircle, Loader2, AlertCircle } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 
 const MAPBOX_TOKEN = 'pk.eyJ1IjoiY2VsdnVzIiwiYSI6ImNtZjVvcm1zejA2dWsyanM5cGdxOTM5NWkifQ.1I0VU-32Ek6bg3sZvpUS0w';
@@ -32,10 +32,19 @@ interface DeliveryMission {
   assigned_at: string;
 }
 
+interface ActiveDeliverer {
+  id: string;
+  full_name: string;
+  latitude: number;
+  longitude: number;
+  last_updated: string;
+}
+
 export default function MyDeliveryMissionsMap() {
   const { user } = useAuth();
   const { location: userLocation } = useGeolocation();
   const [missions, setMissions] = useState<DeliveryMission[]>([]);
+  const [activeDeliverers, setActiveDeliverers] = useState<ActiveDeliverer[]>([]);
   const [loading, setLoading] = useState(true);
   const [verificationCode, setVerificationCode] = useState('');
   const [selectedMission, setSelectedMission] = useState<string | null>(null);
@@ -45,13 +54,12 @@ export default function MyDeliveryMissionsMap() {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
   const missionMarkersRef = useRef<Map<string, mapboxgl.Marker>>(new Map());
+  const delivererMarkersRef = useRef<Map<string, mapboxgl.Marker>>(new Map());
   const userMarkerRef = useRef<mapboxgl.Marker | null>(null);
 
-  // Initialize map
+  // Initialize map once
   useEffect(() => {
-    if (!mapContainer.current) return;
-
-    if (map.current) return;
+    if (!mapContainer.current || map.current) return;
 
     map.current = new mapboxgl.Map({
       container: mapContainer.current,
@@ -63,33 +71,133 @@ export default function MyDeliveryMissionsMap() {
     map.current.addControl(new mapboxgl.NavigationControl());
   }, []);
 
-  useEffect(() => {
-    if (user) {
-      fetchMyMissions();
-    }
-  }, [user]);
-
+  // Fetch user's missions with limit
   const fetchMyMissions = async () => {
+    if (!user) return;
     try {
       const { data, error } = await supabase
         .from('delivery_packages')
         .select('*')
-        .eq('deliverer_id', user?.id)
+        .eq('deliverer_id', user.id)
         .in('status', ['awaiting_pickup', 'in_transit', 'delivered'])
+        .limit(50)
         .order('assigned_at', { ascending: false });
 
       if (error) throw error;
       setMissions(data || []);
     } catch (error: any) {
+      console.error('Error fetching missions:', error);
       toast({
         title: 'Erreur',
-        description: error.message,
+        description: 'Impossible de charger vos missions',
         variant: 'destructive',
       });
-    } finally {
-      setLoading(false);
     }
   };
+
+  // Fetch active deliverers with locations
+  const fetchActiveDeliverers = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('user_locations')
+        .select('user_id, latitude, longitude, updated_at')
+        .eq('location_type', 'delivery')
+        .gte('updated_at', new Date(Date.now() - 5 * 60000).toISOString())
+        .limit(50);
+
+      if (error && error.code !== 'PGRST116') throw error;
+
+      if (data && data.length > 0) {
+        const userIds = data.map(d => d.user_id);
+        const { data: profiles, error: profileError } = await supabase
+          .from('profiles')
+          .select('id, full_name')
+          .in('id', userIds)
+          .limit(50);
+
+        if (!profileError && profiles) {
+          const profileMap = Object.fromEntries(
+            profiles.map(p => [p.id, p.full_name])
+          );
+
+          const deliverers = data.map(d => ({
+            id: d.user_id,
+            full_name: profileMap[d.user_id] || 'Unknown',
+            latitude: d.latitude,
+            longitude: d.longitude,
+            last_updated: d.updated_at,
+          }));
+
+          setActiveDeliverers(deliverers);
+        }
+      }
+    } catch (error: any) {
+      console.error('Error fetching active deliverers:', error);
+    }
+  };
+
+  // Initial load
+  useEffect(() => {
+    const load = async () => {
+      setLoading(true);
+      await Promise.all([fetchMyMissions(), fetchActiveDeliverers()]);
+      setLoading(false);
+    };
+
+    if (user) {
+      load();
+    }
+  }, [user]);
+
+  // Subscribe to realtime updates for missions
+  useEffect(() => {
+    if (!user) return;
+
+    const channel = supabase
+      .channel(`delivery-missions-${user.id}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'delivery_packages',
+          filter: `deliverer_id=eq.${user.id}`
+        },
+        () => fetchMyMissions()
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user]);
+
+  // Subscribe to realtime updates for active deliverers
+  useEffect(() => {
+    const channel = supabase
+      .channel('active-deliverers')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'user_locations',
+        },
+        () => {
+          fetchActiveDeliverers();
+        }
+      )
+      .subscribe();
+
+    const interval = setInterval(() => {
+      fetchActiveDeliverers();
+    }, 30000); // Refresh every 30 seconds
+
+    return () => {
+      supabase.removeChannel(channel);
+      clearInterval(interval);
+    };
+  }, []);
 
   const handleStartDelivery = async (missionId: string) => {
     try {
@@ -142,7 +250,7 @@ export default function MyDeliveryMissionsMap() {
 
       if (updateError) throw updateError;
 
-      // Créer une transaction pour payer la commission au livreur
+      // Pay commission to deliverer
       const { error: walletError } = await supabase.rpc('increment_wallet_balance', {
         p_user_id: user?.id,
         p_amount: mission?.delivery_commission || 500,
@@ -178,11 +286,12 @@ export default function MyDeliveryMissionsMap() {
     }
 
     const el = document.createElement('div');
-    el.className = 'w-8 h-8 bg-blue-500 rounded-full border-4 border-white shadow-lg flex items-center justify-center';
-    el.innerHTML = '<div class="w-2 h-2 bg-white rounded-full"></div>';
+    el.className = 'w-10 h-10 bg-blue-500 rounded-full border-4 border-white shadow-lg flex items-center justify-center';
+    el.innerHTML = '<div class="text-lg">📍</div>';
 
     userMarkerRef.current = new mapboxgl.Marker({ element: el })
       .setLngLat([userLocation.longitude, userLocation.latitude])
+      .setPopup(new mapboxgl.Popup({ offset: 25 }).setHTML('<div class="font-bold">Votre position</div>'))
       .addTo(map.current);
   }, [userLocation]);
 
@@ -203,8 +312,8 @@ export default function MyDeliveryMissionsMap() {
       };
 
       const el = document.createElement('div');
-      el.className = `w-7 h-7 rounded-full border-2 border-white shadow-md ${statusColor[mission.status as keyof typeof statusColor] || 'bg-gray-500'} flex items-center justify-center cursor-pointer`;
-      el.innerHTML = '<svg class="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20"><path d="M10.5 1.5H9.5V3h1V1.5zM14.5 5.5L13.5 6.5L14.9 7.9L15.9 6.9L14.5 5.5zM5.5 5.5L4.1 6.9L5.1 7.9L6.5 6.5L5.5 5.5zM10 5C7.24 5 5 7.24 5 10s2.24 5 5 5 5-2.24 5-5-2.24-5-5-5zm0 1c2.21 0 4 1.79 4 4s-1.79 4-4 4-4-1.79-4-4 1.79-4 4-4z"/></svg>';
+      el.className = `w-9 h-9 rounded-full border-2 border-white shadow-md ${statusColor[mission.status as keyof typeof statusColor] || 'bg-gray-500'} flex items-center justify-center cursor-pointer`;
+      el.innerHTML = '<div class="text-lg">📦</div>';
 
       el.addEventListener('click', () => {
         setSelectedMission(mission.id);
@@ -212,42 +321,65 @@ export default function MyDeliveryMissionsMap() {
 
       const marker = new mapboxgl.Marker({ element: el })
         .setLngLat([mission.customer_longitude, mission.customer_latitude])
+        .setPopup(new mapboxgl.Popup({ offset: 25 }).setHTML(
+          `<div class="p-2 text-sm">
+            <div class="font-semibold">${mission.customer_name}</div>
+            <div class="text-gray-600">${mission.customer_address}</div>
+            <div class="text-orange-600 font-bold mt-1">${mission.delivery_commission} FCFA</div>
+          </div>`
+        ))
         .addTo(map.current!);
 
-      const popup = new mapboxgl.Popup({ offset: 25 }).setHTML(
-        `<div class="p-2">
-          <div class="font-semibold">${mission.customer_name}</div>
-          <div class="text-sm text-gray-600">${mission.customer_address}</div>
-          <div class="text-sm text-gray-600">${mission.customer_city}</div>
-          <div class="text-orange-600 font-bold mt-1">${mission.delivery_commission} FCFA</div>
-          <div class="text-xs text-gray-500 mt-1">Status: ${mission.status}</div>
-        </div>`
-      );
-
-      marker.setPopup(popup);
       missionMarkersRef.current.set(mission.id, marker);
     });
-  }, [missions, selectedMission]);
+  }, [missions]);
+
+  // Update deliverer markers
+  useEffect(() => {
+    if (!map.current) return;
+
+    delivererMarkersRef.current.forEach((marker) => {
+      marker.remove();
+    });
+    delivererMarkersRef.current.clear();
+
+    activeDeliverers.forEach((deliverer) => {
+      if (deliverer.id === user?.id) return; // Don't show self twice
+
+      const el = document.createElement('div');
+      el.className = 'w-8 h-8 bg-purple-500 rounded-full border-2 border-white shadow-md flex items-center justify-center';
+      el.innerHTML = '<div class="text-lg">👤</div>';
+
+      const marker = new mapboxgl.Marker({ element: el })
+        .setLngLat([deliverer.longitude, deliverer.latitude])
+        .setPopup(new mapboxgl.Popup({ offset: 25 }).setHTML(
+          `<div class="p-2 text-sm">
+            <div class="font-semibold">${deliverer.full_name}</div>
+            <div class="text-gray-600">Livreur actif</div>
+          </div>`
+        ))
+        .addTo(map.current!);
+
+      delivererMarkersRef.current.set(deliverer.id, marker);
+    });
+  }, [activeDeliverers, user?.id]);
 
   // Fit bounds
   useEffect(() => {
-    if (!map.current || missions.length === 0) return;
+    if (!map.current) return;
 
-    const bounds = new mapboxgl.LngLatBounds(
-      missions[0].customer_longitude,
-      missions[0].customer_latitude
-    );
+    const allPoints = [
+      ...(userLocation ? [[userLocation.longitude, userLocation.latitude]] : []),
+      ...missions.map(m => [m.customer_longitude, m.customer_latitude]),
+      ...activeDeliverers.map(d => [d.longitude, d.latitude]),
+    ];
 
-    missions.forEach((mission) => {
-      bounds.extend([mission.customer_longitude, mission.customer_latitude]);
-    });
-
-    if (userLocation) {
-      bounds.extend([userLocation.longitude, userLocation.latitude]);
+    if (allPoints.length > 0) {
+      const bounds = new mapboxgl.LngLatBounds(allPoints[0], allPoints[0]);
+      allPoints.forEach(point => bounds.extend(point));
+      map.current.fitBounds(bounds, { padding: 50 });
     }
-
-    map.current.fitBounds(bounds, { padding: 50 });
-  }, [missions, userLocation]);
+  }, [missions, userLocation, activeDeliverers]);
 
   if (loading) {
     return (
@@ -269,18 +401,23 @@ export default function MyDeliveryMissionsMap() {
         </TabsList>
 
         <TabsContent value="map" className="space-y-4">
+          <div className="space-y-2 text-sm">
+            <p className="text-muted-foreground">
+              📍 Bleu = Votre position | 📦 Couleurs = État de la livraison | 👤 Violet = Autres livreurs
+            </p>
+          </div>
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <MapPin className="w-5 h-5" />
-                Mes Missions de Livraison ({missions.length})
+                Carte en Temps Réel ({missions.length} missions, {activeDeliverers.filter(d => d.id !== user?.id).length} livreurs actifs)
               </CardTitle>
             </CardHeader>
             <CardContent className="p-0">
-              {missions.length === 0 ? (
+              {missions.length === 0 && activeDeliverers.length === 0 ? (
                 <div className="p-8 text-center text-muted-foreground">
                   <Package className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                  <p>Vous n'avez pas de mission en cours</p>
+                  <p>Aucune mission ou livreur disponible</p>
                 </div>
               ) : (
                 <div ref={mapContainer} className="w-full h-[600px] rounded-lg border-t overflow-hidden" />
@@ -399,19 +536,18 @@ export default function MyDeliveryMissionsMap() {
                                 <Button
                                   onClick={() => setSelectedMission(mission.id)}
                                   className="w-full"
-                                  variant="default"
                                 >
-                                  ✅ Livraison effectuée
+                                  ✅ Confirmer la livraison
                                 </Button>
                               )}
                             </div>
                           )}
 
                           {mission.status === 'delivered' && (
-                            <Alert className="border-green-200 bg-green-50">
-                              <AlertCircle className="h-4 w-4 text-green-600" />
+                            <Alert className="bg-green-50 border-green-200">
+                              <CheckCircle className="h-4 w-4 text-green-600" />
                               <AlertDescription className="text-green-700">
-                                Livraison complétée avec succès ✓
+                                ✅ Livraison complétée avec succès
                               </AlertDescription>
                             </Alert>
                           )}
@@ -423,6 +559,30 @@ export default function MyDeliveryMissionsMap() {
               )}
             </CardContent>
           </Card>
+
+          {activeDeliverers.length > 1 && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base">
+                  👥 Livreurs Actifs ({activeDeliverers.filter(d => d.id !== user?.id).length})
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-2">
+                  {activeDeliverers
+                    .filter(d => d.id !== user?.id)
+                    .map(deliverer => (
+                      <div key={deliverer.id} className="flex items-center justify-between p-2 bg-purple-50 rounded border border-purple-200">
+                        <span className="font-medium text-sm">{deliverer.full_name}</span>
+                        <span className="text-xs text-muted-foreground">
+                          {new Date(deliverer.last_updated).toLocaleTimeString()}
+                        </span>
+                      </div>
+                    ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
         </TabsContent>
       </Tabs>
     </div>

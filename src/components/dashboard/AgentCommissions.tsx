@@ -45,7 +45,18 @@ export default function AgentCommissions({ agentId }: AgentCommissionsProps) {
 
   const fetchData = async () => {
     try {
-      // Fetch commission earnings
+      // Fetch order-based commission earnings from commissions table
+      const { data: orderCommissions, error: orderError } = await supabase
+        .from('commissions')
+        .select('*')
+        .eq('user_id', agentId)
+        .order('created_at', { ascending: false });
+
+      if (orderError) {
+        console.error('Error fetching order commissions:', orderError);
+      }
+
+      // Fetch wallet transaction based commission earnings
       const { data: earningsData, error: earningsError } = await supabase
         .from('agent_commission_earnings')
         .select('*')
@@ -53,16 +64,32 @@ export default function AgentCommissions({ agentId }: AgentCommissionsProps) {
         .order('created_at', { ascending: false })
         .limit(50);
 
-      if (earningsError) throw earningsError;
+      if (earningsError) {
+        console.error('Error fetching wallet transaction commissions:', earningsError);
+      }
 
-      setEarnings(earningsData || []);
+      // Combine both types of commissions
+      const combinedEarnings = [
+        ...(orderCommissions?.map(oc => ({
+          id: oc.id,
+          transaction_type: oc.commission_type || 'order',
+          transaction_amount: oc.amount,
+          commission_rate: oc.commission_rate,
+          commission_amount: oc.amount,
+          created_at: oc.created_at,
+          level: oc.level,
+        })) || []),
+        ...(earningsData || []),
+      ].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+
+      setEarnings(combinedEarnings);
 
       // Calculate stats
-      const total = earningsData?.reduce((sum, e) => sum + Number(e.commission_amount), 0) || 0;
-      const deposits = earningsData
+      const total = combinedEarnings.reduce((sum, e) => sum + Number(e.commission_amount), 0);
+      const deposits = combinedEarnings
         ?.filter(e => e.transaction_type === 'deposit')
         .reduce((sum, e) => sum + Number(e.commission_amount), 0) || 0;
-      const withdrawals = earningsData
+      const withdrawals = combinedEarnings
         ?.filter(e => e.transaction_type === 'withdrawal')
         .reduce((sum, e) => sum + Number(e.commission_amount), 0) || 0;
 
@@ -70,7 +97,7 @@ export default function AgentCommissions({ agentId }: AgentCommissionsProps) {
         totalCommissions: total,
         depositCommissions: deposits,
         withdrawalCommissions: withdrawals,
-        transactionCount: earningsData?.length || 0,
+        transactionCount: combinedEarnings?.length || 0,
       });
 
       // Fetch commission settings
@@ -229,16 +256,26 @@ export default function AgentCommissions({ agentId }: AgentCommissionsProps) {
                       </TableCell>
                       <TableCell>
                         <Badge
-                          variant={earning.transaction_type === 'deposit' ? 'default' : 'secondary'}
+                          variant={
+                            earning.transaction_type === 'deposit'
+                              ? 'default'
+                              : earning.transaction_type === 'order'
+                              ? 'outline'
+                              : 'secondary'
+                          }
                         >
-                          {earning.transaction_type === 'deposit' ? 'Dépôt' : 'Retrait'}
+                          {earning.transaction_type === 'deposit'
+                            ? 'Dépôt'
+                            : earning.transaction_type === 'order'
+                            ? `Commande${earning.level ? ` (Niv. ${earning.level})` : ''}`
+                            : 'Retrait'}
                         </Badge>
                       </TableCell>
                       <TableCell className="text-right font-medium">
                         {Number(earning.transaction_amount).toFixed(2)} MSN
                       </TableCell>
                       <TableCell className="text-right">
-                        {earning.commission_rate}%
+                        {Number(earning.commission_rate).toFixed(1)}%
                       </TableCell>
                       <TableCell className="text-right font-bold text-primary">
                         +{Number(earning.commission_amount).toFixed(2)} MSN

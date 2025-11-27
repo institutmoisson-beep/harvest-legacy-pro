@@ -3,9 +3,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
-import { Check, X, Loader2, MapPin } from 'lucide-react';
+import { Check, X, Loader2, MapPin, Image as ImageIcon } from 'lucide-react';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 
@@ -26,10 +27,33 @@ interface Order {
 }
 
 export default function AdminOrdersSection() {
+  const MSN_TO_FCFA = 750;
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [approving, setApproving] = useState<string | null>(null);
   const [rejecting, setRejecting] = useState<string | null>(null);
+  const [orderImages, setOrderImages] = useState<Record<string, any[]>>({});
+  const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
+
+  const fetchOrderImages = async (orderId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('order_images')
+        .select('*')
+        .eq('order_id', orderId)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      setOrderImages(prev => ({ ...prev, [orderId]: data || [] }));
+    } catch (error: any) {
+      console.error('Error fetching images:', error);
+      toast({
+        title: "Erreur",
+        description: "Impossible de charger les images",
+        variant: "destructive",
+      });
+    }
+  };
 
   const fetchPendingOrders = async () => {
     try {
@@ -37,27 +61,37 @@ export default function AdminOrdersSection() {
         .from('orders')
         .select('*')
         .eq('status', 'pending')
+        .limit(50)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
 
-      // Fetch broker names
-      const ordersWithNames = await Promise.all(
-        ((ordersData || []) as any[]).map(async (order: any) => {
-          const { data: profile } = await supabase
-            .from('profiles')
-            .select('full_name')
-            .eq('id', order.broker_id)
-            .single();
-          
-          return { 
-            ...order, 
-            broker_name: profile?.full_name,
-            country: order.country || null,
-            city: order.city || null,
-          };
-        })
-      );
+      // Get unique broker IDs
+      const brokerIds = Array.from(new Set(
+        (ordersData || []).map((order: any) => order.broker_id).filter(Boolean)
+      ));
+
+      // Fetch all broker profiles in one batched query
+      let brokerMap: Record<string, string> = {};
+      if (brokerIds.length > 0) {
+        const { data: profiles, error: profilesError } = await supabase
+          .from('profiles')
+          .select('id, full_name')
+          .in('id', brokerIds);
+
+        if (profilesError) throw profilesError;
+        brokerMap = Object.fromEntries(
+          (profiles || []).map((p: any) => [p.id, p.full_name])
+        );
+      }
+
+      // Map broker names to orders
+      const ordersWithNames = (ordersData || []).map((order: any) => ({
+        ...order,
+        broker_name: brokerMap[order.broker_id] || 'Unknown',
+        country: order.country || null,
+        city: order.city || null,
+      }));
 
       setOrders(ordersWithNames as Order[]);
     } catch (error: any) {
@@ -205,6 +239,7 @@ export default function AdminOrdersSection() {
                   <TableHead className="text-right">Quantité</TableHead>
                   <TableHead className="text-right">Prix achat</TableHead>
                   <TableHead className="text-right">Profit</TableHead>
+                  <TableHead className="text-center">Images</TableHead>
                   <TableHead className="text-center">Actions</TableHead>
                 </TableRow>
               </TableHeader>
@@ -230,9 +265,55 @@ export default function AdminOrdersSection() {
                       </div>
                     </TableCell>
                     <TableCell className="text-right">{order.quantity}</TableCell>
-                    <TableCell className="text-right">{formatCurrency(order.purchase_price)}</TableCell>
+                    <TableCell className="text-right">{formatCurrency(order.purchase_price * MSN_TO_FCFA)}</TableCell>
                     <TableCell className="text-right font-semibold text-primary">
-                      {formatCurrency(order.profit)}
+                      {formatCurrency(order.profit * MSN_TO_FCFA)}
+                    </TableCell>
+                    <TableCell className="text-center">
+                      <Dialog>
+                        <DialogTrigger asChild>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => fetchOrderImages(order.id)}
+                          >
+                            <ImageIcon className="h-4 w-4 mr-1" />
+                            Voir
+                          </Button>
+                        </DialogTrigger>
+                        <DialogContent className="max-w-4xl">
+                          <DialogHeader>
+                            <DialogTitle>
+                              Images du produit - {order.product_name}
+                            </DialogTitle>
+                          </DialogHeader>
+                          <div className="space-y-4">
+                            {(!orderImages[order.id] || orderImages[order.id].length === 0) ? (
+                              <p className="text-center text-muted-foreground py-8">
+                                Aucune image disponible
+                              </p>
+                            ) : (
+                              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                                {orderImages[order.id].map((img) => (
+                                  <div key={img.id} className="rounded-lg overflow-hidden border">
+                                    <img
+                                      src={img.image_url}
+                                      alt={img.file_name}
+                                      className="w-full h-48 object-cover"
+                                    />
+                                    <div className="p-2 bg-secondary text-sm">
+                                      <p className="truncate font-medium">{img.file_name}</p>
+                                      <p className="text-xs text-muted-foreground">
+                                        {format(new Date(img.created_at), 'dd MMM yyyy HH:mm', { locale: fr })}
+                                      </p>
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        </DialogContent>
+                      </Dialog>
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center justify-center gap-3">

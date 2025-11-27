@@ -47,6 +47,10 @@ const EstablishmentDashboard = lazy(() => import("./pages/EstablishmentDashboard
 const QRMenu = lazy(() => import("./pages/QRMenu"));
 const QRCheckout = lazy(() => import("./pages/QRCheckout"));
 const OrderConfirmation = lazy(() => import("./pages/OrderConfirmation"));
+const ProductPayment = lazy(() => import("./pages/ProductPayment"));
+const OrderDownloads = lazy(() => import("./pages/OrderDownloads"));
+const AdminPayments = lazy(() => import("./pages/AdminPayments"));
+const StorageSetup = lazy(() => import("./pages/StorageSetup"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 // Composant interne pour utiliser les hooks après AuthProvider
@@ -100,7 +104,11 @@ const AppContent = () => {
         <Route path="/establish" element={<EstablishmentDashboard />} />
         <Route path="/menu/:slug" element={<QRMenu />} />
         <Route path="/checkout" element={<QRCheckout />} />
-        <Route path="/order-confirmation" element={<OrderConfirmation />} />
+        <Route path="/order-confirmation/:orderId" element={<OrderConfirmation />} />
+        <Route path="/product/:productId/payment" element={<ProductPayment />} />
+        <Route path="/order/:orderId/downloads" element={<OrderDownloads />} />
+        <Route path="/admin/payments" element={<AdminPayments />} />
+        <Route path="/setup/storage" element={<StorageSetup />} />
         {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
         <Route path="*" element={<NotFound />} />
       </Routes>

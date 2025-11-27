@@ -47,7 +47,7 @@ export const useDashboardData = (userId: string | undefined) => {
       if (!userId) return { directReferrals: 0, totalCommissions: 0 };
 
       // Requêtes parallèles
-      const [referralsRes, commissionsRes] = await Promise.all([
+      const [referralsRes, commissionsRes, agentCommissionsRes] = await Promise.all([
         supabase
           .from('referrals')
           .select('*', { count: 'exact', head: true })
@@ -57,11 +57,18 @@ export const useDashboardData = (userId: string | undefined) => {
           .from('commissions')
           .select('amount')
           .eq('user_id', userId),
+        supabase
+          .from('agent_commission_earnings')
+          .select('commission_amount')
+          .eq('agent_id', userId),
       ]);
+
+      const commissionTotal = (commissionsRes.data?.reduce((sum, c) => sum + c.amount, 0) || 0);
+      const agentCommissionTotal = (agentCommissionsRes.data?.reduce((sum, c) => sum + c.commission_amount, 0) || 0);
 
       return {
         directReferrals: referralsRes.count || 0,
-        totalCommissions: commissionsRes.data?.reduce((sum, c) => sum + c.amount, 0) || 0,
+        totalCommissions: commissionTotal + agentCommissionTotal,
       };
     },
     enabled: !!userId,

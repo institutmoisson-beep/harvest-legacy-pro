@@ -90,10 +90,31 @@ export default function PermissionsManager() {
 
       setPermissions((data as any) || []);
     } catch (error: any) {
-      console.error('Error fetching permissions:', error);
+      let errorMessage = 'Impossible de charger les permissions';
+
+      if (typeof error === 'string') {
+        errorMessage = error;
+      } else if (error instanceof Error) {
+        errorMessage = error.message;
+      } else if (typeof error === 'object' && error !== null) {
+        if (error.message && typeof error.message === 'string') {
+          errorMessage = error.message;
+        } else if (error.code && typeof error.code === 'string') {
+          errorMessage = `Erreur (${error.code})`;
+        } else if (error.details) {
+          const details = error.details;
+          if (typeof details === 'string') {
+            errorMessage = details;
+          } else if (typeof details === 'object') {
+            errorMessage = JSON.stringify(details);
+          }
+        }
+      }
+
+      console.error('Error fetching permissions:', errorMessage);
       toast({
         title: 'Erreur',
-        description: 'Impossible de charger les permissions',
+        description: errorMessage,
         variant: 'destructive',
       });
     } finally {
@@ -103,9 +124,11 @@ export default function PermissionsManager() {
 
   const fetchRolePermissions = async (role: string) => {
     try {
-      const { data, error } = await supabase.rpc('get_role_permissions' as any, {
-        _role: role,
-      }) as any;
+      // Query role_permissions directly to avoid enum casting issues
+      const { data, error } = await supabase
+        .from('role_permissions' as any)
+        .select('permission_id')
+        .eq('role', role as any);
 
       if (error) throw error;
 
@@ -115,10 +138,31 @@ export default function PermissionsManager() {
       }));
 
       // Update selected permissions set
-      const permissionIds = new Set<string>((data || []).map((p: RolePermission) => p.permission_id));
+      const permissionIds = new Set<string>((data || []).map((p: any) => p.permission_id));
       setSelectedPermissions(permissionIds);
     } catch (error: any) {
-      console.error('Error fetching role permissions:', error);
+      let errorMessage = 'Impossible de récupérer les permissions';
+
+      if (typeof error === 'string') {
+        errorMessage = error;
+      } else if (error instanceof Error) {
+        errorMessage = error.message;
+      } else if (typeof error === 'object' && error !== null) {
+        if (error.message && typeof error.message === 'string') {
+          errorMessage = error.message;
+        } else if (error.code && typeof error.code === 'string') {
+          errorMessage = `Erreur (${error.code})`;
+        } else if (error.details) {
+          const details = error.details;
+          if (typeof details === 'string') {
+            errorMessage = details;
+          } else if (typeof details === 'object') {
+            errorMessage = JSON.stringify(details);
+          }
+        }
+      }
+
+      console.error('Error fetching role permissions:', errorMessage);
     }
   };
 
@@ -179,10 +223,31 @@ export default function PermissionsManager() {
       // Refresh permissions for this role
       await fetchRolePermissions(selectedRole);
     } catch (error: any) {
-      console.error('Error saving permissions:', error);
+      let errorMessage = 'Impossible de sauvegarder les permissions';
+
+      if (typeof error === 'string') {
+        errorMessage = error;
+      } else if (error instanceof Error) {
+        errorMessage = error.message;
+      } else if (typeof error === 'object' && error !== null) {
+        if (error.message && typeof error.message === 'string') {
+          errorMessage = error.message;
+        } else if (error.code && typeof error.code === 'string') {
+          errorMessage = `Erreur (${error.code})`;
+        } else if (error.details) {
+          const details = error.details;
+          if (typeof details === 'string') {
+            errorMessage = details;
+          } else if (typeof details === 'object') {
+            errorMessage = JSON.stringify(details);
+          }
+        }
+      }
+
+      console.error('Error saving permissions:', errorMessage);
       toast({
         title: 'Erreur',
-        description: 'Impossible de sauvegarder les permissions',
+        description: errorMessage,
         variant: 'destructive',
       });
     } finally {

@@ -231,6 +231,15 @@ export default function PublicShop() {
                       </Badge>
                     </div>
                   </CardHeader>
+                  {product.image_url && (
+                    <div className="w-full h-48 bg-muted overflow-hidden">
+                      <img
+                        src={product.image_url}
+                        alt={product.product_name}
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                  )}
                   <CardContent className="space-y-4">
                     <div className="flex items-center justify-between">
                       <span className={`text-2xl font-bold ${isDarkTheme ? 'text-white' : 'text-gray-900'}`}>
@@ -243,24 +252,15 @@ export default function PublicShop() {
                       </Badge>
                     </div>
 
-                    <div className="flex gap-2">
+                    <div className="flex flex-col gap-2">
                       <Button
-                        className="flex-1"
-                        onClick={() => handleOrderClick(product)}
-                        disabled={product.stock === 0}
+                        className="w-full"
+                        onClick={() => navigate(`/product/${product.id}/payment`)}
+                        disabled={product.product_type !== 'digital' && product.stock === 0}
                       >
                         <ShoppingCart className="h-4 w-4 mr-2" />
-                        Commander
+                        Acheter maintenant
                       </Button>
-                      {product.payment_link && (
-                        <Button
-                          variant="outline"
-                          onClick={() => window.open(product.payment_link, '_blank')}
-                          className="border-white/30"
-                        >
-                          <ExternalLink className="h-4 w-4" />
-                        </Button>
-                      )}
                     </div>
                   </CardContent>
                 </Card>

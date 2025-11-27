@@ -50,16 +50,60 @@ export const usePWABadge = () => {
 
     try {
       const { count, error } = await supabase
-        .from('notifications' as any)
-        .select('*', { count: 'exact', head: true })
+        .from('notifications')
+        .select('id', { count: 'exact', head: true })
         .eq('user_id', user.id)
-        .eq('read', false);
+        .eq('is_read', false);
 
-      if (error) throw error;
+      if (error) {
+        let errorMessage = 'Impossible de récupérer les notifications';
+
+        // Properly handle error message - it could be a string or object
+        if (error.message) {
+          if (typeof error.message === 'string') {
+            errorMessage = error.message;
+          } else if (typeof error.message === 'object') {
+            errorMessage = JSON.stringify(error.message);
+          }
+        } else if (error.code && typeof error.code === 'string') {
+          errorMessage = `Erreur (${error.code})`;
+        } else if (error.details) {
+          if (typeof error.details === 'string') {
+            errorMessage = error.details;
+          } else if (typeof error.details === 'object') {
+            errorMessage = JSON.stringify(error.details);
+          }
+        }
+
+        // Ensure errorMessage is always a string
+        if (typeof errorMessage !== 'string') {
+          errorMessage = String(errorMessage || 'Erreur inconnue');
+        }
+
+        // Log the error with proper formatting
+        const errorLog: any = {
+          message: errorMessage,
+        };
+        if (error.code) errorLog.code = error.code;
+        if (error.details) errorLog.details = error.details;
+
+        console.error('❌ Erreur lors de la récupération des notifications:', errorLog);
+        return 0;
+      }
 
       return count || 0;
-    } catch (error) {
-      console.error('❌ Erreur lors de la récupération des notifications:', error);
+    } catch (error: any) {
+      let errorMessage = 'Une erreur est survenue';
+
+      if (typeof error === 'string') {
+        errorMessage = error;
+      } else if (error instanceof Error) {
+        errorMessage = error.message;
+      } else if (typeof error === 'object' && error !== null && 'message' in error) {
+        errorMessage = String(error.message);
+      }
+
+      console.error('❌ Erreur lors de la récupération des notifications:', errorMessage);
       return 0;
     }
   }, [user]);

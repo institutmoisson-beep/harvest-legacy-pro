@@ -41,7 +41,13 @@ export default function ShopDashboard() {
     stock: '',
     payment_link: '',
     product_type: 'physical',
+    image_url: '',
+    file_url: '',
   });
+
+  const [uploading, setUploading] = useState(false);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [filePreview, setFilePreview] = useState<string | null>(null);
 
   useEffect(() => {
     if (user) {
@@ -139,13 +145,87 @@ export default function ShopDashboard() {
     }
   };
 
+  const uploadProductImage = async (file: File, productId?: number): Promise<string | null> => {
+    try {
+      setUploading(true);
+      const arrayBuffer = await file.arrayBuffer();
+      const uint8Array = new Uint8Array(arrayBuffer);
+      const base64String = btoa(String.fromCharCode.apply(null, Array.from(uint8Array)));
+      const dataUrl = `data:${file.type};base64,${base64String}`;
+
+      if (productId) {
+        const { error } = await supabase
+          .from('product_media')
+          .upsert({
+            product_id: productId,
+            media_type: 'image',
+            file_name: file.name,
+            file_size: file.size,
+            file_data: uint8Array,
+            mime_type: file.type,
+            is_primary: true,
+          });
+
+        if (error) {
+          toast({ title: 'Erreur', description: `Erreur lors du téléchargement: ${error.message}`, variant: 'destructive' });
+          return null;
+        }
+      }
+
+      return dataUrl;
+    } catch (err: any) {
+      toast({ title: 'Erreur', description: err.message, variant: 'destructive' });
+      return null;
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const uploadProductFile = async (file: File, productId?: number): Promise<string | null> => {
+    try {
+      setUploading(true);
+      const arrayBuffer = await file.arrayBuffer();
+      const uint8Array = new Uint8Array(arrayBuffer);
+
+      if (productId) {
+        const { error } = await supabase
+          .from('product_media')
+          .insert({
+            product_id: productId,
+            media_type: 'file',
+            file_name: file.name,
+            file_size: file.size,
+            file_data: uint8Array,
+            mime_type: file.type,
+          });
+
+        if (error) {
+          toast({ title: 'Erreur', description: `Erreur lors du téléchargement: ${error.message}`, variant: 'destructive' });
+          return null;
+        }
+      }
+
+      return file.name;
+    } catch (err: any) {
+      toast({ title: 'Erreur', description: err.message, variant: 'destructive' });
+      return null;
+    } finally {
+      setUploading(false);
+    }
+  };
+
   const addProduct = async () => {
     if (!productData.product_name || !productData.price || !productData.stock) {
       toast({ title: 'Erreur', description: 'Nom, prix et stock requis', variant: 'destructive' });
       return;
     }
 
-    const { error } = await supabase
+    if (productData.product_type === 'digital' && !filePreview) {
+      toast({ title: 'Erreur', description: 'Un fichier téléchargeable est requis pour les produits numériques', variant: 'destructive' });
+      return;
+    }
+
+    const { data: newProduct, error } = await supabase
       .from('shop_products')
       .insert({
         shop_id: shop.id,
@@ -155,22 +235,33 @@ export default function ShopDashboard() {
         stock: parseInt(productData.stock),
         payment_link: productData.payment_link,
         product_type: productData.product_type,
+        image_url: imagePreview ? 'stored_in_media' : null,
+        file_url: filePreview ? 'stored_in_media' : null,
         is_active: true,
         is_approved: true,
-      });
+      })
+      .select()
+      .single();
 
     if (error) {
       toast({ title: 'Erreur', description: error.message, variant: 'destructive' });
     } else {
       toast({ title: 'Succès', description: 'Produit ajouté!' });
       setAddProductOpen(false);
-      setProductData({ product_name: '', description: '', price: '', stock: '', payment_link: '', product_type: 'physical' });
+      setProductData({ product_name: '', description: '', price: '', stock: '', payment_link: '', product_type: 'physical', image_url: '', file_url: '' });
+      setImagePreview(null);
+      setFilePreview(null);
       fetchProducts(shop.id);
     }
   };
 
   const updateProduct = async () => {
     if (!selectedProduct) return;
+
+    if (productData.product_type === 'digital' && !filePreview) {
+      toast({ title: 'Erreur', description: 'Un fichier téléchargeable est requis pour les produits numériques', variant: 'destructive' });
+      return;
+    }
 
     const { error } = await supabase
       .from('shop_products')
@@ -181,6 +272,8 @@ export default function ShopDashboard() {
         stock: parseInt(productData.stock),
         payment_link: productData.payment_link,
         product_type: productData.product_type,
+        image_url: imagePreview ? 'stored_in_media' : null,
+        file_url: filePreview ? 'stored_in_media' : null,
       })
       .eq('id', selectedProduct.id);
 
@@ -190,6 +283,8 @@ export default function ShopDashboard() {
       toast({ title: 'Succès', description: 'Produit mis à jour!' });
       setEditProductOpen(false);
       setSelectedProduct(null);
+      setImagePreview(null);
+      setFilePreview(null);
       fetchProducts(shop.id);
     }
   };
@@ -253,7 +348,11 @@ export default function ShopDashboard() {
       stock: product.stock.toString(),
       payment_link: product.payment_link || '',
       product_type: product.product_type || 'physical',
+      image_url: product.image_url || '',
+      file_url: product.file_url || '',
     });
+    setImagePreview(product.image_url || null);
+    setFilePreview(product.file_url ? product.file_url.split('/').pop() : null);
     setEditProductOpen(true);
   };
 
@@ -358,37 +457,38 @@ export default function ShopDashboard() {
   const pendingOrders = orders.filter(o => o.order_status === 'pending').length;
 
   return (
-    <div className="min-h-screen bg-background p-6">
+    <div className="min-h-screen bg-background px-4 sm:px-6 py-6">
       <div className="max-w-7xl mx-auto space-y-6">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <Button variant="ghost" onClick={() => navigate('/dashboard')}>
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Retour
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div className="flex items-start sm:items-center gap-2 sm:gap-4 w-full sm:w-auto">
+            <Button variant="ghost" size="sm" onClick={() => navigate('/dashboard')} className="flex-shrink-0">
+              <ArrowLeft className="h-4 w-4" />
             </Button>
-            <div>
-              <h1 className="text-2xl font-bold flex items-center gap-2">
-                <Store className="h-6 w-6 text-primary" />
-                {shop.shop_name}
+            <div className="flex-1 sm:flex-none">
+              <h1 className="text-xl sm:text-2xl font-bold flex items-center gap-2">
+                <Store className="h-5 sm:h-6 w-5 sm:w-6 text-primary flex-shrink-0" />
+                <span className="truncate">{shop.shop_name}</span>
               </h1>
-              <p className="text-sm text-muted-foreground">{shop.description}</p>
+              <p className="text-xs sm:text-sm text-muted-foreground truncate">{shop.description}</p>
             </div>
           </div>
 
-          <div className="flex gap-2">
-            <Button variant="outline" onClick={copyShopUrl}>
-              <Copy className="h-4 w-4 mr-2" />
-              Copier le lien
+          <div className="flex gap-2 w-full sm:w-auto">
+            <Button variant="outline" size="sm" onClick={copyShopUrl} className="flex-1 sm:flex-none text-xs sm:text-sm">
+              <Copy className="h-3 sm:h-4 w-3 sm:w-4 mr-1 sm:mr-2" />
+              <span className="hidden sm:inline">Copier le lien</span>
+              <span className="sm:hidden">Copier</span>
             </Button>
-            <Button onClick={() => window.open(`/shop/${shop.shop_url_slug}`, '_blank')}>
-              <ExternalLink className="h-4 w-4 mr-2" />
-              Voir la boutique
+            <Button size="sm" onClick={() => window.open(`/shop/${shop.shop_url_slug}`, '_blank')} className="flex-1 sm:flex-none text-xs sm:text-sm">
+              <ExternalLink className="h-3 sm:h-4 w-3 sm:w-4 mr-1 sm:mr-2" />
+              <span className="hidden sm:inline">Voir la boutique</span>
+              <span className="sm:hidden">Voir</span>
             </Button>
           </div>
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
           <Card>
             <CardContent className="pt-6">
               <div className="flex items-center justify-between">
@@ -457,8 +557,8 @@ export default function ShopDashboard() {
 
           {/* Products Tab */}
           <TabsContent value="products" className="space-y-4">
-            <div className="flex justify-between items-center">
-              <h2 className="text-xl font-semibold">Mes produits</h2>
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+              <h2 className="text-lg sm:text-xl font-semibold">Mes produits</h2>
               <Dialog open={addProductOpen} onOpenChange={setAddProductOpen}>
                 <DialogTrigger asChild>
                   <Button>
@@ -466,68 +566,108 @@ export default function ShopDashboard() {
                     Ajouter un produit
                   </Button>
                 </DialogTrigger>
-                <DialogContent className="max-w-2xl">
+                <DialogContent className="max-w-2xl h-auto max-h-[95vh] flex flex-col">
                   <DialogHeader>
                     <DialogTitle>Ajouter un produit</DialogTitle>
                   </DialogHeader>
-                  <div className="space-y-4">
+                  <div className="space-y-4 overflow-y-auto flex-1 pr-4">
                     <div>
-                      <Label>Nom du produit</Label>
+                      <Label className="block mb-2">Nom du produit</Label>
                       <Input
                         value={productData.product_name}
                         onChange={(e) => setProductData({ ...productData, product_name: e.target.value })}
                         placeholder="iPhone 15 Pro Max"
+                        className="w-full"
                       />
                     </div>
 
                     <div>
-                      <Label>Description</Label>
+                      <Label className="block mb-2">Description</Label>
                       <Textarea
                         value={productData.description}
                         onChange={(e) => setProductData({ ...productData, description: e.target.value })}
                         placeholder="Description détaillée du produit..."
                         rows={3}
+                        className="w-full"
                       />
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label className="block mb-2">Image du produit</Label>
+                      <div className="border-2 border-dashed border-border rounded-lg p-4 text-center cursor-pointer hover:border-primary transition w-full">
+                        <input
+                          type="file"
+                          accept="image/*"
+                          disabled={uploading}
+                          onChange={async (e) => {
+                            const file = e.target.files?.[0];
+                            if (file) {
+                              if (file.size > 5 * 1024 * 1024) {
+                                toast({ title: 'Erreur', description: 'L\'image ne doit pas dépasser 5MB', variant: 'destructive' });
+                                return;
+                              }
+                              const url = await uploadProductImage(file);
+                              if (url) {
+                                setImagePreview(url);
+                              }
+                            }
+                          }}
+                          className="hidden"
+                          id="product-image-input"
+                        />
+                        <label htmlFor="product-image-input" className="cursor-pointer">
+                          {imagePreview ? (
+                            <div className="space-y-2">
+                              <img src={imagePreview} alt="Aperçu" className="w-32 h-32 mx-auto object-cover rounded" />
+                              <p className="text-sm text-muted-foreground">Cliquez pour changer</p>
+                            </div>
+                          ) : (
+                            <div className="py-4">
+                              <p className="text-sm text-muted-foreground">Cliquez pour ajouter une image</p>
+                              <p className="text-xs text-muted-foreground mt-1">PNG, JPG, GIF jusqu'à 5MB</p>
+                            </div>
+                          )}
+                        </label>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div>
-                        <Label>Prix (FCFA)</Label>
+                        <Label className="block mb-2">Prix (FCFA)</Label>
                         <Input
                           type="number"
                           value={productData.price}
                           onChange={(e) => setProductData({ ...productData, price: e.target.value })}
                           placeholder="50000"
+                          className="w-full"
                         />
                       </div>
 
                       <div>
-                        <Label>Stock</Label>
+                        <Label className="block mb-2">Stock</Label>
                         <Input
                           type="number"
                           value={productData.stock}
                           onChange={(e) => setProductData({ ...productData, stock: e.target.value })}
                           placeholder="10"
+                          disabled={productData.product_type === 'digital'}
+                          className="w-full"
                         />
                       </div>
                     </div>
 
                     <div>
-                      <Label>Lien de paiement (optionnel)</Label>
-                      <Input
-                        value={productData.payment_link}
-                        onChange={(e) => setProductData({ ...productData, payment_link: e.target.value })}
-                        placeholder="https://pay.exemple.com/..."
-                      />
-                    </div>
-
-                    <div>
-                      <Label>Type de produit</Label>
+                      <Label className="block mb-2">Type de produit</Label>
                       <Select
                         value={productData.product_type}
-                        onValueChange={(value) => setProductData({ ...productData, product_type: value })}
+                        onValueChange={(value) => {
+                          setProductData({ ...productData, product_type: value });
+                          if (value === 'digital') {
+                            setProductData(prev => ({ ...prev, stock: '1' }));
+                          }
+                        }}
                       >
-                        <SelectTrigger>
+                        <SelectTrigger className="w-full">
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
@@ -538,17 +678,76 @@ export default function ShopDashboard() {
                       </Select>
                     </div>
 
-                    <Button onClick={addProduct} className="w-full">
-                      Ajouter le produit
+                    {productData.product_type === 'digital' && (
+                      <div>
+                        <Label className="block mb-2">Fichier téléchargeable</Label>
+                        <div className="border-2 border-dashed border-border rounded-lg p-4 text-center cursor-pointer hover:border-primary transition w-full">
+                          <input
+                            type="file"
+                            disabled={uploading}
+                            onChange={async (e) => {
+                              const file = e.target.files?.[0];
+                              if (file) {
+                                if (file.size > 100 * 1024 * 1024) {
+                                  toast({ title: 'Erreur', description: 'Le fichier ne doit pas dépasser 100MB', variant: 'destructive' });
+                                  return;
+                                }
+                                const fileName = await uploadProductFile(file);
+                                if (fileName) {
+                                  setFilePreview(file.name);
+                                }
+                              }
+                            }}
+                            className="hidden"
+                            id="product-file-input"
+                          />
+                          <label htmlFor="product-file-input" className="cursor-pointer">
+                            {filePreview ? (
+                              <div className="space-y-2">
+                                <p className="text-sm font-medium text-foreground">✓ {filePreview}</p>
+                                <p className="text-xs text-muted-foreground">Cliquez pour changer</p>
+                              </div>
+                            ) : (
+                              <div className="py-4">
+                                <p className="text-sm text-muted-foreground">Cliquez pour ajouter un fichier</p>
+                                <p className="text-xs text-muted-foreground mt-1">PDF, ZIP, etc. jusqu'à 100MB</p>
+                              </div>
+                            )}
+                          </label>
+                        </div>
+                      </div>
+                    )}
+
+                    <div>
+                      <Label className="block mb-2">Lien de paiement (optionnel)</Label>
+                      <Input
+                        value={productData.payment_link}
+                        onChange={(e) => setProductData({ ...productData, payment_link: e.target.value })}
+                        placeholder="https://pay.exemple.com/..."
+                        className="w-full"
+                      />
+                    </div>
+
+                    <Button onClick={addProduct} className="w-full flex-shrink-0 mt-4" disabled={uploading} variant="cosmic">
+                      {uploading ? 'Téléchargement...' : 'Ajouter le produit'}
                     </Button>
                   </div>
                 </DialogContent>
               </Dialog>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
               {products.map((product) => (
-                <Card key={product.id}>
+                <Card key={product.id} className="overflow-hidden">
+                  {product.image_url && (
+                    <div className="w-full h-48 bg-muted overflow-hidden">
+                      <img
+                        src={product.image_url}
+                        alt={product.product_name}
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                  )}
                   <CardContent className="pt-6 space-y-4">
                     <div className="flex justify-between items-start">
                       <div className="flex-1">
@@ -564,7 +763,9 @@ export default function ShopDashboard() {
 
                     <div className="flex justify-between text-sm">
                       <span className="font-medium">{product.price.toLocaleString()} FCFA</span>
-                      <span className="text-muted-foreground">Stock: {product.stock}</span>
+                      <span className="text-muted-foreground">
+                        {product.product_type === 'digital' ? 'Numérique' : `Stock: ${product.stock}`}
+                      </span>
                     </div>
 
                     {product.payment_link && (
@@ -619,7 +820,7 @@ export default function ShopDashboard() {
 
           {/* Orders Tab */}
           <TabsContent value="orders" className="space-y-4">
-            <h2 className="text-xl font-semibold">Mes commandes</h2>
+            <h2 className="text-lg sm:text-xl font-semibold">Mes commandes</h2>
 
             <div className="space-y-4">
               {orders.map((order) => (
@@ -700,7 +901,7 @@ export default function ShopDashboard() {
           <TabsContent value="settings" className="space-y-4">
             <Card>
               <CardHeader>
-                <CardTitle>Paramètres de la boutique</CardTitle>
+                <CardTitle className="text-lg sm:text-xl">Paramètres de la boutique</CardTitle>
                 <CardDescription>Personnalisez l'apparence de votre boutique</CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
@@ -750,7 +951,7 @@ export default function ShopDashboard() {
 
         {/* Edit Product Dialog */}
         <Dialog open={editProductOpen} onOpenChange={setEditProductOpen}>
-          <DialogContent className="max-w-2xl">
+          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>Modifier le produit</DialogTitle>
             </DialogHeader>
@@ -772,6 +973,45 @@ export default function ShopDashboard() {
                 />
               </div>
 
+              <div>
+                <Label>Image du produit</Label>
+                <div className="border-2 border-dashed border-border rounded-lg p-4 text-center cursor-pointer hover:border-primary transition">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    disabled={uploading}
+                    onChange={async (e) => {
+                      const file = e.target.files?.[0];
+                      if (file) {
+                        if (file.size > 5 * 1024 * 1024) {
+                          toast({ title: 'Erreur', description: 'L\'image ne doit pas dépasser 5MB', variant: 'destructive' });
+                          return;
+                        }
+                        const url = await uploadProductImage(file, selectedProduct?.id);
+                        if (url) {
+                          setImagePreview(url);
+                        }
+                      }
+                    }}
+                    className="hidden"
+                    id="edit-product-image-input"
+                  />
+                  <label htmlFor="edit-product-image-input" className="cursor-pointer">
+                    {imagePreview ? (
+                      <div className="space-y-2">
+                        <img src={imagePreview} alt="Aperçu" className="w-32 h-32 mx-auto object-cover rounded" />
+                        <p className="text-sm text-muted-foreground">Cliquez pour changer</p>
+                      </div>
+                    ) : (
+                      <div className="py-4">
+                        <p className="text-sm text-muted-foreground">Cliquez pour ajouter une image</p>
+                        <p className="text-xs text-muted-foreground mt-1">PNG, JPG, GIF jusqu'à 5MB</p>
+                      </div>
+                    )}
+                  </label>
+                </div>
+              </div>
+
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <Label>Prix (FCFA)</Label>
@@ -788,23 +1028,21 @@ export default function ShopDashboard() {
                     type="number"
                     value={productData.stock}
                     onChange={(e) => setProductData({ ...productData, stock: e.target.value })}
+                    disabled={productData.product_type === 'digital'}
                   />
                 </div>
-              </div>
-
-              <div>
-                <Label>Lien de paiement (optionnel)</Label>
-                <Input
-                  value={productData.payment_link}
-                  onChange={(e) => setProductData({ ...productData, payment_link: e.target.value })}
-                />
               </div>
 
               <div>
                 <Label>Type de produit</Label>
                 <Select
                   value={productData.product_type}
-                  onValueChange={(value) => setProductData({ ...productData, product_type: value })}
+                  onValueChange={(value) => {
+                    setProductData({ ...productData, product_type: value });
+                    if (value === 'digital') {
+                      setProductData(prev => ({ ...prev, stock: '1' }));
+                    }
+                  }}
                 >
                   <SelectTrigger>
                     <SelectValue />
@@ -817,8 +1055,56 @@ export default function ShopDashboard() {
                 </Select>
               </div>
 
-              <Button onClick={updateProduct} className="w-full">
-                Mettre à jour
+              {productData.product_type === 'digital' && (
+                <div>
+                  <Label>Fichier téléchargeable</Label>
+                  <div className="border-2 border-dashed border-border rounded-lg p-4 text-center cursor-pointer hover:border-primary transition">
+                    <input
+                      type="file"
+                      disabled={uploading}
+                      onChange={async (e) => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                          if (file.size > 100 * 1024 * 1024) {
+                            toast({ title: 'Erreur', description: 'Le fichier ne doit pas dépasser 100MB', variant: 'destructive' });
+                            return;
+                          }
+                          const fileName = await uploadProductFile(file, selectedProduct?.id);
+                          if (fileName) {
+                            setFilePreview(file.name);
+                          }
+                        }
+                      }}
+                      className="hidden"
+                      id="edit-product-file-input"
+                    />
+                    <label htmlFor="edit-product-file-input" className="cursor-pointer">
+                      {filePreview ? (
+                        <div className="space-y-2">
+                          <p className="text-sm font-medium text-foreground">✓ {filePreview}</p>
+                          <p className="text-xs text-muted-foreground">Cliquez pour changer</p>
+                        </div>
+                      ) : (
+                        <div className="py-4">
+                          <p className="text-sm text-muted-foreground">Cliquez pour ajouter un fichier</p>
+                          <p className="text-xs text-muted-foreground mt-1">PDF, ZIP, etc. jusqu'à 100MB</p>
+                        </div>
+                      )}
+                    </label>
+                  </div>
+                </div>
+              )}
+
+              <div>
+                <Label>Lien de paiement (optionnel)</Label>
+                <Input
+                  value={productData.payment_link}
+                  onChange={(e) => setProductData({ ...productData, payment_link: e.target.value })}
+                />
+              </div>
+
+              <Button onClick={updateProduct} className="w-full" disabled={uploading}>
+                {uploading ? 'Téléchargement...' : 'Mettre à jour'}
               </Button>
             </div>
           </DialogContent>

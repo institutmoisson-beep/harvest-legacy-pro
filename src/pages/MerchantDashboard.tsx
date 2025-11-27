@@ -451,7 +451,7 @@ export default function MerchantDashboard() {
                       <p className="font-medium">{tx.transaction_type}</p>
                       <p className="text-xs text-muted-foreground">{tx.description}</p>
                       <p className="text-xs text-muted-foreground">
-                        {new Date(tx.created_at).toLocaleString()}
+                        {new Date(tx.created_at).toLocaleDateString('fr-FR')} à {new Date(tx.created_at).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
                       </p>
                     </div>
                     <div className={`font-bold ${tx.transaction_type === 'deposit' ? 'text-green-600' : 'text-red-600'}`}>

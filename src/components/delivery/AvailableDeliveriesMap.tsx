@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useGeolocation, useDistance, useNearbyDeliveries } from '@/hooks/useGeolocation';
+import { useRealtimeLocation } from '@/hooks/useRealtimeLocation';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -9,91 +10,98 @@ import { Textarea } from '@/components/ui/textarea';
 import { toast } from '@/hooks/use-toast';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Slider } from '@/components/ui/slider';
-import { Package, MapPin, Navigation, AlertCircle, Loader2 } from 'lucide-react';
+import { Package, MapPin, Navigation, AlertCircle, Loader2, Zap } from 'lucide-react';
 import DeliveryMap from './DeliveryMap';
+import MapSearch from './MapSearch';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 
 export default function AvailableDeliveriesMap() {
   const { user } = useAuth();
-  const { location, error: geoError, getCurrentLocation, loading: geoLoading } = useGeolocation();
+  const { location: staticLocation, error: geoError, getCurrentLocation, loading: geoLoading } = useGeolocation();
+  const { location: realtimeLocation, isTracking, error: trackingError, startTracking, stopTracking } = useRealtimeLocation();
   const { nearbyDeliveries, getNearbyDeliveries, loading: nearbyLoading } = useNearbyDeliveries();
   const { calculateDistance } = useDistance();
+
+  // Use realtime location if available, fallback to static location
+  const location = realtimeLocation || staticLocation;
 
   const [selectedDeliveryId, setSelectedDeliveryId] = useState<string | null>(null);
   const [message, setMessage] = useState('');
   const [radiusKm, setRadiusKm] = useState(10);
   const [proposing, setProposing] = useState(false);
   const [viewMode, setViewMode] = useState<'map' | 'list'>('map');
-  const [locationSharing, setLocationSharing] = useState(false);
+  const [activeUsers, setActiveUsers] = useState<any[]>([]);
+  const [refetchInterval, setRefetchInterval] = useState<NodeJS.Timeout | null>(null);
+  const [searchLocation, setSearchLocation] = useState<{ latitude: number; longitude: number; name: string } | null>(null);
 
   // Get initial location on mount
   useEffect(() => {
     getCurrentLocation();
   }, [getCurrentLocation]);
 
-  // Fetch nearby deliveries when location changes
+  // Fetch nearby deliveries and active users when location changes
   useEffect(() => {
     if (location) {
       getNearbyDeliveries(location, radiusKm);
-      // Save location to database for delivery agent visibility
-      if (!locationSharing) {
-        saveUserLocation(location);
-      }
+      fetchActiveUsers();
+
+      // Set up continuous refetch of nearby deliveries and active users every 10 seconds
+      const interval = setInterval(() => {
+        getNearbyDeliveries(location, radiusKm);
+        fetchActiveUsers();
+      }, 10000);
+
+      setRefetchInterval(interval);
+
+      return () => clearInterval(interval);
     }
   }, [location, radiusKm]);
 
-  const saveUserLocation = async (loc: any) => {
-    if (!user) return;
+  const fetchActiveUsers = async () => {
+    if (!location) return;
 
     try {
-      await supabase.from('user_locations').upsert(
-        {
-          user_id: user.id,
-          latitude: loc.latitude,
-          longitude: loc.longitude,
-          accuracy: loc.accuracy,
-          is_active: true,
-          updated_at: new Date().toISOString(),
-        },
-        { onConflict: 'user_id' }
-      );
+      const { data, error } = await supabase
+        .from('active_locations')
+        .select('*')
+        .eq('is_active', true);
+
+      if (error) throw error;
+
+      // Filter out current user and calculate distances
+      const nearbyUsers = (data || [])
+        .filter((u: any) => u.user_id !== user?.id)
+        .map((u: any) => ({
+          ...u,
+          distance: calculateDistance(
+            location.latitude,
+            location.longitude,
+            u.latitude,
+            u.longitude
+          ),
+        }))
+        .filter((u: any) => u.distance <= radiusKm);
+
+      setActiveUsers(nearbyUsers);
     } catch (err: any) {
-      console.error('Erreur lors de la sauvegarde de la localisation:', err);
+      console.error('Erreur lors de la récupération des utilisateurs actifs:', err);
     }
   };
 
-  const handleToggleLocationSharing = async () => {
-    if (!user) return;
-
+  const handleToggleTracking = async () => {
     try {
-      if (locationSharing) {
-        // Stop sharing - delete location
-        await supabase.from('user_locations').delete().eq('user_id', user.id);
-        setLocationSharing(false);
+      if (isTracking) {
+        await stopTracking();
         toast({
-          title: 'Partage de localisation désactivé',
-          description: 'Votre localisation n\'est plus visible',
+          title: 'Suivi en temps réel arrêté',
+          description: 'Votre position n\'est plus mise à jour en continu',
         });
       } else {
-        // Start sharing - save location with is_active = true
-        if (location) {
-          await supabase.from('user_locations').upsert(
-            {
-              user_id: user.id,
-              latitude: location.latitude,
-              longitude: location.longitude,
-              accuracy: location.accuracy,
-              is_active: true,
-              updated_at: new Date().toISOString(),
-            },
-            { onConflict: 'user_id' }
-          );
-          setLocationSharing(true);
-          toast({
-            title: 'Partage de localisation activé',
-            description: 'Autres membres peuvent voir votre localisation',
-          });
-        }
+        await startTracking();
+        toast({
+          title: 'Suivi en temps réel activé',
+          description: 'Votre position se met à jour en continu',
+        });
       }
     } catch (err: any) {
       toast({
@@ -151,11 +159,22 @@ export default function AvailableDeliveriesMap() {
             </CardTitle>
             <div className="flex gap-2">
               <Button
-                onClick={handleToggleLocationSharing}
-                variant={locationSharing ? 'default' : 'outline'}
+                onClick={handleToggleTracking}
+                variant={isTracking ? 'default' : 'outline'}
                 size="sm"
+                className={isTracking ? 'bg-green-600 hover:bg-green-700' : ''}
               >
-                {locationSharing ? '📍 Partage activé' : '📍 Partager location'}
+                {isTracking ? (
+                  <>
+                    <Zap className="w-4 h-4 mr-2 animate-pulse" />
+                    Suivi actif
+                  </>
+                ) : (
+                  <>
+                    <MapPin className="w-4 h-4 mr-2" />
+                    Activer suivi
+                  </>
+                )}
               </Button>
               <Button onClick={getCurrentLocation} variant="outline" size="sm" disabled={geoLoading}>
                 {geoLoading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : '🔄'}
@@ -165,10 +184,19 @@ export default function AvailableDeliveriesMap() {
           </div>
         </CardHeader>
         <CardContent className="space-y-3">
-          {geoError && (
+          {(geoError || trackingError) && (
             <Alert variant="destructive">
               <AlertCircle className="h-4 w-4" />
-              <AlertDescription>{geoError}</AlertDescription>
+              <AlertDescription>{geoError || trackingError}</AlertDescription>
+            </Alert>
+          )}
+
+          {isTracking && (
+            <Alert className="border-green-200 bg-green-50">
+              <Zap className="h-4 w-4 text-green-600" />
+              <AlertDescription className="text-green-800">
+                Suivi en temps réel activé - Votre position se met à jour automatiquement
+              </AlertDescription>
             </Alert>
           )}
 
@@ -177,7 +205,7 @@ export default function AvailableDeliveriesMap() {
               <AlertCircle className="h-4 w-4" />
               <AlertDescription>
                 Position: {location.latitude.toFixed(4)}, {location.longitude.toFixed(4)} ±{' '}
-                {location.accuracy.toFixed(0)}m
+                {location.accuracy.toFixed(0)}m {isTracking && '(en direct)'}
               </AlertDescription>
             </Alert>
           )}
@@ -222,19 +250,47 @@ export default function AvailableDeliveriesMap() {
                 </TabsTrigger>
               </TabsList>
 
-              <TabsContent value="map" className="p-4">
-                {nearbyDeliveries.length > 0 ? (
-                  <DeliveryMap
-                    userLocation={location}
-                    deliveries={nearbyDeliveries}
-                    selectedDeliveryId={selectedDeliveryId}
-                    onSelectDelivery={setSelectedDeliveryId}
-                    onPropose={handlePropose}
+              <TabsContent value="map" className="p-0">
+                <div className="p-4">
+                  <MapSearch
+                    onLocationFound={setSearchLocation}
+                    placeholder="Rechercher une adresse pour les livraisons..."
+                    searchType="delivery"
                   />
+                </div>
+                {nearbyDeliveries.length > 0 || activeUsers.length > 0 ? (
+                  <div className="space-y-3 p-4">
+                    {activeUsers.length > 0 && (
+                      <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                        <p className="text-sm font-medium text-blue-900">
+                          👥 {activeUsers.length} livreur(s) actif(s) à proximité
+                        </p>
+                        <div className="flex flex-wrap gap-2 mt-2">
+                          {activeUsers.map((user) => (
+                            <Badge key={user.id} variant="secondary" className="bg-blue-100">
+                              📍 {user.distance.toFixed(1)} km
+                            </Badge>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    <DeliveryMap
+                      userLocation={location}
+                      deliveries={nearbyDeliveries}
+                      activeUsers={activeUsers}
+                      selectedDeliveryId={selectedDeliveryId}
+                      onSelectDelivery={setSelectedDeliveryId}
+                      onPropose={handlePropose}
+                      searchLocation={searchLocation}
+                    />
+                  </div>
                 ) : (
                   <div className="text-center py-12 text-muted-foreground">
                     <Package className="w-12 h-12 mx-auto mb-4 opacity-50" />
                     <p>Aucune livraison disponible dans un rayon de {radiusKm} km</p>
+                    {activeUsers.length === 0 && (
+                      <p className="text-sm mt-2">Aucun livreur actif à proximité</p>
+                    )}
                   </div>
                 )}
               </TabsContent>

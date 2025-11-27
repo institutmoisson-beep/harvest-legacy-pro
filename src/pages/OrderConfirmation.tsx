@@ -1,251 +1,215 @@
-import { useEffect } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
+import { useEffect, useState } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { CheckCircle2, ArrowLeft, Copy } from 'lucide-react';
-import { toast } from '@/hooks/use-toast';
-
-interface CartItem {
-  id: string;
-  name: string;
-  price: number;
-  quantity: number;
-}
-
-interface Establishment {
-  id: string;
-  name: string;
-  location: string;
-  phone?: string;
-}
-
-interface LocationState {
-  orderId: string;
-  establishment: Establishment;
-  cart: CartItem[];
-  total: number;
-  paymentMethod: string;
-}
+import { Button } from '@/components/ui/button';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { CheckCircle, Clock, AlertCircle, Loader2 } from 'lucide-react';
+import { useAuth } from '@/hooks/useAuth';
 
 export default function OrderConfirmation() {
-  const location = useLocation();
+  const { orderId } = useParams<{ orderId: string }>();
   const navigate = useNavigate();
-
-  const state = location.state as LocationState;
+  const { user } = useAuth();
+  const [order, setOrder] = useState<any>(null);
+  const [payment, setPayment] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [status, setStatus] = useState<'loading' | 'success' | 'pending' | 'error'>('loading');
 
   useEffect(() => {
-    if (!state?.orderId) {
-      navigate('/marketplace');
+    if (!user || !orderId) {
+      navigate('/dashboard');
+      return;
     }
-  }, [state, navigate]);
+    fetchOrderDetails();
+  }, [orderId, user, navigate]);
 
-  if (!state?.establishment || !state?.cart) {
-    return null;
+  const fetchOrderDetails = async () => {
+    try {
+      setLoading(true);
+
+      // Fetch order details
+      const { data: orderData, error: orderError } = await supabase
+        .from('orders')
+        .select('*')
+        .eq('id', orderId)
+        .eq('broker_id', user?.id)
+        .single();
+
+      if (orderError) throw orderError;
+      setOrder(orderData);
+
+      // Fetch payment transaction
+      const { data: paymentData, error: paymentError } = await supabase
+        .from('payment_transactions')
+        .select('*')
+        .eq('order_id', orderId)
+        .single();
+
+      if (!paymentError && paymentData) {
+        setPayment(paymentData);
+        
+        // Determine status
+        if (paymentData.status === 'completed' || paymentData.status === 'pending_delivery') {
+          setStatus('success');
+        } else if (paymentData.status === 'pending') {
+          setStatus('pending');
+        } else {
+          setStatus('error');
+        }
+      }
+
+      setLoading(false);
+    } catch (error) {
+      console.error('Erreur lors du chargement des détails:', error);
+      setStatus('error');
+      setLoading(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5 py-12 px-4 flex items-center justify-center">
+        <Card className="max-w-md w-full">
+          <CardContent className="p-8 flex flex-col items-center gap-4">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            <p className="text-center">Vérification de votre commande...</p>
+          </CardContent>
+        </Card>
+      </div>
+    );
   }
-
-  const copyOrderId = () => {
-    navigator.clipboard.writeText(state.orderId.slice(0, 12).toUpperCase());
-    toast({
-      title: 'Copié!',
-      description: 'Numéro de commande copié',
-    });
-  };
-
-  const paymentMethodLabel: Record<string, string> = {
-    cash: 'Paiement à la livraison',
-    orange_money: 'Orange Money',
-    mtn: 'MTN Mobile Money',
-    crypto: 'Crypto-monnaie',
-  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5 py-12 px-4">
       <div className="container mx-auto max-w-2xl">
-        <Button
-          variant="ghost"
-          className="mb-8"
-          onClick={() => navigate('/marketplace')}
-        >
-          <ArrowLeft className="h-4 w-4 mr-2" />
-          Retour à la marketplace
-        </Button>
-
-        {/* Success Message */}
-        <Card className="border-green-200 bg-green-50 mb-8">
-          <CardContent className="pt-8 text-center">
-            <CheckCircle2 className="h-16 w-16 text-green-600 mx-auto mb-4" />
-            <h1 className="text-3xl font-bold mb-2">Commande confirmée!</h1>
-            <p className="text-muted-foreground mb-6">
-              Votre commande a été reçue et est en cours de préparation
-            </p>
-
-            <div className="bg-white p-4 rounded-lg border border-green-200 mb-6">
-              <p className="text-xs text-muted-foreground mb-1">Numéro de commande</p>
-              <div className="flex items-center justify-center gap-2">
-                <code className="text-2xl font-bold tracking-wider">
-                  {state.orderId.slice(0, 12).toUpperCase()}
-                </code>
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  onClick={copyOrderId}
-                >
-                  <Copy className="h-4 w-4" />
-                </Button>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Order Details */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Establishment & Delivery */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">Livraison à</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div>
-                <h3 className="font-semibold mb-2">{state.establishment.name}</h3>
-                <div className="space-y-1 text-sm text-muted-foreground">
-                  <p>📍 {state.establishment.location}</p>
-                  {state.establishment.phone && (
-                    <p>📞 {state.establishment.phone}</p>
-                  )}
-                </div>
-              </div>
-
-              <div className="border-t pt-4">
-                <p className="text-xs text-muted-foreground mb-2">Statut estimé</p>
-                <div className="flex items-center gap-2">
-                  <Badge>En préparation</Badge>
-                  <span className="text-xs text-muted-foreground">
-                    Environ 20-30 minutes
-                  </span>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Payment Method */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">Paiement</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div>
-                <p className="text-xs text-muted-foreground mb-2">Mode de paiement</p>
-                <Badge variant="outline">
-                  {paymentMethodLabel[state.paymentMethod] ||
-                    state.paymentMethod}
-                </Badge>
-              </div>
-
-              <div className="border-t pt-4">
-                <p className="text-xs text-muted-foreground mb-1">Montant total</p>
-                <p className="text-2xl font-bold text-primary">
-                  {state.total.toLocaleString('fr-FR', {
-                    style: 'currency',
-                    currency: 'XAF',
-                  })}
-                </p>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Order Items */}
-        <Card className="mt-6">
-          <CardHeader>
-            <CardTitle className="text-lg">Détails de la commande</CardTitle>
-            <CardDescription>
-              {state.cart.length} article{state.cart.length > 1 ? 's' : ''}
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              {state.cart.map((item) => (
-                <div key={item.id} className="flex justify-between pb-3 border-b last:border-0">
-                  <div>
-                    <p className="font-medium">{item.name}</p>
-                    <p className="text-sm text-muted-foreground">
-                      Quantité: {item.quantity}
-                    </p>
+        {status === 'success' && (
+          <>
+            <Card className="border-green-200 bg-green-50">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-green-700">
+                  <CheckCircle className="h-6 w-6" />
+                  Commande Confirmée!
+                </CardTitle>
+                <CardDescription>
+                  Votre commande a été créée avec succès
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                {order && (
+                  <div className="space-y-3">
+                    <div className="grid grid-cols-2 gap-4 p-3 bg-white rounded-lg border">
+                      <div>
+                        <p className="text-sm text-muted-foreground">Commande</p>
+                        <p className="font-mono text-sm font-semibold">#{order.id?.slice(0, 8)}</p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-muted-foreground">Produit</p>
+                        <p className="font-semibold">{order.product_name}</p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-muted-foreground">Client</p>
+                        <p className="font-semibold">{order.customer_name}</p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-muted-foreground">Quantité</p>
+                        <p className="font-semibold">{order.quantity}</p>
+                      </div>
+                      {order.customer_phone && (
+                        <div className="col-span-2">
+                          <p className="text-sm text-muted-foreground">Téléphone</p>
+                          <p className="font-semibold">{order.customer_phone}</p>
+                        </div>
+                      )}
+                    </div>
                   </div>
-                  <p className="font-semibold">
-                    {(item.price * item.quantity).toLocaleString('fr-FR', {
-                      style: 'currency',
-                      currency: 'XAF',
-                    })}
-                  </p>
+                )}
+
+                {payment && (
+                  <div className="space-y-3">
+                    <h3 className="font-semibold">Détails du Paiement</h3>
+                    <div className="p-3 bg-white rounded-lg border space-y-2">
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Montant</span>
+                        <span className="font-semibold">{payment.amount.toLocaleString()} {payment.currency}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Statut</span>
+                        <span className="font-semibold text-green-600">
+                          {payment.status === 'completed' ? '✅ Complété' : '⏳ En attente'}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                <Alert className="bg-blue-50 border-blue-200">
+                  <AlertCircle className="h-4 w-4 text-blue-600" />
+                  <AlertDescription className="text-blue-800">
+                    {payment?.status === 'completed' 
+                      ? 'Votre paiement a été traité avec succès!'
+                      : 'Votre paiement est en cours de traitement. Vous recevrez une confirmation par SMS/email.'}
+                  </AlertDescription>
+                </Alert>
+
+                <div className="flex gap-2">
+                  <Button 
+                    onClick={() => navigate('/orders-dashboard')}
+                    variant="outline"
+                    className="flex-1"
+                  >
+                    Voir toutes les commandes
+                  </Button>
+                  <Button 
+                    onClick={() => navigate('/dashboard')}
+                    className="flex-1"
+                  >
+                    Retour au tableau de bord
+                  </Button>
                 </div>
-              ))}
-            </div>
+              </CardContent>
+            </Card>
+          </>
+        )}
 
-            <div className="mt-4 pt-4 border-t">
-              <div className="flex justify-between font-bold text-lg">
-                <span>Total</span>
-                <span className="text-primary">
-                  {state.total.toLocaleString('fr-FR', {
-                    style: 'currency',
-                    currency: 'XAF',
-                  })}
-                </span>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+        {status === 'pending' && (
+          <Card className="border-yellow-200 bg-yellow-50">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-yellow-700">
+                <Clock className="h-6 w-6" />
+                Paiement en Attente
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <p className="text-yellow-800">
+                Votre commande a été créée, mais le paiement est toujours en attente. 
+                Veuillez compléter le paiement sur l'interface du prestataire.
+              </p>
+              <Button onClick={() => navigate('/orders-dashboard')} className="w-full">
+                Voir mes commandes
+              </Button>
+            </CardContent>
+          </Card>
+        )}
 
-        {/* Next Steps */}
-        <Card className="mt-6 bg-blue-50 border-blue-200">
-          <CardHeader>
-            <CardTitle className="text-lg">Prochaines étapes</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ol className="space-y-2 text-sm">
-              <li className="flex gap-3">
-                <span className="font-bold flex-shrink-0 w-6 h-6 bg-blue-500 text-white rounded-full flex items-center justify-center">
-                  1
-                </span>
-                <span>Gardez votre numéro de commande pour la livraison</span>
-              </li>
-              <li className="flex gap-3">
-                <span className="font-bold flex-shrink-0 w-6 h-6 bg-blue-500 text-white rounded-full flex items-center justify-center">
-                  2
-                </span>
-                <span>
-                  Vous recevrez votre commande à l'adresse indiquée
-                </span>
-              </li>
-              <li className="flex gap-3">
-                <span className="font-bold flex-shrink-0 w-6 h-6 bg-blue-500 text-white rounded-full flex items-center justify-center">
-                  3
-                </span>
-                <span>
-                  Vous pouvez contacter le restaurant pour toute question
-                </span>
-              </li>
-            </ol>
-          </CardContent>
-        </Card>
-
-        {/* Action Buttons */}
-        <div className="mt-8 space-y-3">
-          <Button
-            className="w-full"
-            onClick={() => navigate('/marketplace')}
-          >
-            Retour à la marketplace
-          </Button>
-          <Button
-            variant="outline"
-            className="w-full"
-            onClick={() => navigate('/dashboard')}
-          >
-            Aller au tableau de bord
-          </Button>
-        </div>
+        {status === 'error' && (
+          <Card className="border-red-200 bg-red-50">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-red-700">
+                <AlertCircle className="h-6 w-6" />
+                Erreur
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <p className="text-red-800">
+                Il y a eu un problème avec votre commande. Veuillez contacter le support.
+              </p>
+              <Button onClick={() => navigate('/dashboard')} className="w-full">
+                Retour au tableau de bord
+              </Button>
+            </CardContent>
+          </Card>
+        )}
       </div>
     </div>
   );

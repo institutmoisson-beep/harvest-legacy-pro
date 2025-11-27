@@ -50,23 +50,50 @@ export default function NotificationsPanel({ userId }: NotificationsPanelProps) 
         .limit(50);
 
       if (error) {
-        console.error('Erreur notifications complète:', error);
         let errorMessage = 'Impossible de récupérer les notifications';
 
         if (typeof error === 'object' && error !== null) {
-          if ('message' in error && typeof error.message === 'string') {
-            errorMessage = error.message;
-          } else if ('code' in error && typeof error.code === 'string') {
-            errorMessage = `Erreur (${error.code})`;
+          const errorObj = error as any;
+          if (errorObj.message) {
+            const msg = errorObj.message;
+            if (typeof msg === 'string') {
+              errorMessage = msg;
+            } else if (typeof msg === 'object') {
+              try {
+                errorMessage = JSON.stringify(msg);
+              } catch {
+                errorMessage = 'Erreur de format du message';
+              }
+            }
+          } else if (errorObj.code && typeof errorObj.code === 'string') {
+            errorMessage = `Erreur (${errorObj.code})`;
+          } else if (errorObj.details) {
+            const details = errorObj.details;
+            if (typeof details === 'string') {
+              errorMessage = details;
+            } else if (typeof details === 'object') {
+              try {
+                errorMessage = JSON.stringify(details);
+              } catch {
+                errorMessage = 'Erreur de détails';
+              }
+            }
           }
+        } else if (typeof error === 'string') {
+          errorMessage = error;
+        } else if (error instanceof Error) {
+          errorMessage = error.message;
         }
 
-        console.error('Message d\'erreur affiché:', errorMessage);
-        toast({
-          title: 'Erreur',
-          description: errorMessage,
-          variant: 'destructive',
-        });
+        // Ensure errorMessage is always a string
+        if (typeof errorMessage !== 'string') {
+          errorMessage = String(errorMessage || 'Erreur inconnue');
+        }
+
+        console.error('❌ Erreur lors de la récupération des notifications:', { message: errorMessage, error });
+
+        // Silently fail - don't show toast for notification errors
+        // as it's not critical functionality
         return;
       }
 
@@ -75,16 +102,27 @@ export default function NotificationsPanel({ userId }: NotificationsPanelProps) 
         setUnreadCount(data.filter((n: any) => !n.is_read).length);
       }
     } catch (error: any) {
-      console.error('Exception lors de la récupération des notifications:', error);
       let errorMessage = 'Une erreur est survenue';
 
       if (typeof error === 'string') {
         errorMessage = error;
       } else if (error instanceof Error) {
         errorMessage = error.message;
-      } else if (typeof error === 'object' && error !== null && 'message' in error) {
-        errorMessage = String(error.message);
+      } else if (typeof error === 'object' && error !== null) {
+        const msg = error.message;
+        if (typeof msg === 'string') {
+          errorMessage = msg;
+        } else if (typeof msg === 'object') {
+          errorMessage = JSON.stringify(msg);
+        }
       }
+
+      // Ensure errorMessage is always a string
+      if (typeof errorMessage !== 'string') {
+        errorMessage = String(errorMessage || 'Erreur inconnue');
+      }
+
+      console.error('Exception lors de la récupération des notifications:', errorMessage);
 
       toast({
         title: 'Erreur',

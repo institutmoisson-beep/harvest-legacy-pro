@@ -1,8 +1,8 @@
-import { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import { useMemo, memo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Trophy, Award, Star, Target, Zap } from 'lucide-react';
+import { useOrdersData } from '@/hooks/useOrdersData';
 
 interface OrdersBadgesProps {
   userId: string;
@@ -19,86 +19,67 @@ interface BadgeItem {
   target?: number;
 }
 
-export default function OrdersBadges({ userId }: OrdersBadgesProps) {
-  const [badges, setBadges] = useState<BadgeItem[]>([]);
-  const [loading, setLoading] = useState(true);
+function OrdersBadgesComponent({ userId }: OrdersBadgesProps) {
+  const MSN_TO_FCFA = 750;
+  const { orders, loading } = useOrdersData(userId);
 
-  useEffect(() => {
-    if (userId) {
-      fetchBadges();
-    }
-  }, [userId]);
+  const badges = useMemo(() => {
+    const completed = orders?.filter(o => o.status === 'completed') || [];
+    const totalProfit = completed.reduce((sum, o) => sum + Number(o.profit), 0) * MSN_TO_FCFA;
 
-  const fetchBadges = async () => {
-    try {
-      const { data: orders } = await supabase
-        .from('orders')
-        .select('*')
-        .eq('broker_id', userId);
-
-      const completed = orders?.filter(o => o.status === 'completed') || [];
-      const totalProfit = completed.reduce((sum, o) => sum + Number(o.profit), 0);
-
-      const badgesList: BadgeItem[] = [
-        {
-          id: 'first_order',
-          name: 'Première Commande',
-          description: 'Créer votre première commande',
-          icon: Star,
-          color: 'hsl(var(--accent))',
-          earned: (orders?.length || 0) >= 1,
-          progress: Math.min(orders?.length || 0, 1),
-          target: 1
-        },
-        {
-          id: 'beginner',
-          name: 'Débutant',
-          description: 'Compléter 5 commandes',
-          icon: Target,
-          color: 'hsl(var(--primary))',
-          earned: completed.length >= 5,
-          progress: Math.min(completed.length, 5),
-          target: 5
-        },
-        {
-          id: 'professional',
-          name: 'Professionnel',
-          description: 'Compléter 25 commandes',
-          icon: Award,
-          color: 'hsl(var(--secondary))',
-          earned: completed.length >= 25,
-          progress: Math.min(completed.length, 25),
-          target: 25
-        },
-        {
-          id: 'expert',
-          name: 'Expert',
-          description: 'Compléter 100 commandes',
-          icon: Trophy,
-          color: '#FFD700',
-          earned: completed.length >= 100,
-          progress: Math.min(completed.length, 100),
-          target: 100
-        },
-        {
-          id: 'millionaire',
-          name: 'Millionnaire',
-          description: 'Gagner 1,000,000 FCFA en profits',
-          icon: Zap,
-          color: 'hsl(var(--secondary))',
-          earned: totalProfit >= 1000000,
-          progress: Math.min(totalProfit, 1000000),
-          target: 1000000
-        }
-      ];
-
-      setBadges(badgesList);
-    } catch (error) {
-      console.error('Error fetching badges:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
+    return [
+      {
+        id: 'first_order',
+        name: 'Première Commande',
+        description: 'Créer votre première commande',
+        icon: Star,
+        color: 'hsl(var(--accent))',
+        earned: (orders?.length || 0) >= 1,
+        progress: Math.min(orders?.length || 0, 1),
+        target: 1
+      },
+      {
+        id: 'beginner',
+        name: 'Débutant',
+        description: 'Compléter 5 commandes',
+        icon: Target,
+        color: 'hsl(var(--primary))',
+        earned: completed.length >= 5,
+        progress: Math.min(completed.length, 5),
+        target: 5
+      },
+      {
+        id: 'professional',
+        name: 'Professionnel',
+        description: 'Compléter 25 commandes',
+        icon: Award,
+        color: 'hsl(var(--secondary))',
+        earned: completed.length >= 25,
+        progress: Math.min(completed.length, 25),
+        target: 25
+      },
+      {
+        id: 'expert',
+        name: 'Expert',
+        description: 'Compléter 100 commandes',
+        icon: Trophy,
+        color: '#FFD700',
+        earned: completed.length >= 100,
+        progress: Math.min(completed.length, 100),
+        target: 100
+      },
+      {
+        id: 'millionaire',
+        name: 'Millionnaire',
+        description: 'Gagner 1,000,000 FCFA en profits',
+        icon: Zap,
+        color: 'hsl(var(--secondary))',
+        earned: totalProfit >= 1000000,
+        progress: Math.min(totalProfit, 1000000),
+        target: 1000000
+      }
+    ];
+  }, [orders]);
 
   if (loading) {
     return (
@@ -182,3 +163,5 @@ export default function OrdersBadges({ userId }: OrdersBadgesProps) {
     </Card>
   );
 }
+
+export default memo(OrdersBadgesComponent);

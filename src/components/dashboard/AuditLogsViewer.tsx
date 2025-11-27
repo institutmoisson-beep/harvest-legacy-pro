@@ -83,8 +83,29 @@ export default function AuditLogsViewer() {
 
       if (error) throw error;
       setLogs(data || []);
-    } catch (error) {
-      console.error('Error fetching audit logs:', error);
+    } catch (error: any) {
+      let errorMessage = 'Impossible de charger les journaux d\'audit';
+
+      if (typeof error === 'string') {
+        errorMessage = error;
+      } else if (error instanceof Error) {
+        errorMessage = error.message;
+      } else if (typeof error === 'object' && error !== null) {
+        if (error.message && typeof error.message === 'string') {
+          errorMessage = error.message;
+        } else if (error.code && typeof error.code === 'string') {
+          errorMessage = `Erreur (${error.code})`;
+        } else if (error.details) {
+          const details = error.details;
+          if (typeof details === 'string') {
+            errorMessage = details;
+          } else if (typeof details === 'object') {
+            errorMessage = JSON.stringify(details);
+          }
+        }
+      }
+
+      console.error('Error fetching audit logs:', errorMessage);
     } finally {
       setLoading(false);
     }

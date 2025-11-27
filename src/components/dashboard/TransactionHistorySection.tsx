@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
-import { History, ArrowUpRight, ArrowDownLeft, Send, ChevronDown, Search } from 'lucide-react';
+import { History, ArrowUpRight, ArrowDownLeft, Send, ChevronDown, Search, TrendingUp } from 'lucide-react';
 
 const MSN_TO_FCFA = 750;
 
@@ -96,10 +96,12 @@ export default function TransactionHistorySection({ userId }: TransactionHistory
     if (type === 'deposit') return <ArrowDownLeft className="h-4 w-4 text-green-500" />;
     if (type === 'withdrawal') return <ArrowUpRight className="h-4 w-4 text-red-500" />;
     if (type === 'transfer') {
-      return fromUserId === userId 
-        ? <Send className="h-4 w-4 text-blue-500" /> 
+      return fromUserId === userId
+        ? <Send className="h-4 w-4 text-blue-500" />
         : <ArrowDownLeft className="h-4 w-4 text-green-500" />;
     }
+    if (type === 'order_payment') return <ArrowUpRight className="h-4 w-4 text-orange-500" />;
+    if (type === 'commission') return <TrendingUp className="h-4 w-4 text-green-500" />;
     return <History className="h-4 w-4" />;
   };
 
@@ -191,7 +193,8 @@ export default function TransactionHistorySection({ userId }: TransactionHistory
                   </TableCell>
                   <TableCell>{getStatusBadge(tx.status)}</TableCell>
                   <TableCell className="text-sm text-muted-foreground">
-                    {new Date(tx.created_at).toLocaleDateString('fr-FR')}
+                    <div>{new Date(tx.created_at).toLocaleDateString('fr-FR')}</div>
+                    <div className="text-xs">{new Date(tx.created_at).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}</div>
                   </TableCell>
                 </TableRow>
               ))

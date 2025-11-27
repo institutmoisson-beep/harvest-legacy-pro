@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { Loader2, Shield, TrendingUp, Users, Wallet, UserCog, Lock } from 'lucide-react';
+import { Loader2, Shield, TrendingUp, Users, Wallet, UserCog, Lock, ChevronDown, ChevronUp } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -66,6 +66,7 @@ export default function AdminDashboard() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [hasAccess, setHasAccess] = useState(false);
+  const [transactionsExpanded, setTransactionsExpanded] = useState(true);
   const [orders, setOrders] = useState<Order[]>([]);
   const [wallets, setWallets] = useState<UserWallet[]>([]);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
@@ -116,19 +117,61 @@ export default function AdminDashboard() {
 
   const fetchData = async () => {
     try {
-      // Fetch all orders
+      // Fetch recent orders with limit
       const { data: ordersData, error: ordersError } = await supabase
         .from('orders')
         .select('*')
+        .limit(100)
         .order('created_at', { ascending: false });
 
       if (ordersError) throw ordersError;
-      setOrders(ordersData || []);
 
-      // Fetch all wallets with user info
+      // Fetch payment methods for orders
+      let paymentMethodsMap: Record<string, any> = {};
+      if (ordersData && ordersData.length > 0) {
+        const orderIds = ordersData.map((o: any) => o.id);
+        const { data: paymentTransactions, error: paymentError } = await supabase
+          .from('payment_transactions')
+          .select('order_id, payment_method_id')
+          .in('order_id', orderIds);
+
+        if (!paymentError && paymentTransactions) {
+          // Get payment method names
+          const paymentMethodIds = Array.from(new Set(
+            paymentTransactions.map((pt: any) => pt.payment_method_id).filter(Boolean)
+          ));
+
+          if (paymentMethodIds.length > 0) {
+            const { data: paymentMethods } = await supabase
+              .from('payment_methods')
+              .select('id, name')
+              .in('id', paymentMethodIds);
+
+            if (paymentMethods) {
+              const methodsById = Object.fromEntries(
+                paymentMethods.map((pm: any) => [pm.id, pm.name])
+              );
+              paymentTransactions.forEach((pt: any) => {
+                paymentMethodsMap[pt.order_id] = methodsById[pt.payment_method_id] || 'Unknown';
+              });
+            }
+          }
+        }
+      }
+
+      // Enrich orders with payment methods
+      const enrichedOrders = (ordersData || []).map((order: any) => ({
+        ...order,
+        payment_method: paymentMethodsMap[order.id] || 'Non spécifiée',
+      }));
+
+      setOrders(enrichedOrders);
+
+      // Fetch wallets with user info and limit
       const { data: walletsData, error: walletsError } = await supabase
         .from('wallets')
-        .select('user_id, balance');
+        .select('user_id, balance')
+        .limit(100);
 
       if (walletsError) throw walletsError;
 
@@ -333,6 +376,7 @@ export default function AdminDashboard() {
                     <TableHead>Prix</TableHead>
                     <TableHead>Profit</TableHead>
                     <TableHead>Code</TableHead>
+                    <TableHead>Moyen de paiement</TableHead>
                     <TableHead>Statut</TableHead>
                     <TableHead>Date</TableHead>
                     <TableHead>Actions</TableHead>
@@ -347,6 +391,11 @@ export default function AdminDashboard() {
                       <TableCell className="text-secondary">{order.profit.toLocaleString()} FCFA</TableCell>
                       <TableCell className="font-mono text-sm">{order.broker_code}</TableCell>
                       <TableCell>
+                        <span className="px-2 py-1 rounded text-xs bg-blue-500/20 text-blue-500 font-medium">
+                          {order.payment_method}
+                        </span>
+                      </TableCell>
+                      <TableCell>
                         <span className={`px-2 py-1 rounded text-xs ${
                           order.status === 'validated' ? 'bg-secondary/20 text-secondary' :
                           order.status === 'pending' ? 'bg-accent/20 text-accent' :
@@ -356,7 +405,14 @@ export default function AdminDashboard() {
                           {order.status}
                         </span>
                       </TableCell>
-                      <TableCell>{new Date(order.created_at).toLocaleDateString()}</TableCell>
+                      <TableCell>
+                        <div className="text-sm text-muted-foreground">
+                          {new Date(order.created_at).toLocaleDateString('fr-FR')}
+                        </div>
+                        <div className="text-xs text-muted-foreground">
+                          {new Date(order.created_at).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
+                        </div>
+                      </TableCell>
                       <TableCell>
                         {order.status === 'pending' && (
                           <div className="flex gap-2">
@@ -591,49 +647,78 @@ export default function AdminDashboard() {
 
         {/* Transactions Table */}
         <Card className="glass-card mb-8">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Users className="h-5 w-5 text-secondary" />
-              Transactions récentes
-            </CardTitle>
-            <CardDescription>Les 50 dernières transactions</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Type</TableHead>
-                    <TableHead>De</TableHead>
-                    <TableHead>À</TableHead>
-                    <TableHead>Montant</TableHead>
-                    <TableHead>Description</TableHead>
-                    <TableHead>Date</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {transactions.map((transaction) => (
-                    <TableRow key={transaction.id}>
-                      <TableCell>
-                        <span className={`px-2 py-1 rounded text-xs ${
-                          transaction.transaction_type === 'deposit' ? 'bg-secondary/20 text-secondary' :
-                          transaction.transaction_type === 'withdrawal' ? 'bg-destructive/20 text-destructive' :
-                          'bg-primary/20 text-primary'
-                        }`}>
-                          {transaction.transaction_type}
-                        </span>
-                      </TableCell>
-                      <TableCell>{transaction.from_user_name || '-'}</TableCell>
-                      <TableCell>{transaction.to_user_name || '-'}</TableCell>
-                      <TableCell className="font-bold">{transaction.amount.toFixed(2)} MSN</TableCell>
-                      <TableCell className="max-w-xs truncate">{transaction.description}</TableCell>
-                      <TableCell>{new Date(transaction.created_at).toLocaleDateString()}</TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+          <CardHeader className="flex flex-row items-center justify-between">
+            <div className="flex items-center gap-2">
+              <CardTitle className="flex items-center gap-2">
+                <Users className="h-5 w-5 text-secondary" />
+                Transactions récentes
+              </CardTitle>
+              <CardDescription>Les 50 dernières transactions</CardDescription>
             </div>
-          </CardContent>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setTransactionsExpanded(!transactionsExpanded)}
+              className="ml-auto"
+            >
+              {transactionsExpanded ? (
+                <>
+                  <ChevronUp className="h-4 w-4 mr-1" />
+                  Réduire
+                </>
+              ) : (
+                <>
+                  <ChevronDown className="h-4 w-4 mr-1" />
+                  Agrandir
+                </>
+              )}
+            </Button>
+          </CardHeader>
+          {transactionsExpanded && (
+            <CardContent>
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Type</TableHead>
+                      <TableHead>De</TableHead>
+                      <TableHead>À</TableHead>
+                      <TableHead>Montant</TableHead>
+                      <TableHead>Description</TableHead>
+                      <TableHead>Date et Heure</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {transactions.map((transaction) => (
+                      <TableRow key={transaction.id}>
+                        <TableCell>
+                          <span className={`px-2 py-1 rounded text-xs ${
+                            transaction.transaction_type === 'deposit' ? 'bg-secondary/20 text-secondary' :
+                            transaction.transaction_type === 'withdrawal' ? 'bg-destructive/20 text-destructive' :
+                            'bg-primary/20 text-primary'
+                          }`}>
+                            {transaction.transaction_type}
+                          </span>
+                        </TableCell>
+                        <TableCell>{transaction.from_user_name || '-'}</TableCell>
+                        <TableCell>{transaction.to_user_name || '-'}</TableCell>
+                        <TableCell className="font-bold">{transaction.amount.toFixed(2)} MSN</TableCell>
+                        <TableCell className="max-w-xs truncate">{transaction.description}</TableCell>
+                        <TableCell className="text-sm">
+                          <div className="text-muted-foreground">
+                            {new Date(transaction.created_at).toLocaleDateString('fr-FR')}
+                          </div>
+                          <div className="text-xs text-muted-foreground">
+                            {new Date(transaction.created_at).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            </CardContent>
+          )}
         </Card>
       </div>
     </div>

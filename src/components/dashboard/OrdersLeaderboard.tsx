@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, memo } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
@@ -16,7 +16,8 @@ interface LeaderboardEntry {
   rank: number;
 }
 
-export default function OrdersLeaderboard() {
+function OrdersLeaderboardComponent() {
+  const MSN_TO_FCFA = 750;
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [timeFilter, setTimeFilter] = useState<'week' | 'month' | 'year' | 'all'>('month');
@@ -199,7 +200,7 @@ export default function OrdersLeaderboard() {
 
                 <div className="text-right">
                   <div className="text-lg font-bold text-secondary">
-                    {entry.total_profit.toLocaleString()} FCFA
+                    {(entry.total_profit * MSN_TO_FCFA).toLocaleString()} FCFA
                   </div>
                   <div className="text-xs text-muted-foreground">
                     Total Profits
@@ -211,10 +212,12 @@ export default function OrdersLeaderboard() {
         </div>
       </CardContent>
 
-      <BrokerDetailsModal 
-        brokerId={selectedBroker} 
-        onClose={() => setSelectedBroker(null)} 
+      <BrokerDetailsModal
+        brokerId={selectedBroker}
+        onClose={() => setSelectedBroker(null)}
       />
     </Card>
   );
 }
+
+export default memo(OrdersLeaderboardComponent);

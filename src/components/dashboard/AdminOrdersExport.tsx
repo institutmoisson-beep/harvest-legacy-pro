@@ -26,6 +26,7 @@ interface Order {
 }
 
 export default function AdminOrdersExport() {
+  const MSN_TO_FCFA = 750;
   const [exporting, setExporting] = useState<ExportPeriod | null>(null);
 
   const getDateRange = (period: ExportPeriod): { start: Date; end: Date; label: string } => {
@@ -117,8 +118,8 @@ export default function AdminOrdersExport() {
 
       // Calculate totals
       const totalOrders = orders.length;
-      const totalValue = orders.reduce((sum, o) => sum + (o.purchase_price * o.quantity), 0);
-      const totalProfit = orders.reduce((sum, o) => sum + o.profit, 0);
+      const totalValue = orders.reduce((sum, o) => sum + (o.purchase_price * o.quantity * MSN_TO_FCFA), 0);
+      const totalProfit = orders.reduce((sum, o) => sum + (o.profit * MSN_TO_FCFA), 0);
       const validatedCount = orders.filter(o => o.status === 'validated' || o.status === 'completed').length;
       const pendingCount = orders.filter(o => o.status === 'pending').length;
       const rejectedCount = orders.filter(o => o.status === 'rejected').length;
@@ -160,8 +161,8 @@ export default function AdminOrdersExport() {
         order.customer_name,
         `${order.city}, ${order.country}`,
         order.quantity.toString(),
-        formatCurrency(order.purchase_price),
-        formatCurrency(order.profit),
+        formatCurrency(order.purchase_price * MSN_TO_FCFA),
+        formatCurrency(order.profit * MSN_TO_FCFA),
         getStatusLabel(order.status)
       ]);
 
