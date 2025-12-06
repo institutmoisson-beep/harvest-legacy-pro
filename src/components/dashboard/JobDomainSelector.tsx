@@ -20,7 +20,7 @@ interface JobDomain {
 interface UserJobProfile {
   id: string;
   job_domain_id: string;
-  job_domain?: JobDomain;
+  job_domains?: JobDomain;
 }
 
 export default function JobDomainSelector() {
@@ -217,9 +217,9 @@ export default function JobDomainSelector() {
                 <div key={ujd.id} className="relative">
                   <Badge variant="secondary" className="pl-2 pr-6 py-1">
                     <span className="mr-2">
-                      {(ujd.job_domains as any)?.emoji || '💼'}
+                      {ujd.job_domains?.emoji || '💼'}
                     </span>
-                    {(ujd.job_domains as any)?.name}
+                    {ujd.job_domains?.name}
                   </Badge>
                   <button
                     onClick={() => handleRemoveJobDomain(ujd.id)}

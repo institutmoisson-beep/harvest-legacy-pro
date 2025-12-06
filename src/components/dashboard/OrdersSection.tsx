@@ -162,17 +162,20 @@ function OrdersSectionComponent({ userId, brokerCode }: OrdersSectionProps) {
           if (orderImages.length > 0) {
             for (const img of orderImages) {
               if (img.isPending) {
-                await supabase
-                  .from('order_images')
-                  .insert({
-                    order_id: orderId,
-                    image_url: img.image_url,
-                    file_name: img.file_name,
-                    file_size: img.file_size,
-                    mime_type: img.mime_type,
-                    uploaded_by: userId,
-                  })
-                  .catch(err => console.warn('Could not save image to database:', err));
+                try {
+                  await supabase
+                    .from('order_images')
+                    .insert({
+                      order_id: orderId,
+                      image_url: img.image_url,
+                      file_name: img.file_name,
+                      file_size: img.file_size,
+                      mime_type: img.mime_type,
+                      uploaded_by: userId,
+                    });
+                } catch (err) {
+                  console.warn('Could not save image to database:', err);
+                }
               }
             }
           }
@@ -198,17 +201,20 @@ function OrdersSectionComponent({ userId, brokerCode }: OrdersSectionProps) {
           if (orderImages.length > 0) {
             for (const img of orderImages) {
               if (img.isPending) {
-                await supabase
-                  .from('order_images')
-                  .insert({
-                    order_id: orderId,
-                    image_url: img.image_url,
-                    file_name: img.file_name,
-                    file_size: img.file_size,
-                    mime_type: img.mime_type,
-                    uploaded_by: userId,
-                  })
-                  .catch(err => console.warn('Could not save image to database:', err));
+                try {
+                  await supabase
+                    .from('order_images')
+                    .insert({
+                      order_id: orderId,
+                      image_url: img.image_url,
+                      file_name: img.file_name,
+                      file_size: img.file_size,
+                      mime_type: img.mime_type,
+                      uploaded_by: userId,
+                    });
+                } catch (err) {
+                  console.warn('Could not save image to database:', err);
+                }
               }
             }
           }

@@ -18,6 +18,7 @@ interface CommissionEarning {
   commission_rate: number;
   commission_amount: number;
   created_at: string;
+  level?: number;
 }
 
 interface CommissionSettings {

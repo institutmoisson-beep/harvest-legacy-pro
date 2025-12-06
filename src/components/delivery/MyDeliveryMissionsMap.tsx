@@ -98,34 +98,42 @@ export default function MyDeliveryMissionsMap() {
   // Fetch active deliverers with locations
   const fetchActiveDeliverers = async () => {
     try {
-      const { data, error } = await supabase
-        .from('user_locations')
-        .select('user_id, latitude, longitude, updated_at')
+      // Query user_locations table for active deliverers
+      const locationsResult = await supabase
+        .from('active_locations')
+        .select('user_id, latitude, longitude, last_updated')
         .eq('location_type', 'delivery')
-        .gte('updated_at', new Date(Date.now() - 5 * 60000).toISOString())
+        .eq('is_active', true)
         .limit(50);
 
-      if (error && error.code !== 'PGRST116') throw error;
+      const locData = locationsResult.data;
+      const locError = locationsResult.error;
 
-      if (data && data.length > 0) {
-        const userIds = data.map(d => d.user_id);
-        const { data: profiles, error: profileError } = await supabase
+      if (locError && locError.code !== 'PGRST116') throw locError;
+
+      if (locData && locData.length > 0) {
+        const userIds = locData.map((d: any) => d.user_id);
+        const profilesResult = await supabase
           .from('profiles')
           .select('id, full_name')
           .in('id', userIds)
           .limit(50);
 
-        if (!profileError && profiles) {
-          const profileMap = Object.fromEntries(
-            profiles.map(p => [p.id, p.full_name])
-          );
+        const profiles = profilesResult.data;
+        const profileError = profilesResult.error;
 
-          const deliverers = data.map(d => ({
+        if (!profileError && profiles) {
+          const profileMap: Record<string, string> = {};
+          profiles.forEach((p: any) => {
+            profileMap[p.id] = p.full_name;
+          });
+
+          const deliverers = locData.map((d: any) => ({
             id: d.user_id,
             full_name: profileMap[d.user_id] || 'Unknown',
             latitude: d.latitude,
             longitude: d.longitude,
-            last_updated: d.updated_at,
+            last_updated: d.last_updated,
           }));
 
           setActiveDeliverers(deliverers);
@@ -375,8 +383,9 @@ export default function MyDeliveryMissionsMap() {
     ];
 
     if (allPoints.length > 0) {
-      const bounds = new mapboxgl.LngLatBounds(allPoints[0], allPoints[0]);
-      allPoints.forEach(point => bounds.extend(point));
+      const firstPoint = allPoints[0] as [number, number];
+      const bounds = new mapboxgl.LngLatBounds(firstPoint, firstPoint);
+      allPoints.forEach(point => bounds.extend(point as [number, number]));
       map.current.fitBounds(bounds, { padding: 50 });
     }
   }, [missions, userLocation, activeDeliverers]);

@@ -10,6 +10,7 @@ import { Upload, X, Star } from 'lucide-react';
 interface ProductImage {
   id: string;
   image_url: string;
+  image_path?: string;
   display_order: number;
   is_primary: boolean;
   created_at: string;
@@ -280,7 +281,7 @@ export default function ProductImageUploader({
                   <Button
                     size="sm"
                     variant="destructive"
-                    onClick={() => handleDeleteImage(img.id, img.image_path)}
+                    onClick={() => handleDeleteImage(img.id, img.image_path || '')}
                     disabled={loading}
                   >
                     <X className="w-4 h-4 mr-1" />

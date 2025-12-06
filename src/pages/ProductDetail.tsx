@@ -107,12 +107,12 @@ export default function ProductDetail() {
     try {
       const { data, error } = await supabase
         .from('profiles')
-        .select('id, full_name, avatar_url')
+        .select('id, full_name')
         .eq('id', userId)
         .single();
 
       if (!error && data) {
-        setUserProfile(data);
+        setUserProfile({ id: data.id, full_name: data.full_name || undefined });
       }
     } catch (error: any) {
       console.error('Error fetching user profile:', error);

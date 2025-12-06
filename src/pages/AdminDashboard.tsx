@@ -41,6 +41,7 @@ interface Order {
   status: string;
   created_at: string;
   broker_code: string;
+  payment_method?: string;
 }
 
 interface UserWallet {
@@ -126,44 +127,36 @@ export default function AdminDashboard() {
 
       if (ordersError) throw ordersError;
 
-      // Fetch payment methods for orders
-      let paymentMethodsMap: Record<string, any> = {};
-      if (ordersData && ordersData.length > 0) {
-        const orderIds = ordersData.map((o: any) => o.id);
-        const { data: paymentTransactions, error: paymentError } = await supabase
-          .from('payment_transactions')
-          .select('order_id, payment_method_id')
-          .in('order_id', orderIds);
+      // Fetch all payment methods
+      const { data: paymentMethods } = await supabase
+        .from('payment_methods')
+        .select('id, name');
 
-        if (!paymentError && paymentTransactions) {
-          // Get payment method names
-          const paymentMethodIds = Array.from(new Set(
-            paymentTransactions.map((pt: any) => pt.payment_method_id).filter(Boolean)
-          ));
-
-          if (paymentMethodIds.length > 0) {
-            const { data: paymentMethods } = await supabase
-              .from('payment_methods')
-              .select('id, name')
-              .in('id', paymentMethodIds);
-
-            if (paymentMethods) {
-              const methodsById = Object.fromEntries(
-                paymentMethods.map((pm: any) => [pm.id, pm.name])
-              );
-              paymentTransactions.forEach((pt: any) => {
-                paymentMethodsMap[pt.order_id] = methodsById[pt.payment_method_id] || 'Unknown';
-              });
-            }
-          }
-        }
+      const paymentMethodsMap: Record<string, string> = {};
+      if (paymentMethods) {
+        paymentMethods.forEach((pm: any) => {
+          paymentMethodsMap[pm.id] = pm.name;
+        });
       }
 
-      // Enrich orders with payment methods
-      const enrichedOrders = (ordersData || []).map((order: any) => ({
-        ...order,
-        payment_method: paymentMethodsMap[order.id] || 'Non spécifiée',
-      }));
+      // Payment method display names
+      const paymentMethodLabels: Record<string, string> = {
+        'wave': 'Wave',
+        'lygos': 'Lygos',
+        'coinpayments': 'Crypto',
+        'wallet': 'Portefeuille',
+        'cash_on_delivery': 'À la livraison',
+      };
+
+      // Enrich orders with payment methods from the orders table directly
+      const enrichedOrders = (ordersData || []).map((order: any) => {
+        const methodName = order.payment_method_id ? paymentMethodsMap[order.payment_method_id] : null;
+        const displayLabel = methodName ? (paymentMethodLabels[methodName] || methodName) : 'Non spécifiée';
+        return {
+          ...order,
+          payment_method: displayLabel,
+        };
+      });
 
       setOrders(enrichedOrders);
 
@@ -387,8 +380,14 @@ export default function AdminDashboard() {
                     <TableRow key={order.id}>
                       <TableCell>{order.customer_name}</TableCell>
                       <TableCell className="max-w-xs truncate">{order.product_name}</TableCell>
-                      <TableCell>{order.purchase_price.toLocaleString()} FCFA</TableCell>
-                      <TableCell className="text-secondary">{order.profit.toLocaleString()} FCFA</TableCell>
+                      <TableCell>
+                        <div>{(order.purchase_price * 750).toLocaleString()} FCFA</div>
+                        <div className="text-xs text-muted-foreground">{order.purchase_price.toLocaleString()} MSN</div>
+                      </TableCell>
+                      <TableCell className="text-secondary">
+                        <div>{(order.profit * 750).toLocaleString()} FCFA</div>
+                        <div className="text-xs text-muted-foreground">{order.profit.toLocaleString()} MSN</div>
+                      </TableCell>
                       <TableCell className="font-mono text-sm">{order.broker_code}</TableCell>
                       <TableCell>
                         <span className="px-2 py-1 rounded text-xs bg-blue-500/20 text-blue-500 font-medium">
