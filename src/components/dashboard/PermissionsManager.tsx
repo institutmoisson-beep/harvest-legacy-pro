@@ -132,9 +132,16 @@ export default function PermissionsManager() {
 
       if (error) throw error;
 
+      const permissionsData: RolePermission[] = (data || []).map((p: any) => ({
+        permission_id: p.permission_id,
+        module: '',
+        action: '',
+        name: '',
+        description: '',
+      }));
       setRolePermissions((prev) => ({
         ...prev,
-        [role]: data || [],
+        [role]: permissionsData,
       }));
 
       // Update selected permissions set

@@ -31,7 +31,7 @@ interface UserJobProfile {
     id: string;
     email: string;
   };
-  job_domain?: JobDomain;
+  job_domains?: JobDomain;
 }
 
 export default function AdminJobDomains() {
@@ -139,11 +139,18 @@ export default function AdminJobDomains() {
           description: 'Domaine d\'emploi mis à jour',
         });
       } else {
+        if (!formData.name || !formData.category) return;
+        const insertData = {
+          name: formData.name,
+          category: formData.category,
+          description: formData.description || null,
+          emoji: formData.emoji || null,
+          is_active: formData.is_active ?? true,
+          display_order: formData.display_order || 0,
+        };
         const { error } = await supabase
           .from('job_domains')
-          .insert([formData]);
-
-        if (error) throw error;
+          .insert([insertData]);
 
         toast({
           title: 'Succès!',

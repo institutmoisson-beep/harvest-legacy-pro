@@ -152,7 +152,7 @@ export default function MembersNearby() {
           // Fetch user info
           const { data: userData } = await supabase
             .from('profiles')
-            .select('full_name, phone_number, avatar_url')
+            .select('full_name, phone')
             .eq('id', memberLoc.user_id)
             .single();
 
@@ -164,8 +164,8 @@ export default function MembersNearby() {
             accuracy: memberLoc.accuracy,
             distance,
             user_name: userData?.full_name || 'Membre',
-            user_phone: userData?.phone_number,
-            user_avatar: userData?.avatar_url,
+            user_phone: userData?.phone || undefined,
+            user_avatar: undefined,
             last_updated: new Date(memberLoc.updated_at).toLocaleTimeString('fr-FR'),
           });
         }

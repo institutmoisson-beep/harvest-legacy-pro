@@ -7,7 +7,13 @@ export interface UserLocation {
   latitude: number;
   longitude: number;
   accuracy: number;
-  timestamp: number;
+  timestamp?: number;
+}
+
+export interface LocationData {
+  latitude: number;
+  longitude: number;
+  accuracy: number;
 }
 
 interface UseGeolocationOptions {

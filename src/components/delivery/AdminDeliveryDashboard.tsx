@@ -120,7 +120,7 @@ export default function AdminDeliveryDashboard() {
       for (const location of locationsData || []) {
         const { data: profile } = await supabase
           .from('profiles')
-          .select('full_name, phone_number, email')
+          .select('full_name, phone')
           .eq('id', location.user_id)
           .single();
 
@@ -131,8 +131,8 @@ export default function AdminDeliveryDashboard() {
           longitude: location.longitude,
           accuracy: location.accuracy,
           user_name: profile?.full_name || 'Membre',
-          user_phone: profile?.phone_number,
-          user_email: profile?.email,
+          user_phone: profile?.phone || undefined,
+          user_email: undefined,
           last_updated: new Date(location.updated_at).toLocaleTimeString('fr-FR'),
         });
       }

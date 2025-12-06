@@ -156,15 +156,15 @@ export default function ShopDashboard() {
       if (productId) {
         const { error } = await supabase
           .from('product_media')
-          .upsert({
+          .upsert([{
             product_id: productId,
             media_type: 'image',
             file_name: file.name,
             file_size: file.size,
-            file_data: uint8Array,
+            file_data: base64String,
             mime_type: file.type,
             is_primary: true,
-          });
+          }]);
 
         if (error) {
           toast({ title: 'Erreur', description: `Erreur lors du téléchargement: ${error.message}`, variant: 'destructive' });
@@ -188,16 +188,17 @@ export default function ShopDashboard() {
       const uint8Array = new Uint8Array(arrayBuffer);
 
       if (productId) {
+        const base64String = btoa(String.fromCharCode.apply(null, Array.from(uint8Array)));
         const { error } = await supabase
           .from('product_media')
-          .insert({
+          .insert([{
             product_id: productId,
             media_type: 'file',
             file_name: file.name,
             file_size: file.size,
-            file_data: uint8Array,
+            file_data: base64String,
             mime_type: file.type,
-          });
+          }]);
 
         if (error) {
           toast({ title: 'Erreur', description: `Erreur lors du téléchargement: ${error.message}`, variant: 'destructive' });
