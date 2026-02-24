@@ -85,29 +85,29 @@ export default function PaymentHistoryDashboard({ userId }: PaymentHistoryDashbo
           </CardContent>
         </Card>
 
-        <Card className="border-green-200 bg-green-50">
+        <Card className="border-secondary/30 bg-secondary/10">
           <CardContent className="pt-6">
             <div className="space-y-2">
               <p className="text-sm text-muted-foreground">Complétées</p>
-              <p className="text-3xl font-bold text-green-600">{stats.completedAmount.toLocaleString()} FCFA</p>
+              <p className="text-3xl font-bold text-secondary">{stats.completedAmount.toLocaleString()} FCFA</p>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="border-yellow-200 bg-yellow-50">
+        <Card className="border-accent/30 bg-accent/10">
           <CardContent className="pt-6">
             <div className="space-y-2">
               <p className="text-sm text-muted-foreground">En attente</p>
-              <p className="text-3xl font-bold text-yellow-600">{stats.pendingAmount.toLocaleString()} FCFA</p>
+              <p className="text-3xl font-bold text-accent">{stats.pendingAmount.toLocaleString()} FCFA</p>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="border-red-200 bg-red-50">
+        <Card className="border-destructive/30 bg-destructive/10">
           <CardContent className="pt-6">
             <div className="space-y-2">
               <p className="text-sm text-muted-foreground">Échouées</p>
-              <p className="text-3xl font-bold text-red-600">{stats.failedAmount.toLocaleString()} FCFA</p>
+              <p className="text-3xl font-bold text-destructive">{stats.failedAmount.toLocaleString()} FCFA</p>
             </div>
           </CardContent>
         </Card>
@@ -124,9 +124,9 @@ export default function PaymentHistoryDashboard({ userId }: PaymentHistoryDashbo
         </CardHeader>
         <CardContent>
           {error && (
-            <Alert className="mb-4 bg-red-50 border-red-200">
-              <AlertCircle className="h-4 w-4 text-red-600" />
-              <AlertDescription className="text-red-800">{error}</AlertDescription>
+            <Alert className="mb-4 bg-destructive/10 border-destructive/30">
+              <AlertCircle className="h-4 w-4 text-destructive" />
+              <AlertDescription className="text-destructive">{error}</AlertDescription>
             </Alert>
           )}
 

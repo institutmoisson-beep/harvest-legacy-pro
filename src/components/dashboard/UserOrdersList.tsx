@@ -105,12 +105,16 @@ function UserOrdersListComponent({ userId }: { userId: string }) {
                             <TableCell className="font-mono text-sm">{order.broker_code}</TableCell>
                             <TableCell>
                               <span className={`px-2 py-1 rounded text-xs ${
-                                order.status === 'completed' ? 'bg-secondary/20 text-secondary' :
+                                order.status === 'completed' || order.status === 'validated' ? 'bg-secondary/20 text-secondary' :
                                 order.status === 'pending' ? 'bg-accent/20 text-accent' :
                                 order.status === 'rejected' ? 'bg-destructive/20 text-destructive' :
                                 'bg-muted text-muted-foreground'
                               }`}>
-                                {order.status}
+                                {order.status === 'validated' ? 'Validée' :
+                                 order.status === 'pending' ? 'En attente' :
+                                 order.status === 'rejected' ? 'Rejetée' :
+                                 order.status === 'completed' ? 'Terminée' :
+                                 order.status}
                               </span>
                             </TableCell>
                             <TableCell>{new Date(order.created_at).toLocaleDateString()}</TableCell>

@@ -399,9 +399,14 @@ export default function AdminDashboard() {
                           order.status === 'validated' ? 'bg-secondary/20 text-secondary' :
                           order.status === 'pending' ? 'bg-accent/20 text-accent' :
                           order.status === 'rejected' ? 'bg-destructive/20 text-destructive' :
+                          order.status === 'completed' ? 'bg-primary/20 text-primary' :
                           'bg-muted text-muted-foreground'
                         }`}>
-                          {order.status}
+                          {order.status === 'validated' ? 'Validée' :
+                           order.status === 'pending' ? 'En attente' :
+                           order.status === 'rejected' ? 'Rejetée' :
+                           order.status === 'completed' ? 'Terminée' :
+                           order.status}
                         </span>
                       </TableCell>
                       <TableCell>

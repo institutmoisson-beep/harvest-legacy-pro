@@ -360,7 +360,7 @@ export default function AdminSupportChat({ userId, isAdmin = false }: AdminSuppo
                 <Input
                   value={newMessage}
                   onChange={(e) => setNewMessage(e.target.value)}
-                  onKeyPress={(e) => e.key === 'Enter' && sendMessage()}
+                  onKeyDown={(e) => e.key === 'Enter' && sendMessage()}
                   placeholder="Écrivez votre message..."
                 />
                 <Button onClick={sendMessage}>

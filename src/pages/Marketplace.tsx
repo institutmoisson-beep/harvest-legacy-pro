@@ -187,7 +187,7 @@ export default function Marketplace() {
                 onClick={() => navigate(`/product/${product.id}`)}
               >
                 {/* Product Image */}
-                <div className="relative overflow-hidden bg-gray-100 h-48">
+                <div className="relative overflow-hidden bg-muted h-48">
                   <img
                     src={getPrimaryImage(product.product_images)}
                     alt={product.product_name}
