@@ -85,9 +85,9 @@ export default function OrderConfirmation() {
       <div className="container mx-auto max-w-2xl">
         {status === 'success' && (
           <>
-            <Card className="border-green-200 bg-green-50">
+            <Card className="border-secondary/30 bg-secondary/10">
               <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-green-700">
+                <CardTitle className="flex items-center gap-2 text-secondary">
                   <CheckCircle className="h-6 w-6" />
                   Commande Confirmée!
                 </CardTitle>
@@ -98,7 +98,7 @@ export default function OrderConfirmation() {
               <CardContent className="space-y-6">
                 {order && (
                   <div className="space-y-3">
-                    <div className="grid grid-cols-2 gap-4 p-3 bg-white rounded-lg border">
+                    <div className="grid grid-cols-2 gap-4 p-3 bg-card rounded-lg border">
                       <div>
                         <p className="text-sm text-muted-foreground">Commande</p>
                         <p className="font-mono text-sm font-semibold">#{order.id?.slice(0, 8)}</p>
@@ -128,14 +128,14 @@ export default function OrderConfirmation() {
                 {payment && (
                   <div className="space-y-3">
                     <h3 className="font-semibold">Détails du Paiement</h3>
-                    <div className="p-3 bg-white rounded-lg border space-y-2">
+                    <div className="p-3 bg-card rounded-lg border space-y-2">
                       <div className="flex justify-between">
                         <span className="text-muted-foreground">Montant</span>
                         <span className="font-semibold">{payment.amount.toLocaleString()} {payment.currency}</span>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-muted-foreground">Statut</span>
-                        <span className="font-semibold text-green-600">
+                        <span className="font-semibold text-secondary">
                           {payment.status === 'completed' ? '✅ Complété' : '⏳ En attente'}
                         </span>
                       </div>
@@ -143,9 +143,9 @@ export default function OrderConfirmation() {
                   </div>
                 )}
 
-                <Alert className="bg-blue-50 border-blue-200">
-                  <AlertCircle className="h-4 w-4 text-blue-600" />
-                  <AlertDescription className="text-blue-800">
+                <Alert className="bg-primary/10 border-primary/30">
+                  <AlertCircle className="h-4 w-4 text-primary" />
+                  <AlertDescription className="text-primary">
                     {payment?.status === 'completed' 
                       ? 'Votre paiement a été traité avec succès!'
                       : 'Votre paiement est en cours de traitement. Vous recevrez une confirmation par SMS/email.'}
@@ -173,16 +173,16 @@ export default function OrderConfirmation() {
         )}
 
         {status === 'pending' && (
-          <Card className="border-yellow-200 bg-yellow-50">
+          <Card className="border-accent/30 bg-accent/10">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-yellow-700">
+              <CardTitle className="flex items-center gap-2 text-accent">
                 <Clock className="h-6 w-6" />
                 Paiement en Attente
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <p className="text-yellow-800">
-                Votre commande a été créée, mais le paiement est toujours en attente. 
+              <p className="text-accent">
+                Votre commande a été créée, mais le paiement est toujours en attente.
                 Veuillez compléter le paiement sur l'interface du prestataire.
               </p>
               <Button onClick={() => navigate('/orders-dashboard')} className="w-full">
@@ -193,15 +193,15 @@ export default function OrderConfirmation() {
         )}
 
         {status === 'error' && (
-          <Card className="border-red-200 bg-red-50">
+          <Card className="border-destructive/30 bg-destructive/10">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-red-700">
+              <CardTitle className="flex items-center gap-2 text-destructive">
                 <AlertCircle className="h-6 w-6" />
                 Erreur
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <p className="text-red-800">
+              <p className="text-destructive">
                 Il y a eu un problème avec votre commande. Veuillez contacter le support.
               </p>
               <Button onClick={() => navigate('/dashboard')} className="w-full">

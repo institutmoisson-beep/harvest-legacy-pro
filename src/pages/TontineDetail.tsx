@@ -346,7 +346,7 @@ export default function TontineDetail() {
                       placeholder="Votre message..."
                       value={newMessage}
                       onChange={(e) => setNewMessage(e.target.value)}
-                      onKeyPress={(e) => e.key === 'Enter' && !e.shiftKey && (e.preventDefault(), sendMessage())}
+                      onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && (e.preventDefault(), sendMessage())}
                       rows={2}
                     />
                     <Button onClick={sendMessage} size="icon">

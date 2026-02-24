@@ -188,7 +188,7 @@ export default function ProductDetail() {
           <div className="md:col-span-2">
             <div className="space-y-4">
               {/* Main Image */}
-              <div className="relative bg-gray-100 rounded-lg overflow-hidden aspect-square">
+              <div className="relative bg-muted rounded-lg overflow-hidden aspect-square">
                 <img
                   src={currentImage}
                   alt={product.product_name}
@@ -220,8 +220,8 @@ export default function ProductDetail() {
                       onClick={() => setSelectedImageIndex(index)}
                       className={`flex-shrink-0 w-20 h-20 rounded-lg overflow-hidden border-2 transition-colors ${
                         selectedImageIndex === index
-                          ? 'border-primary'
-                          : 'border-gray-200'
+                        ? 'border-primary'
+                          : 'border-border'
                       }`}
                     >
                       <img

@@ -36,10 +36,12 @@ export default function Messages() {
   const [searchCode, setSearchCode] = useState('');
 
   useEffect(() => {
-    if (user) {
-      fetchContacts();
+    if (!user) {
+      navigate('/auth');
+      return;
     }
-  }, [user]);
+    fetchContacts();
+  }, [user, navigate]);
 
   useEffect(() => {
     if (selectedContact) {
@@ -241,7 +243,7 @@ export default function Messages() {
                       placeholder="Votre message..."
                       value={newMessage}
                       onChange={(e) => setNewMessage(e.target.value)}
-                      onKeyPress={(e) => {
+                      onKeyDown={(e) => {
                         if (e.key === 'Enter' && !e.shiftKey) {
                           e.preventDefault();
                           sendMessage();

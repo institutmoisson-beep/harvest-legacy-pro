@@ -659,7 +659,7 @@ export default function GroupVoiceCall() {
                       placeholder="Message..."
                       value={newMessage}
                       onChange={(e) => setNewMessage(e.target.value)}
-                      onKeyPress={(e) => e.key === 'Enter' && sendMessage()}
+                      onKeyDown={(e) => e.key === 'Enter' && sendMessage()}
                       className="text-xs"
                     />
                     <Button onClick={sendMessage} size="icon" className="shrink-0 h-8 w-8">
@@ -700,7 +700,7 @@ export default function GroupVoiceCall() {
                 placeholder="Nom de l'appel..."
                 value={newCallName}
                 onChange={(e) => setNewCallName(e.target.value)}
-                onKeyPress={(e) => e.key === 'Enter' && createCall()}
+                onKeyDown={(e) => e.key === 'Enter' && createCall()}
                 className="text-xs"
               />
               <Button onClick={createCall} size="icon" className="shrink-0">
