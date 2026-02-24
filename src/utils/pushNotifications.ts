@@ -36,16 +36,15 @@ export const subscribeToPushNotifications = async () => {
 
   try {
     const registration = await navigator.serviceWorker.ready;
+    const reg = registration as ServiceWorkerRegistration & { pushManager: any };
     
     // Vérifier si déjà inscrit
-    let subscription = await registration.pushManager.getSubscription();
+    let subscription = await reg.pushManager.getSubscription();
     
     if (!subscription) {
-      // Créer une nouvelle subscription
-      // Note: Nécessite une clé VAPID publique pour production
-      subscription = await registration.pushManager.subscribe({
+      subscription = await reg.pushManager.subscribe({
         userVisibleOnly: true,
-        applicationServerKey: null, // Ajouter votre clé VAPID publique ici
+        applicationServerKey: null,
       });
     }
     
@@ -61,7 +60,8 @@ export const unsubscribeFromPushNotifications = async () => {
 
   try {
     const registration = await navigator.serviceWorker.ready;
-    const subscription = await registration.pushManager.getSubscription();
+    const reg = registration as ServiceWorkerRegistration & { pushManager: any };
+    const subscription = await reg.pushManager.getSubscription();
     
     if (subscription) {
       await subscription.unsubscribe();
