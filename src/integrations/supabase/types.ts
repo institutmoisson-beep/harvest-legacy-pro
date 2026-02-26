@@ -622,6 +622,268 @@ export type Database = {
         }
         Relationships: []
       }
+      call_center_agents: {
+        Row: {
+          active_call_id: string | null
+          average_call_duration: number | null
+          calls_handled_today: number | null
+          created_at: string | null
+          id: string
+          is_vip_handler: boolean | null
+          last_active_at: string | null
+          status: string
+          total_calls_handled: number | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          active_call_id?: string | null
+          average_call_duration?: number | null
+          calls_handled_today?: number | null
+          created_at?: string | null
+          id?: string
+          is_vip_handler?: boolean | null
+          last_active_at?: string | null
+          status?: string
+          total_calls_handled?: number | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          active_call_id?: string | null
+          average_call_duration?: number | null
+          calls_handled_today?: number | null
+          created_at?: string | null
+          id?: string
+          is_vip_handler?: boolean | null
+          last_active_at?: string | null
+          status?: string
+          total_calls_handled?: number | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "call_center_agents_active_call_id_fkey"
+            columns: ["active_call_id"]
+            isOneToOne: false
+            referencedRelation: "call_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      call_center_history: {
+        Row: {
+          agent_id: string | null
+          agent_name: string | null
+          call_session_id: string | null
+          caller_code: string | null
+          caller_id: string
+          caller_latitude: number | null
+          caller_longitude: number | null
+          caller_name: string | null
+          created_at: string | null
+          duration_seconds: number | null
+          id: string
+          notes_count: number | null
+          queue_id: string | null
+          routing_method: string | null
+          status: string
+          transferred_from: string | null
+          wait_seconds: number | null
+          was_transferred: boolean | null
+        }
+        Insert: {
+          agent_id?: string | null
+          agent_name?: string | null
+          call_session_id?: string | null
+          caller_code?: string | null
+          caller_id: string
+          caller_latitude?: number | null
+          caller_longitude?: number | null
+          caller_name?: string | null
+          created_at?: string | null
+          duration_seconds?: number | null
+          id?: string
+          notes_count?: number | null
+          queue_id?: string | null
+          routing_method?: string | null
+          status?: string
+          transferred_from?: string | null
+          wait_seconds?: number | null
+          was_transferred?: boolean | null
+        }
+        Update: {
+          agent_id?: string | null
+          agent_name?: string | null
+          call_session_id?: string | null
+          caller_code?: string | null
+          caller_id?: string
+          caller_latitude?: number | null
+          caller_longitude?: number | null
+          caller_name?: string | null
+          created_at?: string | null
+          duration_seconds?: number | null
+          id?: string
+          notes_count?: number | null
+          queue_id?: string | null
+          routing_method?: string | null
+          status?: string
+          transferred_from?: string | null
+          wait_seconds?: number | null
+          was_transferred?: boolean | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "call_center_history_call_session_id_fkey"
+            columns: ["call_session_id"]
+            isOneToOne: false
+            referencedRelation: "call_sessions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "call_center_history_queue_id_fkey"
+            columns: ["queue_id"]
+            isOneToOne: false
+            referencedRelation: "call_center_queue"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      call_center_notes: {
+        Row: {
+          agent_id: string
+          call_session_id: string
+          content: string
+          created_at: string | null
+          id: string
+        }
+        Insert: {
+          agent_id: string
+          call_session_id: string
+          content: string
+          created_at?: string | null
+          id?: string
+        }
+        Update: {
+          agent_id?: string
+          call_session_id?: string
+          content?: string
+          created_at?: string | null
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "call_center_notes_call_session_id_fkey"
+            columns: ["call_session_id"]
+            isOneToOne: false
+            referencedRelation: "call_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      call_center_queue: {
+        Row: {
+          abandon_reason: string | null
+          assigned_agent_id: string | null
+          call_session_id: string | null
+          caller_code: string
+          caller_id: string
+          caller_name: string | null
+          completed_at: string | null
+          connected_at: string | null
+          created_at: string | null
+          id: string
+          is_vip: boolean | null
+          priority: number | null
+          status: string
+          wait_start_at: string | null
+        }
+        Insert: {
+          abandon_reason?: string | null
+          assigned_agent_id?: string | null
+          call_session_id?: string | null
+          caller_code: string
+          caller_id: string
+          caller_name?: string | null
+          completed_at?: string | null
+          connected_at?: string | null
+          created_at?: string | null
+          id?: string
+          is_vip?: boolean | null
+          priority?: number | null
+          status?: string
+          wait_start_at?: string | null
+        }
+        Update: {
+          abandon_reason?: string | null
+          assigned_agent_id?: string | null
+          call_session_id?: string | null
+          caller_code?: string
+          caller_id?: string
+          caller_name?: string | null
+          completed_at?: string | null
+          connected_at?: string | null
+          created_at?: string | null
+          id?: string
+          is_vip?: boolean | null
+          priority?: number | null
+          status?: string
+          wait_start_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "call_center_queue_assigned_agent_id_fkey"
+            columns: ["assigned_agent_id"]
+            isOneToOne: false
+            referencedRelation: "call_center_agents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "call_center_queue_call_session_id_fkey"
+            columns: ["call_session_id"]
+            isOneToOne: false
+            referencedRelation: "call_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      call_center_settings: {
+        Row: {
+          auto_abandon_seconds: number | null
+          created_at: string | null
+          id: string
+          inactive_agent_timeout_seconds: number | null
+          max_queue_size: number | null
+          max_wait_seconds: number | null
+          routing_method: string
+          updated_at: string | null
+          vip_priority_boost: number | null
+        }
+        Insert: {
+          auto_abandon_seconds?: number | null
+          created_at?: string | null
+          id?: string
+          inactive_agent_timeout_seconds?: number | null
+          max_queue_size?: number | null
+          max_wait_seconds?: number | null
+          routing_method?: string
+          updated_at?: string | null
+          vip_priority_boost?: number | null
+        }
+        Update: {
+          auto_abandon_seconds?: number | null
+          created_at?: string | null
+          id?: string
+          inactive_agent_timeout_seconds?: number | null
+          max_queue_size?: number | null
+          max_wait_seconds?: number | null
+          routing_method?: string
+          updated_at?: string | null
+          vip_priority_boost?: number | null
+        }
+        Relationships: []
+      }
       call_recordings: {
         Row: {
           call_id: string
@@ -4022,6 +4284,7 @@ export type Database = {
         Returns: undefined
       }
       delete_user_account: { Args: { p_user_id: string }; Returns: undefined }
+      detect_inactive_agents: { Args: never; Returns: undefined }
       ensure_super_admin: { Args: never; Returns: undefined }
       generate_delivery_code: { Args: never; Returns: string }
       generate_pickup_code: { Args: never; Returns: string }
@@ -4148,6 +4411,7 @@ export type Database = {
           success: boolean
         }[]
       }
+      route_call_to_agent: { Args: { p_queue_id: string }; Returns: string }
       run_monthly_bonus_awards: { Args: never; Returns: undefined }
       suspend_user_account: {
         Args: { p_days?: number; p_user_id: string }
