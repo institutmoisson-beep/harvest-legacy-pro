@@ -51,6 +51,7 @@ const ProductPayment = lazy(() => import("./pages/ProductPayment"));
 const OrderDownloads = lazy(() => import("./pages/OrderDownloads"));
 const AdminPayments = lazy(() => import("./pages/AdminPayments"));
 const StorageSetup = lazy(() => import("./pages/StorageSetup"));
+const CallCenter = lazy(() => import("./pages/CallCenter"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 // Composant interne pour utiliser les hooks après AuthProvider
@@ -109,6 +110,7 @@ const AppContent = () => {
         <Route path="/order/:orderId/downloads" element={<OrderDownloads />} />
         <Route path="/admin/payments" element={<AdminPayments />} />
         <Route path="/setup/storage" element={<StorageSetup />} />
+        <Route path="/admin/call-center" element={<CallCenter />} />
         {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
         <Route path="*" element={<NotFound />} />
       </Routes>

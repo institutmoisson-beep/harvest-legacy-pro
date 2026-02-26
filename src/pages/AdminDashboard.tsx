@@ -291,6 +291,9 @@ export default function AdminDashboard() {
             </p>
           </div>
           <div className="flex gap-2">
+            <Button onClick={() => navigate('/admin/call-center')} variant="outline">
+              📞 Centre d'Appel
+            </Button>
             <Button onClick={() => navigate('/admin/deliveries')} variant="outline">
               📦 Livraisons
             </Button>
