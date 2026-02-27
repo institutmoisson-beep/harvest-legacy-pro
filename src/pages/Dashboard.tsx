@@ -3,10 +3,8 @@ import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Loader2, Copy, TrendingUp, Users, Wallet, Shield, User, MessageCircle, Coins, Phone, MapPin, ShoppingBag, Store, Bell, Download, ShoppingCart, CreditCard } from 'lucide-react';
-import VoiceCall from '@/components/VoiceCall';
+import { Loader2, Copy, TrendingUp, Users, Wallet, Shield, User, MessageCircle, Coins, MapPin, ShoppingBag, Store, Bell, Download, ShoppingCart, CreditCard } from 'lucide-react';
 import LocationSharing from '@/components/LocationSharing';
-import GroupVoiceCall from '@/components/GroupVoiceCall';
 import { toast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
 import WalletSection from '@/components/dashboard/WalletSection';
@@ -23,8 +21,11 @@ import PromoCodesWidget from '@/components/dashboard/PromoCodesWidget';
 import NotificationsPanel from '@/components/dashboard/NotificationsPanel';
 import OfflineIndicator from '@/components/OfflineIndicator';
 import CommunityDeliveryDashboardCard from '@/components/dashboard/CommunityDeliveryDashboardCard';
+import CallCenterSection from '@/components/dashboard/CallCenterSection';
 import { useDashboardData } from '@/hooks/useDashboardData';
 import { useQueryClient } from '@tanstack/react-query';
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
+import { Menu } from 'lucide-react';
 
 interface Profile {
   full_name: string;
@@ -46,7 +47,6 @@ export default function Dashboard() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   
-  // Hook optimisé avec React Query pour cache et performance
   const { profile, wallet, stats, hasAdminAccess, hasMerchantRole, isLoading } = useDashboardData(user?.id);
 
   useEffect(() => {
@@ -88,12 +88,35 @@ export default function Dashboard() {
     );
   }
 
+  const actionButtons = [
+    { icon: Shield, label: 'Admin', route: '/admin', show: hasAdminAccess, variant: 'default' as const },
+    { icon: User, label: 'Profil', route: '/profile', show: true, variant: 'outline' as const },
+    { icon: MessageCircle, label: 'Support', route: '/support', show: true, variant: 'outline' as const },
+    { icon: Bell, label: 'Notifications', route: '/notifications', show: true, variant: 'outline' as const },
+    { icon: Download, label: 'Installer App', route: '/install', show: true, variant: 'outline' as const },
+    { icon: MessageCircle, label: 'Messages', route: '/messages', show: true, variant: 'outline' as const },
+    { icon: Coins, label: 'Investissements', route: '/investments', show: true, variant: 'outline' as const },
+    { icon: TrendingUp, label: 'Tableau Investisseur', route: '/investor-dashboard', show: true, variant: 'outline' as const },
+    { icon: Coins, label: 'Tontines', route: '/tontines', show: true, variant: 'outline' as const },
+    { icon: TrendingUp, label: 'Dashboard Tontine', route: '/tontine-dashboard', show: true, variant: 'outline' as const },
+    { icon: ShoppingBag, label: 'Ma Boutique', route: '/my-shop', show: true, variant: 'outline' as const },
+    { icon: CreditCard, label: 'Achat à crédit', route: '/credit-request', show: true, variant: 'outline' as const },
+    { icon: Coins, label: 'Mes épargnes', route: '/my-savings', show: true, variant: 'outline' as const },
+    { icon: Store, label: 'QR Menu', route: '/establish', show: true, variant: 'outline' as const },
+    { icon: Users, label: 'Agent Dashboard', route: '/agent', show: true, variant: 'outline' as const },
+    { icon: ShoppingCart, label: 'Tableau Commandes', route: '/orders-dashboard', show: true, variant: 'outline' as const },
+    { icon: ShoppingBag, label: 'Marchand', route: '/merchant', show: hasMerchantRole, variant: 'outline' as const },
+    { icon: Shield, label: 'Super Dashboard', route: '/admin', show: hasAdminAccess, variant: 'outline' as const },
+  ];
+
+  const visibleActions = actionButtons.filter(a => a.show);
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5 py-12 px-4">
       <div className="container mx-auto max-w-6xl">
         {/* Header */}
-        <div className="flex justify-between items-center mb-8">
-          <div>
+        <div className="flex justify-between items-start mb-8 gap-4">
+          <div className="min-w-0">
             <Button 
               onClick={() => navigate('/')} 
               variant="link" 
@@ -101,105 +124,58 @@ export default function Dashboard() {
             >
               Les Moissonneurs
             </Button>
-            <h1 className="text-4xl font-bold gradient-text-cosmic">
+            <h1 className="text-2xl sm:text-4xl font-bold gradient-text-cosmic">
               Bienvenue, {profile?.full_name}
             </h1>
             <p className="text-muted-foreground mt-2">Votre tableau de bord Moissonneur</p>
           </div>
-          <div className="flex gap-2 flex-wrap">
+          <div className="flex items-center gap-2 shrink-0">
             <OfflineIndicator />
-            {hasAdminAccess && (
-              <Button 
-                onClick={() => navigate('/admin')} 
-                variant="default"
-                size="sm"
-                className="bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 font-semibold"
-              >
-                <Shield className="h-4 w-4 mr-2" />
-                Admin
+            {/* Desktop actions - hidden on mobile */}
+            <div className="hidden md:flex gap-2 flex-wrap">
+              {visibleActions.slice(0, 4).map((action) => (
+                <Button key={action.route + action.label} onClick={() => navigate(action.route)} variant={action.variant} size="sm">
+                  <action.icon className="h-4 w-4 mr-2" />
+                  {action.label}
+                </Button>
+              ))}
+              <Button onClick={() => navigate('/proposer')} variant="default" size="sm">
+                Mettre à disposition
               </Button>
-            )}
-            <Button onClick={() => navigate('/profile')} variant="outline" size="sm">
-              <User className="h-4 w-4 mr-2" />
-              Profil
-            </Button>
-            <Button onClick={() => navigate('/support')} variant="outline" size="sm">
-              <MessageCircle className="w-4 h-4 mr-2" />
-              Support
-            </Button>
-            <Button onClick={() => navigate('/notifications')} variant="outline" size="sm">
-              <Bell className="w-4 h-4 mr-2" />
-              Notifications
-            </Button>
-            <Button onClick={() => navigate('/install')} variant="outline" size="sm">
-              <Download className="w-4 h-4 mr-2" />
-              Installer App
-            </Button>
-            <Button onClick={() => navigate('/messages')} variant="outline" size="sm">
-              <MessageCircle className="w-4 h-4 mr-2" />
-              Messages
-            </Button>
-            <VoiceCall />
-            <LocationSharing />
-            <GroupVoiceCall />
-            <Button onClick={() => navigate('/investments')} variant="outline" size="sm">
-              <Coins className="h-4 w-4 mr-2" />
-              Investissements
-            </Button>
-            <Button onClick={() => navigate('/investor-dashboard')} variant="outline" size="sm">
-              <TrendingUp className="h-4 w-4 mr-2" />
-              Tableau Investisseur
-            </Button>
-            <Button onClick={() => navigate('/tontines')} variant="outline" size="sm">
-              <Coins className="h-4 w-4 mr-2" />
-              Tontines
-            </Button>
-            <Button onClick={() => navigate('/tontine-dashboard')} variant="outline" size="sm">
-              <TrendingUp className="h-4 w-4 mr-2" />
-              Dashboard Tontine
-            </Button>
-              <Button onClick={() => navigate('/my-shop')} variant="outline" size="sm">
-                <ShoppingBag className="h-4 w-4 mr-2" />
-                Ma Boutique
+              <Button onClick={signOut} variant="outline" size="sm">
+                Déconnexion
               </Button>
-              <Button onClick={() => navigate('/credit-request')} variant="outline" size="sm">
-                <CreditCard className="h-4 w-4 mr-2" />
-                Achat à crédit
-              </Button>
-              <Button onClick={() => navigate('/my-savings')} variant="outline" size="sm">
-                <Coins className="h-4 w-4 mr-2" />
-                Mes épargnes
-              </Button>
-            <Button onClick={() => navigate('/proposer')} variant="default" size="sm">
-              Mettre à disposition
-            </Button>
-            <Button onClick={() => navigate('/establish')} variant="outline" size="sm">
-              <Store className="h-4 w-4 mr-2" />
-              QR Menu
-            </Button>
-            <Button onClick={() => navigate('/agent')} variant="outline" size="sm">
-              <Users className="h-4 w-4 mr-2" />
-              Agent Dashboard
-            </Button>
-            <Button onClick={() => navigate('/orders-dashboard')} variant="outline" size="sm">
-              <ShoppingCart className="h-4 w-4 mr-2" />
-              Tableau Commandes
-            </Button>
-            {hasMerchantRole && (
-              <Button onClick={() => navigate('/merchant')} variant="outline" size="sm">
-                <ShoppingBag className="h-4 w-4 mr-2" />
-                Marchand
-              </Button>
-            )}
-            {hasAdminAccess && (
-              <Button onClick={() => navigate('/admin')} variant="cosmic" size="sm">
-                <Shield className="h-4 w-4 mr-2" />
-                Super Dashboard
-              </Button>
-            )}
-            <Button onClick={signOut} variant="outline" size="sm">
-              Déconnexion
-            </Button>
+            </div>
+            {/* Mobile menu sheet */}
+            <Sheet>
+              <SheetTrigger asChild>
+                <Button variant="outline" size="icon" className="md:hidden">
+                  <Menu className="h-5 w-5" />
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="right" className="w-80 overflow-y-auto">
+                <SheetHeader>
+                  <SheetTitle className="gradient-text-cosmic">Actions</SheetTitle>
+                </SheetHeader>
+                <div className="flex flex-col gap-2 mt-4">
+                  <Button onClick={() => navigate('/proposer')} variant="default" size="sm" className="justify-start">
+                    <ShoppingBag className="h-4 w-4 mr-2" />
+                    Mettre à disposition
+                  </Button>
+                  <LocationSharing />
+                  {visibleActions.map((action) => (
+                    <Button key={action.route + action.label} onClick={() => navigate(action.route)} variant={action.variant} size="sm" className="justify-start">
+                      <action.icon className="h-4 w-4 mr-2" />
+                      {action.label}
+                    </Button>
+                  ))}
+                  <hr className="my-2 border-border" />
+                  <Button onClick={signOut} variant="outline" size="sm" className="justify-start">
+                    Déconnexion
+                  </Button>
+                </div>
+              </SheetContent>
+            </Sheet>
           </div>
         </div>
 
@@ -251,6 +227,11 @@ export default function Dashboard() {
           </Card>
         </div>
 
+        {/* Call Center & Communication Section */}
+        <div className="mb-8">
+          <CallCenterSection />
+        </div>
+
         {/* Promo Codes Widget */}
         <div className="mb-8">
           <PromoCodesWidget />
@@ -281,7 +262,7 @@ export default function Dashboard() {
           </CardContent>
         </Card>
 
-        {/* Career Progress Section - Full Width */}
+        {/* Career Progress Section */}
         {user?.id && (
           <div className="mb-8">
             <CareerProgressSection userId={user.id} />
@@ -295,33 +276,16 @@ export default function Dashboard() {
 
         {/* Investment Button */}
         <div className="mb-8 grid grid-cols-1 md:grid-cols-2 gap-4">
-          <Button 
-            onClick={() => navigate('/investments')} 
-            className="w-full" 
-            size="lg"
-            variant="default"
-          >
+          <Button onClick={() => navigate('/investments')} className="w-full" size="lg" variant="default">
             <ShoppingBag className="h-5 w-5 mr-2" />
             J'achète, Vous vendez pour moi
           </Button>
-          
-          <Button 
-            onClick={() => navigate('/my-shop')} 
-            className="w-full" 
-            size="lg"
-            variant="secondary"
-          >
+          <Button onClick={() => navigate('/my-shop')} className="w-full" size="lg" variant="secondary">
             <ShoppingBag className="h-5 w-5 mr-2" />
             Ma Boutique
           </Button>
-
           {hasMerchantRole && (
-            <Button 
-              onClick={() => navigate('/merchant')} 
-              className="w-full md:col-span-2" 
-              size="lg"
-              variant="cosmic"
-            >
+            <Button onClick={() => navigate('/merchant')} className="w-full md:col-span-2" size="lg" variant="cosmic">
               <Users className="h-5 w-5 mr-2" />
               Tableau de bord Marchand
             </Button>
@@ -330,35 +294,12 @@ export default function Dashboard() {
 
         {/* Main Content - Grid Layout */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-          {/* Wallet Section */}
-          {user?.id && (
-            <WalletSection 
-              balance={wallet?.balance || 0} 
-              userId={user.id}
-            />
-          )}
-
-          {/* Crypto Payment Options */}
+          {user?.id && <WalletSection balance={wallet?.balance || 0} userId={user.id} />}
           <CryptoPaymentOptions />
-
-          {/* Moissonneur Fund */}
           <MoissonneurFund />
-
-          {/* Orders Section */}
-          {user?.id && (
-            <OrdersSection 
-              userId={user.id}
-              brokerCode={profile?.referral_code || ''}
-            />
-          )}
-
-          {/* Share Buttons */}
+          {user?.id && <OrdersSection userId={user.id} brokerCode={profile?.referral_code || ''} />}
           <ShareButtons referralCode={profile?.referral_code || ''} />
-
-          {/* QR Code */}
           <UserQRCode />
-
-          {/* Referral Tree */}
           {user?.id && <ReferralTreeSection userId={user.id} />}
         </div>
 
