@@ -18,10 +18,14 @@ const ICE_SERVERS: RTCConfiguration = {
 
 type CallStatus = 'idle' | 'calling' | 'ringing' | 'connected';
 
-export default function VoiceCall() {
+interface VoiceCallProps {
+  prefilledCode?: string;
+}
+
+export default function VoiceCall({ prefilledCode }: VoiceCallProps = {}) {
   const { user } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
-  const [calleeCode, setCalleeCode] = useState('');
+  const [calleeCode, setCalleeCode] = useState(prefilledCode || '');
   const [incomingCall, setIncomingCall] = useState<any>(null);
   const [activeCallId, setActiveCallId] = useState<string | null>(null);
   const [isMuted, setIsMuted] = useState(false);
@@ -33,6 +37,10 @@ export default function VoiceCall() {
   const remoteAudio = useRef<HTMLAudioElement>(null);
   const pendingCandidates = useRef<RTCIceCandidateInit[]>([]);
   const isCleaningUp = useRef(false);
+
+  useEffect(() => {
+    if (prefilledCode) setCalleeCode(prefilledCode);
+  }, [prefilledCode]);
 
   // Cleanup function
   const cleanup = useCallback(() => {
