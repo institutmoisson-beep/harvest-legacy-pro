@@ -1,13 +1,25 @@
 import { useNavigate } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { 
-  Shield, User, MessageCircle, Bell, Download, Coins, TrendingUp, 
-  ShoppingBag, Store, Users, ShoppingCart, CreditCard, Phone, AlertCircle,
-  MapPin, LogOut
+import {
+  Shield,
+  User,
+  MessageCircle,
+  Bell,
+  Download,
+  Coins,
+  TrendingUp,
+  ShoppingBag,
+  Store,
+  Users,
+  ShoppingCart,
+  CreditCard,
+  Phone,
+  AlertCircle,
+  MapPin,
+  LogOut,
+  Video,
 } from 'lucide-react';
 import VoiceCall from '@/components/VoiceCall';
-import { useState } from 'react';
 
 interface DashboardGatewayProps {
   hasAdminAccess: boolean;
@@ -16,8 +28,8 @@ interface DashboardGatewayProps {
 }
 
 const CALL_CENTER_LINES = [
-  { code: 'MSN6161', label: 'Commandes & Services', icon: ShoppingCart, color: 'bg-primary/15 text-primary' },
-  { code: 'MSN9191', label: 'Réclamations & Support', icon: AlertCircle, color: 'bg-destructive/15 text-destructive' },
+  { code: 'MSN6161', label: 'Commandes & Services', icon: ShoppingCart, tone: 'primary' as const },
+  { code: 'MSN9191', label: 'Réclamations & Support', icon: AlertCircle, tone: 'destructive' as const },
 ];
 
 const MENU_ITEMS = [
@@ -42,7 +54,6 @@ const MENU_ITEMS = [
 
 export default function DashboardGateway({ hasAdminAccess, hasMerchantRole, onSignOut }: DashboardGatewayProps) {
   const navigate = useNavigate();
-  const [selectedCallCode, setSelectedCallCode] = useState<string | null>(null);
 
   const allItems = [
     ...(hasAdminAccess ? [{ icon: Shield, label: 'Admin', route: '/admin', always: true }] : []),
@@ -52,37 +63,55 @@ export default function DashboardGateway({ hasAdminAccess, hasMerchantRole, onSi
 
   return (
     <div className="space-y-4">
-      {/* Centre d'Appel */}
       <Card className="glass-card border-primary/20">
-        <CardContent className="p-4">
-          <h3 className="text-sm font-semibold text-muted-foreground mb-3 flex items-center gap-2">
+        <CardContent className="p-4 sm:p-5 space-y-4">
+          <h3 className="text-sm font-semibold text-muted-foreground flex items-center gap-2">
             <Phone className="h-4 w-4" />
             Centre d'Appel
           </h3>
-          <div className="grid grid-cols-2 gap-2 mb-3">
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {CALL_CENTER_LINES.map((line) => (
-              <button
-                key={line.code}
-                onClick={() => setSelectedCallCode(line.code === selectedCallCode ? null : line.code)}
-                className={`p-3 rounded-xl border transition-all text-left ${
-                  selectedCallCode === line.code
-                    ? 'border-primary bg-primary/10 shadow-sm'
-                    : 'border-border hover:border-primary/40'
-                }`}
-              >
-                <div className={`h-8 w-8 rounded-lg ${line.color} flex items-center justify-center mb-1.5`}>
-                  <line.icon className="h-4 w-4" />
+              <div key={line.code} className="p-3 rounded-xl border border-border bg-card/60 space-y-3">
+                <div className="flex items-center gap-3">
+                  <div
+                    className={`h-10 w-10 rounded-lg flex items-center justify-center ${
+                      line.tone === 'destructive' ? 'bg-destructive/15 text-destructive' : 'bg-primary/15 text-primary'
+                    }`}
+                  >
+                    <line.icon className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <p className="font-bold text-sm text-foreground">{line.code}</p>
+                    <p className="text-xs text-muted-foreground leading-tight">{line.label}</p>
+                  </div>
                 </div>
-                <p className="font-bold text-xs text-foreground">{line.code}</p>
-                <p className="text-[10px] text-muted-foreground leading-tight">{line.label}</p>
-              </button>
+
+                <VoiceCall
+                  prefilledCode={line.code}
+                  triggerLabel={`Appeler ${line.code}`}
+                  triggerClassName="w-full h-12"
+                  quickDialMode="audio"
+                />
+              </div>
             ))}
           </div>
-          <VoiceCall prefilledCode={selectedCallCode || undefined} />
+
+          <div className="p-3 rounded-xl border border-border bg-card/60 space-y-3">
+            <div className="flex items-center gap-3">
+              <div className="h-10 w-10 rounded-lg bg-secondary/20 text-secondary flex items-center justify-center">
+                <Video className="h-5 w-5" />
+              </div>
+              <div>
+                <p className="font-bold text-sm text-foreground">Appel entre utilisateurs</p>
+                <p className="text-xs text-muted-foreground">Audio et vidéo depuis votre code Moissonneur</p>
+              </div>
+            </div>
+            <VoiceCall triggerLabel="Appel utilisateur / vidéo" triggerClassName="w-full h-12" />
+          </div>
         </CardContent>
       </Card>
 
-      {/* Menu Passerelle */}
       <Card className="glass-card">
         <CardContent className="p-4">
           <h3 className="text-sm font-semibold text-muted-foreground mb-3">Menu</h3>
