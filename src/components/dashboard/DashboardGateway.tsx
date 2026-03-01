@@ -90,8 +90,9 @@ export default function DashboardGateway({ hasAdminAccess, hasMerchantRole, onSi
                 <VoiceCall
                   prefilledCode={line.code}
                   triggerLabel={`Appeler ${line.code}`}
-                  triggerClassName="w-full h-12"
+                  triggerClassName="w-full h-14"
                   quickDialMode="audio"
+                  listenIncoming={false}
                 />
               </div>
             ))}
@@ -104,10 +105,10 @@ export default function DashboardGateway({ hasAdminAccess, hasMerchantRole, onSi
               </div>
               <div>
                 <p className="font-bold text-sm text-foreground">Appel entre utilisateurs</p>
-                <p className="text-xs text-muted-foreground">Audio et vidéo depuis votre code Moissonneur</p>
+                <p className="text-xs text-muted-foreground">Composeur complet audio/vidéo style mobile</p>
               </div>
             </div>
-            <VoiceCall triggerLabel="Appel utilisateur / vidéo" triggerClassName="w-full h-12" />
+            <VoiceCall triggerLabel="Ouvrir le composeur" triggerClassName="w-full h-14" />
           </div>
         </CardContent>
       </Card>
