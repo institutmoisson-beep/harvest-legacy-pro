@@ -58,6 +58,7 @@ interface VoiceCallProps {
   triggerClassName?: string;
   quickDialMode?: CallMode;
   listenIncoming?: boolean;
+  hideTrigger?: boolean;
 }
 
 const normalizeDialCode = (raw: string) => {
@@ -71,6 +72,7 @@ export default function VoiceCall({
   triggerClassName,
   quickDialMode,
   listenIncoming = true,
+  hideTrigger = false,
 }: VoiceCallProps = {}) {
   const { user } = useAuth();
 
@@ -98,6 +100,8 @@ export default function VoiceCall({
   const seenIncomingSessions = useRef<Set<string>>(new Set());
   const isCleaningUp = useRef(false);
   const ringTimer = useRef<number | null>(null);
+  const callTimeoutRef = useRef<number | null>(null);
+  const connectionEstablishedRef = useRef(false);
   const audioCtxRef = useRef<AudioContext | null>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const recordedChunksRef = useRef<Blob[]>([]);
@@ -219,10 +223,17 @@ export default function VoiceCall({
     stopRingtone();
     stopRecording(false);
 
+    if (callTimeoutRef.current) {
+      window.clearTimeout(callTimeoutRef.current);
+      callTimeoutRef.current = null;
+    }
+    connectionEstablishedRef.current = false;
+
     if (peerConnection.current) {
       peerConnection.current.onicecandidate = null;
       peerConnection.current.ontrack = null;
       peerConnection.current.oniceconnectionstatechange = null;
+      peerConnection.current.onconnectionstatechange = null;
       peerConnection.current.close();
       peerConnection.current = null;
     }
@@ -321,8 +332,22 @@ export default function VoiceCall({
         }
       };
 
+      pc.onconnectionstatechange = () => {
+        if (pc.connectionState === 'connected') {
+          connectionEstablishedRef.current = true;
+        }
+      };
+
       pc.oniceconnectionstatechange = () => {
-        if (pc.iceConnectionState === 'disconnected' || pc.iceConnectionState === 'failed') {
+        if (pc.iceConnectionState === 'connected' || pc.iceConnectionState === 'completed') {
+          connectionEstablishedRef.current = true;
+          return;
+        }
+
+        if (
+          connectionEstablishedRef.current &&
+          (pc.iceConnectionState === 'disconnected' || pc.iceConnectionState === 'failed')
+        ) {
           toast({ title: 'Appel terminé', description: 'La connexion a été perdue' });
           endCallById(callId);
         }
@@ -388,6 +413,11 @@ export default function VoiceCall({
           }
 
           if (session.status === 'ended' || session.status === 'rejected') {
+            if (callTimeoutRef.current) {
+              window.clearTimeout(callTimeoutRef.current);
+              callTimeoutRef.current = null;
+            }
+
             if (session.status === 'rejected' && session.caller_id === user.id) {
               toast({ title: 'Appel rejeté', description: 'Le destinataire a refusé l\'appel' });
             }
@@ -409,6 +439,11 @@ export default function VoiceCall({
                   await peerConnection.current.addIceCandidate(new RTCIceCandidate(candidate));
                 }
                 pendingCandidates.current = [];
+                connectionEstablishedRef.current = true;
+                if (callTimeoutRef.current) {
+                  window.clearTimeout(callTimeoutRef.current);
+                  callTimeoutRef.current = null;
+                }
                 setCallStatus('connected');
                 setConnectedAt(Date.now());
                 stopRingtone();
@@ -561,6 +596,7 @@ export default function VoiceCall({
     try {
       const normalizedCode = normalizeDialCode(calleeCode);
       setCalleeCode(normalizedCode);
+      connectionEstablishedRef.current = false;
       setCallMode(mode);
       setCallStatus('calling');
       setIsDialerOpen(false);
@@ -618,7 +654,11 @@ export default function VoiceCall({
       await supabase.from('call_sessions').update({ offer: offer as any }).eq('id', session.id);
       setCallStatus('ringing');
 
-      window.setTimeout(async () => {
+      if (callTimeoutRef.current) {
+        window.clearTimeout(callTimeoutRef.current);
+      }
+
+      callTimeoutRef.current = window.setTimeout(async () => {
         const { data: latest } = await supabase
           .from('call_sessions')
           .select('status')
@@ -702,6 +742,11 @@ export default function VoiceCall({
         .update({ status: 'busy', active_call_id: incomingCall.id, last_active_at: new Date().toISOString() })
         .eq('user_id', user?.id || '');
 
+      if (callTimeoutRef.current) {
+        window.clearTimeout(callTimeoutRef.current);
+        callTimeoutRef.current = null;
+      }
+      connectionEstablishedRef.current = true;
       setIncomingCall(null);
       setCallStatus('connected');
       setConnectedAt(Date.now());
@@ -813,25 +858,27 @@ export default function VoiceCall({
 
   return (
     <>
-      <Button
-        onClick={() => {
-          if (quickDialMode) {
-            if (prefilledCode) setCalleeCode(normalizeDialCode(prefilledCode));
-            initiateCall(quickDialMode);
-            return;
-          }
-          setIsDialerOpen(true);
-        }}
-        variant="outline"
-        size="sm"
-        className={triggerClassName || 'w-full sm:w-auto'}
-      >
-        <Phone className="h-4 w-4 mr-2" />
-        {triggerLabel}
-      </Button>
+      {!hideTrigger && (
+        <Button
+          onClick={() => {
+            if (quickDialMode) {
+              if (prefilledCode) setCalleeCode(normalizeDialCode(prefilledCode));
+              initiateCall(quickDialMode);
+              return;
+            }
+            setIsDialerOpen(true);
+          }}
+          variant="outline"
+          size="sm"
+          className={triggerClassName || 'w-full sm:w-auto'}
+        >
+          <Phone className="h-4 w-4 mr-2" />
+          {triggerLabel}
+        </Button>
+      )}
 
       <Dialog open={isDialerOpen && !priorityCallVisible} onOpenChange={setIsDialerOpen}>
-        <DialogContent className="w-screen max-w-none h-[100dvh] sm:h-auto sm:max-w-md p-0 gap-0 overflow-hidden">
+        <DialogContent className="!inset-0 !left-0 !top-0 !translate-x-0 !translate-y-0 w-screen max-w-none h-[100dvh] p-0 gap-0 overflow-hidden rounded-none sm:!inset-auto sm:!left-[50%] sm:!top-[50%] sm:!translate-x-[-50%] sm:!translate-y-[-50%] sm:h-auto sm:max-w-md sm:rounded-2xl">
           <DialogHeader className="px-5 py-4 border-b border-border/60">
             <DialogTitle className="text-base text-center">Composeur d'appel</DialogTitle>
           </DialogHeader>
