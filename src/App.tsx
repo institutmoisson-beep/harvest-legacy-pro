@@ -7,6 +7,7 @@ import VisitLogger from "@/components/VisitLogger";
 import { AuthProvider } from "@/hooks/useAuth";
 import { usePWABadge } from "@/hooks/usePWABadge";
 import LoadingScreen from "@/components/LoadingScreen";
+import VoiceCall from '@/components/VoiceCall';
 import { supabase } from '@/integrations/supabase/client';
 
 // Lazy load des pages pour réduire le bundle initial
@@ -149,6 +150,7 @@ const App = () => {
       <BrowserRouter>
         <VisitLogger />
         <AuthProvider>
+          <VoiceCall hideTrigger />
           <AppContent />
         </AuthProvider>
       </BrowserRouter>

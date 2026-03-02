@@ -108,7 +108,7 @@ export default function DashboardGateway({ hasAdminAccess, hasMerchantRole, onSi
                 <p className="text-xs text-muted-foreground">Composeur complet audio/vidéo style mobile</p>
               </div>
             </div>
-            <VoiceCall triggerLabel="Ouvrir le composeur" triggerClassName="w-full h-14" />
+            <VoiceCall triggerLabel="Ouvrir le composeur" triggerClassName="w-full h-14" listenIncoming={false} />
           </div>
         </CardContent>
       </Card>
