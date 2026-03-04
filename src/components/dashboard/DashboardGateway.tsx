@@ -18,6 +18,8 @@ import {
   MapPin,
   LogOut,
   Video,
+  Ticket,
+  Heart,
 } from 'lucide-react';
 import VoiceCall from '@/components/VoiceCall';
 
@@ -50,6 +52,8 @@ const MENU_ITEMS = [
   { icon: ShoppingBag, label: 'Proposer', route: '/proposer', always: true },
   { icon: Download, label: 'Installer App', route: '/install', always: true },
   { icon: MapPin, label: 'Livraison', route: '/community-delivery', always: true },
+  { icon: Ticket, label: 'Événements', route: '/events', always: true },
+  { icon: Heart, label: 'Cagnottes', route: '/fundraisers', always: true },
 ];
 
 export default function DashboardGateway({ hasAdminAccess, hasMerchantRole, onSignOut }: DashboardGatewayProps) {

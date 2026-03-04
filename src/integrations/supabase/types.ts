@@ -1805,6 +1805,54 @@ export type Database = {
         }
         Relationships: []
       }
+      events: {
+        Row: {
+          category: string | null
+          created_at: string | null
+          created_by: string | null
+          description: string | null
+          event_date: string
+          event_end_date: string | null
+          id: string
+          image_url: string | null
+          location: string | null
+          max_capacity: number | null
+          status: string | null
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          category?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          event_date: string
+          event_end_date?: string | null
+          id?: string
+          image_url?: string | null
+          location?: string | null
+          max_capacity?: number | null
+          status?: string | null
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          category?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          event_date?: string
+          event_end_date?: string | null
+          id?: string
+          image_url?: string | null
+          location?: string | null
+          max_capacity?: number | null
+          status?: string | null
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       fund_contributions: {
         Row: {
           amount: number
@@ -1850,6 +1898,110 @@ export type Database = {
           description?: string | null
           id?: string
           reason?: string
+        }
+        Relationships: []
+      }
+      fundraiser_contributions: {
+        Row: {
+          amount: number
+          contributor_name: string
+          created_at: string | null
+          fundraiser_id: string
+          id: string
+          is_anonymous: boolean | null
+          message: string | null
+          payment_method: string | null
+          payment_status: string | null
+          user_id: string | null
+        }
+        Insert: {
+          amount: number
+          contributor_name: string
+          created_at?: string | null
+          fundraiser_id: string
+          id?: string
+          is_anonymous?: boolean | null
+          message?: string | null
+          payment_method?: string | null
+          payment_status?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          amount?: number
+          contributor_name?: string
+          created_at?: string | null
+          fundraiser_id?: string
+          id?: string
+          is_anonymous?: boolean | null
+          message?: string | null
+          payment_method?: string | null
+          payment_status?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fundraiser_contributions_fundraiser_id_fkey"
+            columns: ["fundraiser_id"]
+            isOneToOne: false
+            referencedRelation: "fundraisers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      fundraisers: {
+        Row: {
+          category: string | null
+          contributors_count: number | null
+          created_at: string | null
+          created_by: string | null
+          currency: string | null
+          current_amount: number | null
+          description: string | null
+          end_date: string
+          goal_amount: number
+          id: string
+          image_url: string | null
+          is_public: boolean | null
+          payment_link: string | null
+          status: string | null
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          category?: string | null
+          contributors_count?: number | null
+          created_at?: string | null
+          created_by?: string | null
+          currency?: string | null
+          current_amount?: number | null
+          description?: string | null
+          end_date: string
+          goal_amount?: number
+          id?: string
+          image_url?: string | null
+          is_public?: boolean | null
+          payment_link?: string | null
+          status?: string | null
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          category?: string | null
+          contributors_count?: number | null
+          created_at?: string | null
+          created_by?: string | null
+          currency?: string | null
+          current_amount?: number | null
+          description?: string | null
+          end_date?: string
+          goal_amount?: number
+          id?: string
+          image_url?: string | null
+          is_public?: boolean | null
+          payment_link?: string | null
+          status?: string | null
+          title?: string
+          updated_at?: string | null
         }
         Relationships: []
       }
@@ -3474,6 +3626,125 @@ export type Database = {
           user_id?: string | null
         }
         Relationships: []
+      }
+      ticket_purchases: {
+        Row: {
+          buyer_email: string | null
+          buyer_name: string
+          buyer_phone: string | null
+          checked_in: boolean | null
+          checked_in_at: string | null
+          created_at: string | null
+          event_id: string
+          id: string
+          payment_method: string | null
+          payment_status: string | null
+          quantity: number | null
+          ticket_code: string | null
+          ticket_type_id: string
+          total_amount: number
+          user_id: string | null
+        }
+        Insert: {
+          buyer_email?: string | null
+          buyer_name: string
+          buyer_phone?: string | null
+          checked_in?: boolean | null
+          checked_in_at?: string | null
+          created_at?: string | null
+          event_id: string
+          id?: string
+          payment_method?: string | null
+          payment_status?: string | null
+          quantity?: number | null
+          ticket_code?: string | null
+          ticket_type_id: string
+          total_amount: number
+          user_id?: string | null
+        }
+        Update: {
+          buyer_email?: string | null
+          buyer_name?: string
+          buyer_phone?: string | null
+          checked_in?: boolean | null
+          checked_in_at?: string | null
+          created_at?: string | null
+          event_id?: string
+          id?: string
+          payment_method?: string | null
+          payment_status?: string | null
+          quantity?: number | null
+          ticket_code?: string | null
+          ticket_type_id?: string
+          total_amount?: number
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ticket_purchases_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ticket_purchases_ticket_type_id_fkey"
+            columns: ["ticket_type_id"]
+            isOneToOne: false
+            referencedRelation: "ticket_types"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ticket_types: {
+        Row: {
+          benefits: string[] | null
+          created_at: string | null
+          description: string | null
+          event_id: string
+          id: string
+          name: string
+          payment_link: string | null
+          price: number
+          quantity_available: number
+          quantity_sold: number | null
+          tier: string | null
+        }
+        Insert: {
+          benefits?: string[] | null
+          created_at?: string | null
+          description?: string | null
+          event_id: string
+          id?: string
+          name: string
+          payment_link?: string | null
+          price?: number
+          quantity_available?: number
+          quantity_sold?: number | null
+          tier?: string | null
+        }
+        Update: {
+          benefits?: string[] | null
+          created_at?: string | null
+          description?: string | null
+          event_id?: string
+          id?: string
+          name?: string
+          payment_link?: string | null
+          price?: number
+          quantity_available?: number
+          quantity_sold?: number | null
+          tier?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ticket_types_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       tontine_drawings: {
         Row: {
