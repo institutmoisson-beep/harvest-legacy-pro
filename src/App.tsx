@@ -53,6 +53,12 @@ const OrderDownloads = lazy(() => import("./pages/OrderDownloads"));
 const AdminPayments = lazy(() => import("./pages/AdminPayments"));
 const StorageSetup = lazy(() => import("./pages/StorageSetup"));
 const CallCenter = lazy(() => import("./pages/CallCenter"));
+const Events = lazy(() => import("./pages/Events"));
+const EventDetail = lazy(() => import("./pages/EventDetail"));
+const AdminEvents = lazy(() => import("./pages/AdminEvents"));
+const Fundraisers = lazy(() => import("./pages/Fundraisers"));
+const FundraiserDetail = lazy(() => import("./pages/FundraiserDetail"));
+const AdminFundraisers = lazy(() => import("./pages/AdminFundraisers"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 // Composant interne pour utiliser les hooks après AuthProvider
@@ -112,6 +118,12 @@ const AppContent = () => {
         <Route path="/admin/payments" element={<AdminPayments />} />
         <Route path="/setup/storage" element={<StorageSetup />} />
         <Route path="/admin/call-center" element={<CallCenter />} />
+        <Route path="/events" element={<Events />} />
+        <Route path="/events/:eventId" element={<EventDetail />} />
+        <Route path="/admin/events" element={<AdminEvents />} />
+        <Route path="/fundraisers" element={<Fundraisers />} />
+        <Route path="/fundraisers/:fundraiserId" element={<FundraiserDetail />} />
+        <Route path="/admin/fundraisers" element={<AdminFundraisers />} />
         {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
         <Route path="*" element={<NotFound />} />
       </Routes>
