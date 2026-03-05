@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -10,9 +10,50 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { toast } from '@/hooks/use-toast';
-import { Calendar, MapPin, ArrowLeft, Ticket, Users, Minus, Plus, ExternalLink, CheckCircle } from 'lucide-react';
+import { Calendar, MapPin, ArrowLeft, Ticket, Users, Minus, Plus, ExternalLink, CheckCircle, Clock, Wallet } from 'lucide-react';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
+
+function EventCountdown({ date }: { date: string }) {
+  const [parts, setParts] = useState({ d: 0, h: 0, m: 0, s: 0, ended: false });
+
+  useEffect(() => {
+    const calc = () => {
+      const diff = new Date(date).getTime() - Date.now();
+      if (diff <= 0) { setParts({ d: 0, h: 0, m: 0, s: 0, ended: true }); return; }
+      setParts({
+        d: Math.floor(diff / 86400000),
+        h: Math.floor((diff % 86400000) / 3600000),
+        m: Math.floor((diff % 3600000) / 60000),
+        s: Math.floor((diff % 60000) / 1000),
+        ended: false,
+      });
+    };
+    calc();
+    const interval = setInterval(calc, 1000);
+    return () => clearInterval(interval);
+  }, [date]);
+
+  if (parts.ended) return <p className="text-center text-destructive font-bold">Événement commencé / terminé</p>;
+
+  const Box = ({ val, label }: { val: number; label: string }) => (
+    <div className="flex flex-col items-center">
+      <div className="bg-primary/10 border border-primary/20 rounded-xl w-14 h-14 flex items-center justify-center">
+        <span className="text-xl font-bold text-primary font-mono">{String(val).padStart(2, '0')}</span>
+      </div>
+      <span className="text-[10px] text-muted-foreground mt-1">{label}</span>
+    </div>
+  );
+
+  return (
+    <div className="flex justify-center gap-3">
+      <Box val={parts.d} label="Jours" />
+      <Box val={parts.h} label="Heures" />
+      <Box val={parts.m} label="Min" />
+      <Box val={parts.s} label="Sec" />
+    </div>
+  );
+}
 
 export default function EventDetail() {
   const { eventId } = useParams();
@@ -24,6 +65,7 @@ export default function EventDetail() {
   const [buyerPhone, setBuyerPhone] = useState('');
   const [purchasing, setPurchasing] = useState(false);
   const [purchaseSuccess, setPurchaseSuccess] = useState<string | null>(null);
+  const [payMethod, setPayMethod] = useState<'wallet' | 'external'>('wallet');
 
   const { data: event, isLoading } = useQuery({
     queryKey: ['event', eventId],
@@ -38,6 +80,15 @@ export default function EventDetail() {
     enabled: !!eventId,
   });
 
+  const { data: walletData } = useQuery({
+    queryKey: ['wallet-balance', user?.id],
+    queryFn: async () => {
+      const { data } = await supabase.from('wallets').select('balance').eq('user_id', user!.id).single();
+      return data;
+    },
+    enabled: !!user,
+  });
+
   const tierConfig: Record<string, { bg: string; border: string; label: string }> = {
     standard: { bg: 'bg-muted/50', border: 'border-border', label: '🎟️ Standard' },
     vip: { bg: 'bg-amber-500/5', border: 'border-amber-500/30', label: '⭐ VIP' },
@@ -45,14 +96,28 @@ export default function EventDetail() {
   };
 
   const handlePurchase = async () => {
-    if (!user) { toast({ title: "Connectez-vous", variant: "destructive" }); return; }
+    if (!user) { navigate('/auth'); return; }
     if (!buyerName.trim()) { toast({ title: "Nom requis", variant: "destructive" }); return; }
+
+    const total = selectedTicket.price * qty;
+
+    if (payMethod === 'wallet') {
+      if (!walletData || walletData.balance < total) {
+        toast({ title: "Solde insuffisant", description: `Votre solde est de ${walletData?.balance?.toLocaleString() || 0} FCFA. Rechargez votre portefeuille.`, variant: "destructive" });
+        return;
+      }
+    }
+
     setPurchasing(true);
     try {
-      const total = selectedTicket.price * qty;
-
-      // If there's a payment link, redirect
-      if (selectedTicket.payment_link) {
+      if (payMethod === 'wallet') {
+        // Debit wallet
+        const { data: debitResult, error: debitError } = await (supabase.rpc as any)('decrement_wallet_balance', {
+          p_user_id: user.id,
+          p_amount: total,
+        });
+        if (debitError) throw new Error('Erreur de débit: ' + debitError.message);
+      } else if (selectedTicket.payment_link) {
         window.open(selectedTicket.payment_link, '_blank');
       }
 
@@ -64,15 +129,15 @@ export default function EventDetail() {
         buyer_phone: buyerPhone.trim(),
         quantity: qty,
         total_amount: total,
-        payment_method: selectedTicket.payment_link ? 'external' : 'wallet',
-        payment_status: selectedTicket.payment_link ? 'pending' : 'completed',
+        payment_method: payMethod,
+        payment_status: payMethod === 'wallet' ? 'completed' : 'pending',
       }).select('ticket_code').single();
 
       if (error) throw error;
 
       // Update quantity sold
       await (supabase as any).from('ticket_types')
-        .update({ quantity_sold: selectedTicket.quantity_sold + qty })
+        .update({ quantity_sold: (selectedTicket.quantity_sold || 0) + qty })
         .eq('id', selectedTicket.id);
 
       setPurchaseSuccess(data.ticket_code);
@@ -128,6 +193,16 @@ export default function EventDetail() {
             {event.description && <p className="text-sm text-muted-foreground mt-2">{event.description}</p>}
           </div>
 
+          {/* Countdown */}
+          <Card className="border-primary/20 bg-primary/5">
+            <CardContent className="p-4">
+              <p className="text-xs text-center text-muted-foreground mb-3 flex items-center justify-center gap-1">
+                <Clock className="h-3.5 w-3.5" /> Compte à rebours
+              </p>
+              <EventCountdown date={event.event_date} />
+            </CardContent>
+          </Card>
+
           {purchaseSuccess && (
             <Card className="border-green-500/30 bg-green-500/5">
               <CardContent className="p-4 flex items-center gap-3">
@@ -170,7 +245,7 @@ export default function EventDetail() {
                     )}
                     <div className="flex items-center justify-between">
                       <span className="text-xs text-muted-foreground">{remaining} restant{remaining > 1 ? 's' : ''}</span>
-                      <Button size="sm" disabled={soldOut} onClick={() => { setSelectedTicket(ticket); setQty(1); }}>
+                      <Button size="sm" disabled={soldOut} onClick={() => { setSelectedTicket(ticket); setQty(1); setPayMethod('wallet'); }}>
                         {soldOut ? 'Épuisé' : 'Acheter'}
                       </Button>
                     </div>
@@ -195,7 +270,7 @@ export default function EventDetail() {
               </div>
 
               <div className="space-y-2">
-                <Label>Votre nom</Label>
+                <Label>Votre nom *</Label>
                 <Input value={buyerName} onChange={e => setBuyerName(e.target.value)} placeholder="Nom complet" />
               </div>
               <div className="space-y-2">
@@ -212,6 +287,32 @@ export default function EventDetail() {
                 </div>
               </div>
 
+              {/* Payment method */}
+              <div className="space-y-2">
+                <Label>Mode de paiement</Label>
+                <div className="grid grid-cols-2 gap-2">
+                  <Button
+                    variant={payMethod === 'wallet' ? 'default' : 'outline'}
+                    className="h-auto py-3 flex flex-col items-center gap-1"
+                    onClick={() => setPayMethod('wallet')}
+                  >
+                    <Wallet className="h-5 w-5" />
+                    <span className="text-xs">Portefeuille</span>
+                    <span className="text-[10px] text-muted-foreground">{walletData?.balance?.toLocaleString() || 0} FCFA</span>
+                  </Button>
+                  {selectedTicket.payment_link && (
+                    <Button
+                      variant={payMethod === 'external' ? 'default' : 'outline'}
+                      className="h-auto py-3 flex flex-col items-center gap-1"
+                      onClick={() => setPayMethod('external')}
+                    >
+                      <ExternalLink className="h-5 w-5" />
+                      <span className="text-xs">Paiement externe</span>
+                    </Button>
+                  )}
+                </div>
+              </div>
+
               <div className="p-3 rounded-lg bg-primary/5 border border-primary/20">
                 <p className="text-sm text-muted-foreground">Total</p>
                 <p className="text-2xl font-bold text-primary">
@@ -219,10 +320,8 @@ export default function EventDetail() {
                 </p>
               </div>
 
-              {selectedTicket.payment_link && (
-                <p className="text-xs text-muted-foreground flex items-center gap-1">
-                  <ExternalLink className="h-3 w-3" /> Redirection vers le paiement externe
-                </p>
+              {payMethod === 'wallet' && walletData && walletData.balance < selectedTicket.price * qty && (
+                <p className="text-xs text-destructive">⚠️ Solde insuffisant. Rechargez votre portefeuille.</p>
               )}
 
               <Button className="w-full h-12" onClick={handlePurchase} disabled={purchasing}>

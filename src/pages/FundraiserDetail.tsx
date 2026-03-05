@@ -11,7 +11,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Progress } from '@/components/ui/progress';
 import { Switch } from '@/components/ui/switch';
 import { toast } from '@/hooks/use-toast';
-import { ArrowLeft, Heart, Users, Clock, CheckCircle, ExternalLink } from 'lucide-react';
+import { ArrowLeft, Heart, Users, Clock, ExternalLink, Wallet } from 'lucide-react';
 
 function CountdownTimer({ endDate }: { endDate: string }) {
   const [parts, setParts] = useState({ d: 0, h: 0, m: 0, s: 0, ended: false });
@@ -63,6 +63,7 @@ export default function FundraiserDetail() {
   const [name, setName] = useState('');
   const [message, setMessage] = useState('');
   const [anonymous, setAnonymous] = useState(false);
+  const [payMethod, setPayMethod] = useState<'wallet' | 'external'>('wallet');
   const presets = [500, 1000, 2000, 5000, 10000, 25000];
 
   const { data: fundraiser, isLoading } = useQuery({
@@ -73,6 +74,15 @@ export default function FundraiserDetail() {
       return data as any;
     },
     enabled: !!fundraiserId,
+  });
+
+  const { data: walletData } = useQuery({
+    queryKey: ['wallet-balance', user?.id],
+    queryFn: async () => {
+      const { data } = await supabase.from('wallets').select('balance').eq('user_id', user!.id).single();
+      return data;
+    },
+    enabled: !!user,
   });
 
   const { data: contributions } = useQuery({
@@ -94,27 +104,40 @@ export default function FundraiserDetail() {
     mutationFn: async () => {
       if (!user) throw new Error('Connectez-vous');
       if (!amount || Number(amount) <= 0) throw new Error('Montant invalide');
-      if (!name.trim()) throw new Error('Nom requis');
+      if (!name.trim() && !anonymous) throw new Error('Nom requis');
 
-      if (fundraiser?.payment_link) {
+      const numAmount = Number(amount);
+
+      if (payMethod === 'wallet') {
+        if (!walletData || walletData.balance < numAmount) {
+          throw new Error(`Solde insuffisant (${walletData?.balance?.toLocaleString() || 0} FCFA). Rechargez votre portefeuille.`);
+        }
+        // Debit wallet
+        const { error: debitError } = await (supabase.rpc as any)('decrement_wallet_balance', {
+          p_user_id: user.id,
+          p_amount: numAmount,
+        });
+        if (debitError) throw new Error('Erreur de débit: ' + debitError.message);
+      } else if (fundraiser?.payment_link) {
         window.open(fundraiser.payment_link, '_blank');
       }
 
       const { error } = await (supabase as any).from('fundraiser_contributions').insert({
         fundraiser_id: fundraiserId,
         user_id: user.id,
-        contributor_name: name.trim(),
-        amount: Number(amount),
+        contributor_name: anonymous ? 'Anonyme' : name.trim(),
+        amount: numAmount,
         message: message.trim() || null,
         is_anonymous: anonymous,
-        payment_method: fundraiser?.payment_link ? 'external' : 'wallet',
-        payment_status: 'completed',
+        payment_method: payMethod,
+        payment_status: payMethod === 'wallet' ? 'completed' : 'pending',
       });
       if (error) throw error;
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['fundraiser', fundraiserId] });
       qc.invalidateQueries({ queryKey: ['fundraiser-contributions', fundraiserId] });
+      qc.invalidateQueries({ queryKey: ['wallet-balance'] });
       setAmount('');
       setMessage('');
       toast({ title: "🎉 Merci pour votre contribution!" });
@@ -204,10 +227,34 @@ export default function FundraiserDetail() {
                   <Label>Don anonyme</Label>
                 </div>
 
-                {fundraiser.payment_link && (
-                  <p className="text-xs text-muted-foreground flex items-center gap-1">
-                    <ExternalLink className="h-3 w-3" /> Redirection vers le paiement externe
-                  </p>
+                {/* Payment method */}
+                <div className="space-y-2">
+                  <Label>Mode de paiement</Label>
+                  <div className="grid grid-cols-2 gap-2">
+                    <Button
+                      variant={payMethod === 'wallet' ? 'default' : 'outline'}
+                      className="h-auto py-3 flex flex-col items-center gap-1"
+                      onClick={() => setPayMethod('wallet')}
+                    >
+                      <Wallet className="h-5 w-5" />
+                      <span className="text-xs">Portefeuille Moissonneur</span>
+                      <span className="text-[10px] text-muted-foreground">{walletData?.balance?.toLocaleString() || 0} FCFA</span>
+                    </Button>
+                    {fundraiser.payment_link && (
+                      <Button
+                        variant={payMethod === 'external' ? 'default' : 'outline'}
+                        className="h-auto py-3 flex flex-col items-center gap-1"
+                        onClick={() => setPayMethod('external')}
+                      >
+                        <ExternalLink className="h-5 w-5" />
+                        <span className="text-xs">Paiement externe</span>
+                      </Button>
+                    )}
+                  </div>
+                </div>
+
+                {payMethod === 'wallet' && walletData && amount && walletData.balance < Number(amount) && (
+                  <p className="text-xs text-destructive">⚠️ Solde insuffisant. Rechargez votre portefeuille.</p>
                 )}
 
                 <Button className="w-full h-12 text-base" onClick={() => contributeMutation.mutate()} disabled={contributeMutation.isPending}>
