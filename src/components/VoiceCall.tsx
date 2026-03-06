@@ -548,14 +548,36 @@ export default function VoiceCall({
         throw new Error('Aucun agent centre d\'appel disponible. Un administrateur doit désigner un agent actif.');
       }
 
-      const { data: profile } = await supabase
+      // Try exact match first, then with MSN prefix if digits only
+      let { data: profile } = await supabase
         .from('profiles')
         .select('id')
         .ilike('referral_code', normalized)
         .single();
 
+      // If not found and input is digits only, try with MSN prefix
+      if (!profile && /^\d+$/.test(normalized)) {
+        const withPrefix = `MSN${normalized}`;
+        const { data: prefixProfile } = await supabase
+          .from('profiles')
+          .select('id')
+          .ilike('referral_code', withPrefix)
+          .single();
+        profile = prefixProfile;
+      }
+
+      // If still not found, try partial match (user may have entered without full code)
       if (!profile) {
-        throw new Error('Code Moissonneur invalide');
+        const { data: partialProfile } = await supabase
+          .from('profiles')
+          .select('id')
+          .ilike('referral_code', `%${normalized}`)
+          .single();
+        profile = partialProfile;
+      }
+
+      if (!profile) {
+        throw new Error('Code Moissonneur introuvable. Vérifiez le code et réessayez.');
       }
 
       if (profile.id === user?.id) {
