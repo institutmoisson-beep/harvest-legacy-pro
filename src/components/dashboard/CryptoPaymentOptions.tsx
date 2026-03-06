@@ -15,7 +15,7 @@ export default function CryptoPaymentOptions() {
 
   const fetchCryptoSettings = async () => {
     const { data } = await (supabase.from as any)('crypto_payment_settings')
-      .select('*')
+      .select('id, provider, api_endpoint, is_active')
       .eq('is_active', true);
 
     setCryptoSettings(data || []);
