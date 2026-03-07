@@ -59,6 +59,9 @@ const AdminEvents = lazy(() => import("./pages/AdminEvents"));
 const Fundraisers = lazy(() => import("./pages/Fundraisers"));
 const FundraiserDetail = lazy(() => import("./pages/FundraiserDetail"));
 const AdminFundraisers = lazy(() => import("./pages/AdminFundraisers"));
+const AdminTransport = lazy(() => import("./pages/AdminTransport"));
+const DriverDashboard = lazy(() => import("./pages/DriverDashboard"));
+const BookRide = lazy(() => import("./pages/BookRide"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 // Composant interne pour utiliser les hooks après AuthProvider
