@@ -127,6 +127,9 @@ const AppContent = () => {
         <Route path="/fundraisers" element={<Fundraisers />} />
         <Route path="/fundraisers/:fundraiserId" element={<FundraiserDetail />} />
         <Route path="/admin/fundraisers" element={<AdminFundraisers />} />
+        <Route path="/admin/transport" element={<AdminTransport />} />
+        <Route path="/driver" element={<DriverDashboard />} />
+        <Route path="/book-ride" element={<BookRide />} />
         {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
         <Route path="*" element={<NotFound />} />
       </Routes>
