@@ -297,6 +297,12 @@ export default function AdminDashboard() {
             <Button onClick={() => navigate('/admin/deliveries')} variant="outline">
               📦 Livraisons
             </Button>
+            <Button onClick={() => navigate('/admin/transport')} variant="outline">
+              🚗 Transport
+            </Button>
+            <Button onClick={() => navigate('/admin/immo')} variant="outline">
+              🏠 MSN Immo
+            </Button>
             <Button onClick={() => navigate('/dashboard')} variant="outline">
               Mon Dashboard
             </Button>

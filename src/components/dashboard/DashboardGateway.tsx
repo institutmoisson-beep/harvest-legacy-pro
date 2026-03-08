@@ -20,6 +20,8 @@ import {
   Video,
   Ticket,
   Heart,
+  Car,
+  Building,
 } from 'lucide-react';
 import VoiceCall from '@/components/VoiceCall';
 
