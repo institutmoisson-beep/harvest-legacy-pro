@@ -118,9 +118,9 @@ export default function ImmoClient() {
       await (supabase as any).from('immo_offer_responses').update({ status: 'accepted' }).eq('id', response.id);
 
       // Record transaction
-      await supabase.from('wallet_transactions').insert({
+      await (supabase as any).from('wallet_transactions').insert({
         from_user_id: user.id, to_user_id: user.id, amount: totalMSN,
-        transaction_type: 'order_payment', description: `MSN Immo - Réservation #${booking.id}`, status: 'completed',
+        transaction_type: 'withdrawal', description: `MSN Immo - Réservation #${booking.id}`, status: 'completed',
       });
 
       toast({ title: '✅ Réservation confirmée!', description: 'Votre séjour a été réservé et payé.' });

@@ -106,11 +106,11 @@ export default function ProductPayment() {
       }
 
       // Record wallet transaction
-      await supabase.from('wallet_transactions').insert({
+      await (supabase as any).from('wallet_transactions').insert({
         from_user_id: user.id,
         to_user_id: user.id,
         amount: totalMSN,
-        transaction_type: 'order_payment',
+        transaction_type: 'withdrawal',
         description: `Achat: ${product.product_name} x${quantity} - ${totalAmount} FCFA`,
         status: 'completed',
       });
