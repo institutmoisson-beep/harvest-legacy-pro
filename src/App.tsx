@@ -133,6 +133,9 @@ const AppContent = () => {
         <Route path="/admin/transport" element={<AdminTransport />} />
         <Route path="/driver" element={<DriverDashboard />} />
         <Route path="/book-ride" element={<BookRide />} />
+        <Route path="/immo" element={<ImmoClient />} />
+        <Route path="/immo/host" element={<ImmoHost />} />
+        <Route path="/admin/immo" element={<AdminImmo />} />
         {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
         <Route path="*" element={<NotFound />} />
       </Routes>
