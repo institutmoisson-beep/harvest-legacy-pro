@@ -61,12 +61,13 @@ const MENU_ITEMS = [
   { icon: Building, label: 'MSN Immo', route: '/immo', always: true },
 ];
 
-export default function DashboardGateway({ hasAdminAccess, hasMerchantRole, onSignOut }: DashboardGatewayProps) {
+export default function DashboardGateway({ hasAdminAccess, hasMerchantRole, hasDriverRole, onSignOut }: DashboardGatewayProps) {
   const navigate = useNavigate();
 
   const allItems = [
     ...(hasAdminAccess ? [{ icon: Shield, label: 'Admin', route: '/admin', always: true }] : []),
     ...(hasMerchantRole ? [{ icon: Store, label: 'Marchand', route: '/merchant', always: true }] : []),
+    ...(hasDriverRole ? [{ icon: Car, label: 'Conducteur', route: '/driver', always: true }] : []),
     ...MENU_ITEMS,
   ];
 
