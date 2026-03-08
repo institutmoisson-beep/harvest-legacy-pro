@@ -62,6 +62,9 @@ const AdminFundraisers = lazy(() => import("./pages/AdminFundraisers"));
 const AdminTransport = lazy(() => import("./pages/AdminTransport"));
 const DriverDashboard = lazy(() => import("./pages/DriverDashboard"));
 const BookRide = lazy(() => import("./pages/BookRide"));
+const ImmoClient = lazy(() => import("./pages/ImmoClient"));
+const ImmoHost = lazy(() => import("./pages/ImmoHost"));
+const AdminImmo = lazy(() => import("./pages/AdminImmo"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 // Composant interne pour utiliser les hooks après AuthProvider
@@ -130,6 +133,9 @@ const AppContent = () => {
         <Route path="/admin/transport" element={<AdminTransport />} />
         <Route path="/driver" element={<DriverDashboard />} />
         <Route path="/book-ride" element={<BookRide />} />
+        <Route path="/immo" element={<ImmoClient />} />
+        <Route path="/immo/host" element={<ImmoHost />} />
+        <Route path="/admin/immo" element={<AdminImmo />} />
         {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
         <Route path="*" element={<NotFound />} />
       </Routes>

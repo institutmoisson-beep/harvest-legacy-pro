@@ -43,7 +43,7 @@ export default function Dashboard() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   
-  const { profile, wallet, stats, hasAdminAccess, hasMerchantRole, isLoading } = useDashboardData(user?.id);
+  const { profile, wallet, stats, hasAdminAccess, hasMerchantRole, hasDriverRole, isLoading } = useDashboardData(user?.id);
 
   useEffect(() => {
     if (!user) navigate('/auth');
@@ -109,7 +109,8 @@ export default function Dashboard() {
         <div className="mb-8">
           <DashboardGateway 
             hasAdminAccess={hasAdminAccess} 
-            hasMerchantRole={hasMerchantRole} 
+            hasMerchantRole={hasMerchantRole}
+            hasDriverRole={hasDriverRole}
             onSignOut={signOut} 
           />
         </div>

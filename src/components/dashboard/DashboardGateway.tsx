@@ -20,12 +20,15 @@ import {
   Video,
   Ticket,
   Heart,
+  Car,
+  Building,
 } from 'lucide-react';
 import VoiceCall from '@/components/VoiceCall';
 
 interface DashboardGatewayProps {
   hasAdminAccess: boolean;
   hasMerchantRole: boolean;
+  hasDriverRole?: boolean;
   onSignOut: () => void;
 }
 
@@ -54,14 +57,17 @@ const MENU_ITEMS = [
   { icon: MapPin, label: 'Livraison', route: '/community-delivery', always: true },
   { icon: Ticket, label: 'Événements', route: '/events', always: true },
   { icon: Heart, label: 'Cagnottes', route: '/fundraisers', always: true },
+  { icon: Car, label: 'Transport', route: '/book-ride', always: true },
+  { icon: Building, label: 'MSN Immo', route: '/immo', always: true },
 ];
 
-export default function DashboardGateway({ hasAdminAccess, hasMerchantRole, onSignOut }: DashboardGatewayProps) {
+export default function DashboardGateway({ hasAdminAccess, hasMerchantRole, hasDriverRole, onSignOut }: DashboardGatewayProps) {
   const navigate = useNavigate();
 
   const allItems = [
     ...(hasAdminAccess ? [{ icon: Shield, label: 'Admin', route: '/admin', always: true }] : []),
     ...(hasMerchantRole ? [{ icon: Store, label: 'Marchand', route: '/merchant', always: true }] : []),
+    ...(hasDriverRole ? [{ icon: Car, label: 'Conducteur', route: '/driver', always: true }] : []),
     ...MENU_ITEMS,
   ];
 
