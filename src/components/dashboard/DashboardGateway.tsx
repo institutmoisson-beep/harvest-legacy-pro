@@ -54,6 +54,8 @@ const MENU_ITEMS = [
   { icon: MapPin, label: 'Livraison', route: '/community-delivery', always: true },
   { icon: Ticket, label: 'Événements', route: '/events', always: true },
   { icon: Heart, label: 'Cagnottes', route: '/fundraisers', always: true },
+  { icon: Car, label: 'Transport', route: '/book-ride', always: true },
+  { icon: Building, label: 'MSN Immo', route: '/immo', always: true },
 ];
 
 export default function DashboardGateway({ hasAdminAccess, hasMerchantRole, onSignOut }: DashboardGatewayProps) {
