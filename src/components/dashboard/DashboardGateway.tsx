@@ -28,6 +28,7 @@ import VoiceCall from '@/components/VoiceCall';
 interface DashboardGatewayProps {
   hasAdminAccess: boolean;
   hasMerchantRole: boolean;
+  hasDriverRole?: boolean;
   onSignOut: () => void;
 }
 
