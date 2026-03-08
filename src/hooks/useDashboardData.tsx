@@ -97,8 +97,8 @@ export const useDashboardData = (userId: string | undefined) => {
 
   const hasAdminAccess = roles?.some(r => r.role === 'admin') || false;
   const hasMerchantRole = roles?.some(r => r.role === 'merchant') || false;
+  const hasDriverRole = roles?.some(r => r.role === 'driver') || false;
 
-  // Si toutes les queries ont des erreurs, ne pas rester bloqué en loading
   const allQueriesErrored = profileError && walletError && statsError && rolesError;
   const isLoading = !allQueriesErrored && (profileLoading || walletLoading || statsLoading || rolesLoading);
 
@@ -108,6 +108,7 @@ export const useDashboardData = (userId: string | undefined) => {
     stats,
     hasAdminAccess,
     hasMerchantRole,
+    hasDriverRole,
     isLoading,
   };
 };

@@ -109,7 +109,8 @@ export default function Dashboard() {
         <div className="mb-8">
           <DashboardGateway 
             hasAdminAccess={hasAdminAccess} 
-            hasMerchantRole={hasMerchantRole} 
+            hasMerchantRole={hasMerchantRole}
+            hasDriverRole={hasDriverRole}
             onSignOut={signOut} 
           />
         </div>
