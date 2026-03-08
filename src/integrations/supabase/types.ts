@@ -2167,6 +2167,484 @@ export type Database = {
         }
         Relationships: []
       }
+      immo_availability: {
+        Row: {
+          custom_price: number | null
+          date: string
+          id: string
+          is_available: boolean | null
+          listing_id: string
+        }
+        Insert: {
+          custom_price?: number | null
+          date: string
+          id?: string
+          is_available?: boolean | null
+          listing_id: string
+        }
+        Update: {
+          custom_price?: number | null
+          date?: string
+          id?: string
+          is_available?: boolean | null
+          listing_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "immo_availability_listing_id_fkey"
+            columns: ["listing_id"]
+            isOneToOne: false
+            referencedRelation: "immo_listings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      immo_bookings: {
+        Row: {
+          booking_status: string | null
+          cancellation_reason: string | null
+          cancelled_at: string | null
+          cancelled_by: string | null
+          check_in: string
+          check_out: string
+          client_id: string
+          completed_at: string | null
+          created_at: string | null
+          guests: number
+          host_id: string
+          id: string
+          listing_id: string
+          offer_id: string | null
+          payment_status: string | null
+          platform_commission: number | null
+          response_id: string | null
+          total_price: number
+          updated_at: string | null
+        }
+        Insert: {
+          booking_status?: string | null
+          cancellation_reason?: string | null
+          cancelled_at?: string | null
+          cancelled_by?: string | null
+          check_in: string
+          check_out: string
+          client_id: string
+          completed_at?: string | null
+          created_at?: string | null
+          guests?: number
+          host_id: string
+          id?: string
+          listing_id: string
+          offer_id?: string | null
+          payment_status?: string | null
+          platform_commission?: number | null
+          response_id?: string | null
+          total_price: number
+          updated_at?: string | null
+        }
+        Update: {
+          booking_status?: string | null
+          cancellation_reason?: string | null
+          cancelled_at?: string | null
+          cancelled_by?: string | null
+          check_in?: string
+          check_out?: string
+          client_id?: string
+          completed_at?: string | null
+          created_at?: string | null
+          guests?: number
+          host_id?: string
+          id?: string
+          listing_id?: string
+          offer_id?: string | null
+          payment_status?: string | null
+          platform_commission?: number | null
+          response_id?: string | null
+          total_price?: number
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "immo_bookings_listing_id_fkey"
+            columns: ["listing_id"]
+            isOneToOne: false
+            referencedRelation: "immo_listings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "immo_bookings_offer_id_fkey"
+            columns: ["offer_id"]
+            isOneToOne: false
+            referencedRelation: "immo_offers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "immo_bookings_response_id_fkey"
+            columns: ["response_id"]
+            isOneToOne: false
+            referencedRelation: "immo_offer_responses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      immo_listings: {
+        Row: {
+          address: string
+          amenities: string[] | null
+          bathrooms: number | null
+          bedrooms: number | null
+          cancellation_policy: string | null
+          check_in_time: string | null
+          check_out_time: string | null
+          city: string
+          country: string
+          created_at: string | null
+          description: string | null
+          host_id: string
+          id: string
+          images: string[] | null
+          is_active: boolean | null
+          is_verified: boolean | null
+          latitude: number | null
+          longitude: number | null
+          max_guests: number
+          price_per_night: number
+          property_type: Database["public"]["Enums"]["property_type"]
+          rating_avg: number | null
+          rating_count: number | null
+          rules: string | null
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          address: string
+          amenities?: string[] | null
+          bathrooms?: number | null
+          bedrooms?: number | null
+          cancellation_policy?: string | null
+          check_in_time?: string | null
+          check_out_time?: string | null
+          city: string
+          country?: string
+          created_at?: string | null
+          description?: string | null
+          host_id: string
+          id?: string
+          images?: string[] | null
+          is_active?: boolean | null
+          is_verified?: boolean | null
+          latitude?: number | null
+          longitude?: number | null
+          max_guests?: number
+          price_per_night?: number
+          property_type?: Database["public"]["Enums"]["property_type"]
+          rating_avg?: number | null
+          rating_count?: number | null
+          rules?: string | null
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          address?: string
+          amenities?: string[] | null
+          bathrooms?: number | null
+          bedrooms?: number | null
+          cancellation_policy?: string | null
+          check_in_time?: string | null
+          check_out_time?: string | null
+          city?: string
+          country?: string
+          created_at?: string | null
+          description?: string | null
+          host_id?: string
+          id?: string
+          images?: string[] | null
+          is_active?: boolean | null
+          is_verified?: boolean | null
+          latitude?: number | null
+          longitude?: number | null
+          max_guests?: number
+          price_per_night?: number
+          property_type?: Database["public"]["Enums"]["property_type"]
+          rating_avg?: number | null
+          rating_count?: number | null
+          rules?: string | null
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      immo_messages: {
+        Row: {
+          booking_id: string | null
+          created_at: string | null
+          id: string
+          is_read: boolean | null
+          message: string
+          offer_id: string | null
+          receiver_id: string
+          sender_id: string
+        }
+        Insert: {
+          booking_id?: string | null
+          created_at?: string | null
+          id?: string
+          is_read?: boolean | null
+          message: string
+          offer_id?: string | null
+          receiver_id: string
+          sender_id: string
+        }
+        Update: {
+          booking_id?: string | null
+          created_at?: string | null
+          id?: string
+          is_read?: boolean | null
+          message?: string
+          offer_id?: string | null
+          receiver_id?: string
+          sender_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "immo_messages_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "immo_bookings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "immo_messages_offer_id_fkey"
+            columns: ["offer_id"]
+            isOneToOne: false
+            referencedRelation: "immo_offers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      immo_offer_responses: {
+        Row: {
+          created_at: string | null
+          host_id: string
+          id: string
+          listing_id: string
+          message: string | null
+          offer_id: string
+          proposed_price: number
+          status: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          host_id: string
+          id?: string
+          listing_id: string
+          message?: string | null
+          offer_id: string
+          proposed_price: number
+          status?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          host_id?: string
+          id?: string
+          listing_id?: string
+          message?: string | null
+          offer_id?: string
+          proposed_price?: number
+          status?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "immo_offer_responses_listing_id_fkey"
+            columns: ["listing_id"]
+            isOneToOne: false
+            referencedRelation: "immo_listings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "immo_offer_responses_offer_id_fkey"
+            columns: ["offer_id"]
+            isOneToOne: false
+            referencedRelation: "immo_offers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      immo_offers: {
+        Row: {
+          amenities_wanted: string[] | null
+          check_in: string
+          check_out: string
+          city: string
+          client_id: string
+          country: string
+          created_at: string | null
+          guests: number
+          id: string
+          latitude: number | null
+          listing_id: string | null
+          longitude: number | null
+          message: string | null
+          property_type_wanted:
+            | Database["public"]["Enums"]["property_type"]
+            | null
+          proposed_budget: number
+          radius_km: number | null
+          status: Database["public"]["Enums"]["immo_offer_status"] | null
+          updated_at: string | null
+        }
+        Insert: {
+          amenities_wanted?: string[] | null
+          check_in: string
+          check_out: string
+          city: string
+          client_id: string
+          country?: string
+          created_at?: string | null
+          guests?: number
+          id?: string
+          latitude?: number | null
+          listing_id?: string | null
+          longitude?: number | null
+          message?: string | null
+          property_type_wanted?:
+            | Database["public"]["Enums"]["property_type"]
+            | null
+          proposed_budget: number
+          radius_km?: number | null
+          status?: Database["public"]["Enums"]["immo_offer_status"] | null
+          updated_at?: string | null
+        }
+        Update: {
+          amenities_wanted?: string[] | null
+          check_in?: string
+          check_out?: string
+          city?: string
+          client_id?: string
+          country?: string
+          created_at?: string | null
+          guests?: number
+          id?: string
+          latitude?: number | null
+          listing_id?: string | null
+          longitude?: number | null
+          message?: string | null
+          property_type_wanted?:
+            | Database["public"]["Enums"]["property_type"]
+            | null
+          proposed_budget?: number
+          radius_km?: number | null
+          status?: Database["public"]["Enums"]["immo_offer_status"] | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "immo_offers_listing_id_fkey"
+            columns: ["listing_id"]
+            isOneToOne: false
+            referencedRelation: "immo_listings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      immo_reviews: {
+        Row: {
+          booking_id: string
+          comment: string | null
+          created_at: string | null
+          id: string
+          is_published: boolean | null
+          listing_id: string | null
+          rating: number
+          reviewee_id: string
+          reviewer_id: string
+        }
+        Insert: {
+          booking_id: string
+          comment?: string | null
+          created_at?: string | null
+          id?: string
+          is_published?: boolean | null
+          listing_id?: string | null
+          rating: number
+          reviewee_id: string
+          reviewer_id: string
+        }
+        Update: {
+          booking_id?: string
+          comment?: string | null
+          created_at?: string | null
+          id?: string
+          is_published?: boolean | null
+          listing_id?: string | null
+          rating?: number
+          reviewee_id?: string
+          reviewer_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "immo_reviews_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "immo_bookings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "immo_reviews_listing_id_fkey"
+            columns: ["listing_id"]
+            isOneToOne: false
+            referencedRelation: "immo_listings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      immo_transactions: {
+        Row: {
+          amount: number
+          booking_id: string
+          commission_amount: number | null
+          created_at: string | null
+          description: string | null
+          id: string
+          payee_id: string
+          payer_id: string
+          status: string | null
+          transaction_type: string
+        }
+        Insert: {
+          amount: number
+          booking_id: string
+          commission_amount?: number | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          payee_id: string
+          payer_id: string
+          status?: string | null
+          transaction_type?: string
+        }
+        Update: {
+          amount?: number
+          booking_id?: string
+          commission_amount?: number | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          payee_id?: string
+          payer_id?: string
+          status?: string | null
+          transaction_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "immo_transactions_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "immo_bookings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       investment_payment_history: {
         Row: {
           amount_paid: number
@@ -5202,12 +5680,28 @@ export type Database = {
         | "failed"
         | "cancelled"
       driver_status: "available" | "busy" | "offline" | "suspended"
+      immo_offer_status:
+        | "pending"
+        | "accepted"
+        | "refused"
+        | "expired"
+        | "cancelled"
+        | "confirmed"
+        | "completed"
       order_status:
         | "pending"
         | "validated"
         | "rejected"
         | "completed"
         | "pending_admin_review"
+      property_type:
+        | "apartment"
+        | "studio"
+        | "room"
+        | "hotel"
+        | "villa"
+        | "house"
+        | "residence"
       ride_status:
         | "pending"
         | "accepted"
@@ -5407,12 +5901,30 @@ export const Constants = {
         "cancelled",
       ],
       driver_status: ["available", "busy", "offline", "suspended"],
+      immo_offer_status: [
+        "pending",
+        "accepted",
+        "refused",
+        "expired",
+        "cancelled",
+        "confirmed",
+        "completed",
+      ],
       order_status: [
         "pending",
         "validated",
         "rejected",
         "completed",
         "pending_admin_review",
+      ],
+      property_type: [
+        "apartment",
+        "studio",
+        "room",
+        "hotel",
+        "villa",
+        "house",
+        "residence",
       ],
       ride_status: [
         "pending",
