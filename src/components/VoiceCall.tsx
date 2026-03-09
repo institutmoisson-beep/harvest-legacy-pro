@@ -428,28 +428,36 @@ export default function VoiceCall({
             return;
           }
 
-          if (session.status === 'accepted' && session.caller_id === user.id && peerConnection.current) {
-            try {
-              if (session.answer && peerConnection.current.signalingState === 'have-local-offer') {
-                await peerConnection.current.setRemoteDescription(
-                  new RTCSessionDescription(session.answer as unknown as RTCSessionDescriptionInit)
-                );
+          if (session.status === 'accepted' && session.caller_id === user.id) {
+            // Always stop ringing and transition to connected when callee accepts
+            stopRingtone();
+            if (callTimeoutRef.current) {
+              window.clearTimeout(callTimeoutRef.current);
+              callTimeoutRef.current = null;
+            }
+            setCallStatus('connected');
+            setConnectedAt(Date.now());
+            connectionEstablishedRef.current = true;
 
-                for (const candidate of pendingCandidates.current) {
-                  await peerConnection.current.addIceCandidate(new RTCIceCandidate(candidate));
+            // Set remote description if peer connection is ready
+            if (peerConnection.current && session.answer) {
+              try {
+                const sigState = peerConnection.current.signalingState;
+                if (sigState === 'have-local-offer' || sigState === 'stable') {
+                  if (sigState === 'have-local-offer') {
+                    await peerConnection.current.setRemoteDescription(
+                      new RTCSessionDescription(session.answer as unknown as RTCSessionDescriptionInit)
+                    );
+                  }
+
+                  for (const candidate of pendingCandidates.current) {
+                    await peerConnection.current.addIceCandidate(new RTCIceCandidate(candidate));
+                  }
+                  pendingCandidates.current = [];
                 }
-                pendingCandidates.current = [];
-                connectionEstablishedRef.current = true;
-                if (callTimeoutRef.current) {
-                  window.clearTimeout(callTimeoutRef.current);
-                  callTimeoutRef.current = null;
-                }
-                setCallStatus('connected');
-                setConnectedAt(Date.now());
-                stopRingtone();
+              } catch (err) {
+                console.error('Error setting remote description (caller):', err);
               }
-            } catch (err) {
-              console.error('Error setting remote description (caller):', err);
             }
           }
 
