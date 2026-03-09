@@ -303,6 +303,9 @@ export default function AdminDashboard() {
             <Button onClick={() => navigate('/admin/immo')} variant="outline">
               🏠 MSN Immo
             </Button>
+            <Button onClick={() => navigate('/admin/enterprises')} variant="outline">
+              🏢 Entreprises
+            </Button>
             <Button onClick={() => navigate('/dashboard')} variant="outline">
               Mon Dashboard
             </Button>
