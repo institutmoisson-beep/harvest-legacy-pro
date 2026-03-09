@@ -1760,6 +1760,324 @@ export type Database = {
         }
         Relationships: []
       }
+      enterprise_appointments: {
+        Row: {
+          appointment_code: string
+          appointment_date: string
+          created_at: string | null
+          enterprise_id: string
+          id: string
+          notes: string | null
+          product_id: string | null
+          status: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          appointment_code: string
+          appointment_date: string
+          created_at?: string | null
+          enterprise_id: string
+          id?: string
+          notes?: string | null
+          product_id?: string | null
+          status?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          appointment_code?: string
+          appointment_date?: string
+          created_at?: string | null
+          enterprise_id?: string
+          id?: string
+          notes?: string | null
+          product_id?: string | null
+          status?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "enterprise_appointments_enterprise_id_fkey"
+            columns: ["enterprise_id"]
+            isOneToOne: false
+            referencedRelation: "enterprises"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "enterprise_appointments_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "enterprise_products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      enterprise_orders: {
+        Row: {
+          created_at: string | null
+          enterprise_id: string
+          id: string
+          notes: string | null
+          payment_method: string | null
+          product_id: string | null
+          quantity: number | null
+          status: string | null
+          total_amount: number
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          enterprise_id: string
+          id?: string
+          notes?: string | null
+          payment_method?: string | null
+          product_id?: string | null
+          quantity?: number | null
+          status?: string | null
+          total_amount: number
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          enterprise_id?: string
+          id?: string
+          notes?: string | null
+          payment_method?: string | null
+          product_id?: string | null
+          quantity?: number | null
+          status?: string | null
+          total_amount?: number
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "enterprise_orders_enterprise_id_fkey"
+            columns: ["enterprise_id"]
+            isOneToOne: false
+            referencedRelation: "enterprises"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "enterprise_orders_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "enterprise_products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      enterprise_photos: {
+        Row: {
+          caption: string | null
+          created_at: string | null
+          display_order: number | null
+          enterprise_id: string
+          id: string
+          image_url: string
+        }
+        Insert: {
+          caption?: string | null
+          created_at?: string | null
+          display_order?: number | null
+          enterprise_id: string
+          id?: string
+          image_url: string
+        }
+        Update: {
+          caption?: string | null
+          created_at?: string | null
+          display_order?: number | null
+          enterprise_id?: string
+          id?: string
+          image_url?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "enterprise_photos_enterprise_id_fkey"
+            columns: ["enterprise_id"]
+            isOneToOne: false
+            referencedRelation: "enterprises"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      enterprise_products: {
+        Row: {
+          category: string | null
+          created_at: string | null
+          description: string | null
+          enterprise_id: string
+          id: string
+          image_url: string | null
+          is_active: boolean | null
+          is_service: boolean | null
+          name: string
+          price: number
+          stock: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          category?: string | null
+          created_at?: string | null
+          description?: string | null
+          enterprise_id: string
+          id?: string
+          image_url?: string | null
+          is_active?: boolean | null
+          is_service?: boolean | null
+          name: string
+          price?: number
+          stock?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          category?: string | null
+          created_at?: string | null
+          description?: string | null
+          enterprise_id?: string
+          id?: string
+          image_url?: string | null
+          is_active?: boolean | null
+          is_service?: boolean | null
+          name?: string
+          price?: number
+          stock?: number | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "enterprise_products_enterprise_id_fkey"
+            columns: ["enterprise_id"]
+            isOneToOne: false
+            referencedRelation: "enterprises"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      enterprise_reviews: {
+        Row: {
+          comment: string | null
+          created_at: string | null
+          enterprise_id: string
+          id: string
+          rating: number | null
+          user_id: string
+        }
+        Insert: {
+          comment?: string | null
+          created_at?: string | null
+          enterprise_id: string
+          id?: string
+          rating?: number | null
+          user_id: string
+        }
+        Update: {
+          comment?: string | null
+          created_at?: string | null
+          enterprise_id?: string
+          id?: string
+          rating?: number | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "enterprise_reviews_enterprise_id_fkey"
+            columns: ["enterprise_id"]
+            isOneToOne: false
+            referencedRelation: "enterprises"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      enterprises: {
+        Row: {
+          address: string | null
+          banner_url: string | null
+          branding_color: string | null
+          category: string | null
+          city: string | null
+          country: string | null
+          created_at: string | null
+          created_by: string | null
+          description: string | null
+          email: string | null
+          id: string
+          is_active: boolean | null
+          is_featured: boolean | null
+          latitude: number | null
+          logo_url: string | null
+          longitude: number | null
+          name: string
+          opening_hours: Json | null
+          phone: string | null
+          short_description: string | null
+          slug: string
+          social_links: Json | null
+          updated_at: string | null
+          video_url: string | null
+          website: string | null
+        }
+        Insert: {
+          address?: string | null
+          banner_url?: string | null
+          branding_color?: string | null
+          category?: string | null
+          city?: string | null
+          country?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          email?: string | null
+          id?: string
+          is_active?: boolean | null
+          is_featured?: boolean | null
+          latitude?: number | null
+          logo_url?: string | null
+          longitude?: number | null
+          name: string
+          opening_hours?: Json | null
+          phone?: string | null
+          short_description?: string | null
+          slug: string
+          social_links?: Json | null
+          updated_at?: string | null
+          video_url?: string | null
+          website?: string | null
+        }
+        Update: {
+          address?: string | null
+          banner_url?: string | null
+          branding_color?: string | null
+          category?: string | null
+          city?: string | null
+          country?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          email?: string | null
+          id?: string
+          is_active?: boolean | null
+          is_featured?: boolean | null
+          latitude?: number | null
+          logo_url?: string | null
+          longitude?: number | null
+          name?: string
+          opening_hours?: Json | null
+          phone?: string | null
+          short_description?: string | null
+          slug?: string
+          social_links?: Json | null
+          updated_at?: string | null
+          video_url?: string | null
+          website?: string | null
+        }
+        Relationships: []
+      }
       establishments: {
         Row: {
           created_at: string
@@ -3535,6 +3853,39 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      product_reservations: {
+        Row: {
+          created_at: string | null
+          expires_at: string | null
+          id: string
+          product_id: string
+          quantity: number | null
+          reservation_code: string
+          status: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          expires_at?: string | null
+          id?: string
+          product_id: string
+          quantity?: number | null
+          reservation_code: string
+          status?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          expires_at?: string | null
+          id?: string
+          product_id?: string
+          quantity?: number | null
+          reservation_code?: string
+          status?: string | null
+          user_id?: string
+        }
+        Relationships: []
       }
       profiles: {
         Row: {
@@ -5479,9 +5830,11 @@ export type Database = {
       delete_user_account: { Args: { p_user_id: string }; Returns: undefined }
       detect_inactive_agents: { Args: never; Returns: undefined }
       ensure_super_admin: { Args: never; Returns: undefined }
+      generate_appointment_code: { Args: never; Returns: string }
       generate_delivery_code: { Args: never; Returns: string }
       generate_pickup_code: { Args: never; Returns: string }
       generate_referral_code: { Args: never; Returns: string }
+      generate_reservation_code: { Args: never; Returns: string }
       generate_withdrawal_code: { Args: never; Returns: string }
       get_agent_tier: {
         Args: { p_agent_id: string }
