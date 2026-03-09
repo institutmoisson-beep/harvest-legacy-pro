@@ -65,6 +65,9 @@ const BookRide = lazy(() => import("./pages/BookRide"));
 const ImmoClient = lazy(() => import("./pages/ImmoClient"));
 const ImmoHost = lazy(() => import("./pages/ImmoHost"));
 const AdminImmo = lazy(() => import("./pages/AdminImmo"));
+const Enterprises = lazy(() => import("./pages/Enterprises"));
+const EnterpriseDetail = lazy(() => import("./pages/EnterpriseDetail"));
+const AdminEnterprises = lazy(() => import("./pages/AdminEnterprises"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 // Composant interne pour utiliser les hooks après AuthProvider
