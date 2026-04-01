@@ -47,3 +47,7 @@ export const notifyBookingConfirmed = (title: string) =>
 
 export const notifyWalletCredited = (amount: string) =>
   showBrowserNotification('💳 Portefeuille crédité', `${amount} MSN ajoutés à votre portefeuille.`);
+
+// Backward-compatible test notification
+export const sendTestNotification = () =>
+  showBrowserNotification('Test Notification', 'Ceci est une notification de test des Moissonneurs!');
