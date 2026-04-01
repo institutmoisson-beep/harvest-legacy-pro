@@ -31,7 +31,7 @@ const AdminCredits = lazy(() => import("./pages/AdminCredits"));
 const MySavings = lazy(() => import("./pages/MySavings"));
 const PartnerDashboard = lazy(() => import("./pages/PartnerDashboard"));
 const SupportChat = lazy(() => import("./pages/SupportChat"));
-const TontineDashboard = lazy(() => import("./pages/TontineDashboard"));
+
 const OrdersDashboard = lazy(() => import("./pages/OrdersDashboard"));
 const NotificationsCenter = lazy(() => import("./pages/NotificationsCenter"));
 const InstallPWA = lazy(() => import("./pages/InstallPWA"));
