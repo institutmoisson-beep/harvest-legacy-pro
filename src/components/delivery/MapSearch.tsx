@@ -32,9 +32,9 @@ export default function MapSearch({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showResults, setShowResults] = useState(false);
-  const debounceRef = useRef<NodeJS.Timeout | null>(null);
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Mapbox Geocoding API search
+  // Nominatim (OpenStreetMap) search for better African coverage
   const searchLocations = async (query: string) => {
     if (!query || query.length < 3) {
       setResults([]);
@@ -46,7 +46,7 @@ export default function MapSearch({
 
     try {
       const response = await fetch(
-        `https://api.mapbox.com/search/geocode/v6/forward?q=${encodeURIComponent(query)}&access_token=${MAPBOX_TOKEN}&language=fr&limit=5`
+        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=8&addressdetails=1&accept-language=fr&countrycodes=bj,ml,sn,ci,tg,bf,ne,gn,cm,ga,cg,cd,mg`
       );
 
       if (!response.ok) {
@@ -55,13 +55,13 @@ export default function MapSearch({
 
       const data = await response.json();
 
-      const formattedResults: SearchResult[] = (data.features || []).map((feature: any) => ({
-        id: feature.id,
-        name: feature.properties?.name || feature.place_name,
-        address: feature.place_name || '',
-        latitude: feature.geometry.coordinates[1],
-        longitude: feature.geometry.coordinates[0],
-        type: feature.properties?.feature_type || 'location',
+      const formattedResults: SearchResult[] = (data || []).map((item: any) => ({
+        id: item.place_id?.toString() || item.osm_id?.toString(),
+        name: item.address?.road || item.address?.city || item.display_name?.split(',')[0] || 'Lieu',
+        address: item.display_name || '',
+        latitude: parseFloat(item.lat),
+        longitude: parseFloat(item.lon),
+        type: item.type || 'location',
       }));
 
       setResults(formattedResults);

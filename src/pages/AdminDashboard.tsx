@@ -27,7 +27,7 @@ import FundWithdrawalsHistory from '@/components/dashboard/FundWithdrawalsHistor
 import MoissonneurFund from '@/components/dashboard/MoissonneurFund';
 import CryptoPaymentOptions from '@/components/dashboard/CryptoPaymentOptions';
 import AdminPromoCodesManager from '@/components/dashboard/AdminPromoCodesManager';
-import AdminTontineAnalytics from '@/components/dashboard/AdminTontineAnalytics';
+
 import RoleManagement from '@/components/dashboard/RoleManagement';
 import PermissionsManager from '@/components/dashboard/PermissionsManager';
 import AuditLogsViewer from '@/components/dashboard/AuditLogsViewer';
@@ -659,7 +659,7 @@ export default function AdminDashboard() {
 
         <AdminPromoCodesManager />
 
-        <AdminTontineAnalytics />
+        
 
         {/* Transactions Table */}
         <Card className="glass-card mb-8">

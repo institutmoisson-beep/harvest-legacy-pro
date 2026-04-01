@@ -2,6 +2,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { useEffect, Suspense, lazy } from 'react';
+import { requestNotificationPermission } from '@/utils/pushNotifications';
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import VisitLogger from "@/components/VisitLogger";
 import { AuthProvider } from "@/hooks/useAuth";
@@ -19,10 +20,7 @@ const Profile = lazy(() => import("./pages/Profile"));
 const ProposerProduit = lazy(() => import("./pages/ProposerProduit"));
 const AgentDashboard = lazy(() => import("./pages/AgentDashboard"));
 const Messages = lazy(() => import("./pages/Messages"));
-const Tontines = lazy(() => import("./pages/Tontines"));
-const TontineDetail = lazy(() => import("./pages/TontineDetail"));
-const Investments = lazy(() => import("./pages/Investments"));
-const InvestorDashboard = lazy(() => import("./pages/InvestorDashboard"));
+
 const MerchantDashboard = lazy(() => import("./pages/MerchantDashboard"));
 const MyShop = lazy(() => import("./pages/MyShop"));
 const ShopsDashboard = lazy(() => import("./pages/ShopsDashboard"));
@@ -34,7 +32,7 @@ const AdminCredits = lazy(() => import("./pages/AdminCredits"));
 const MySavings = lazy(() => import("./pages/MySavings"));
 const PartnerDashboard = lazy(() => import("./pages/PartnerDashboard"));
 const SupportChat = lazy(() => import("./pages/SupportChat"));
-const TontineDashboard = lazy(() => import("./pages/TontineDashboard"));
+
 const OrdersDashboard = lazy(() => import("./pages/OrdersDashboard"));
 const NotificationsCenter = lazy(() => import("./pages/NotificationsCenter"));
 const InstallPWA = lazy(() => import("./pages/InstallPWA"));
@@ -44,9 +42,6 @@ const AdminJobDomains = lazy(() => import("./pages/AdminJobDomains"));
 const AdminDelivery = lazy(() => import("./pages/AdminDelivery"));
 const Marketplace = lazy(() => import("./pages/Marketplace"));
 const ProductDetail = lazy(() => import("./pages/ProductDetail"));
-const EstablishmentDashboard = lazy(() => import("./pages/EstablishmentDashboard"));
-const QRMenu = lazy(() => import("./pages/QRMenu"));
-const QRCheckout = lazy(() => import("./pages/QRCheckout"));
 const OrderConfirmation = lazy(() => import("./pages/OrderConfirmation"));
 const ProductPayment = lazy(() => import("./pages/ProductPayment"));
 const OrderDownloads = lazy(() => import("./pages/OrderDownloads"));
@@ -94,10 +89,6 @@ const AppContent = () => {
         <Route path="/proposer" element={<ProposerProduit />} />
         <Route path="/agent" element={<AgentDashboard />} />
         <Route path="/messages" element={<Messages />} />
-        <Route path="/tontines" element={<Tontines />} />
-        <Route path="/tontines/:id" element={<TontineDetail />} />
-        <Route path="/investments" element={<Investments />} />
-        <Route path="/investor-dashboard" element={<InvestorDashboard />} />
         <Route path="/merchant" element={<MerchantDashboard />} />
         <Route path="/my-shop" element={<ShopDashboard />} />
         <Route path="/shops-dashboard" element={<ShopsDashboard />} />
@@ -107,7 +98,7 @@ const AppContent = () => {
         <Route path="/my-savings" element={<MySavings />} />
         <Route path="/admin/credits" element={<AdminCredits />} />
         <Route path="/partner-dashboard" element={<PartnerDashboard />} />
-        <Route path="/tontine-dashboard" element={<TontineDashboard />} />
+        
         <Route path="/orders-dashboard" element={<OrdersDashboard />} />
         <Route path="/notifications" element={<NotificationsCenter />} />
         <Route path="/install" element={<InstallPWA />} />
@@ -118,9 +109,6 @@ const AppContent = () => {
         <Route path="/admin/deliveries" element={<AdminDelivery />} />
         <Route path="/marketplace" element={<Marketplace />} />
         <Route path="/product/:productId" element={<ProductDetail />} />
-        <Route path="/establish" element={<EstablishmentDashboard />} />
-        <Route path="/menu/:slug" element={<QRMenu />} />
-        <Route path="/checkout" element={<QRCheckout />} />
         <Route path="/order-confirmation/:orderId" element={<OrderConfirmation />} />
         <Route path="/product/:productId/payment" element={<ProductPayment />} />
         <Route path="/order/:orderId/downloads" element={<OrderDownloads />} />
@@ -171,6 +159,11 @@ const App = () => {
         // Silently ignore logging errors
       }
     }, 0);
+  }, []);
+
+  useEffect(() => {
+    // Request notification permission on first visit
+    requestNotificationPermission();
   }, []);
 
   return (

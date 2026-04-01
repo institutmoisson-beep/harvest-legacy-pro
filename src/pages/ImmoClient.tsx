@@ -149,11 +149,12 @@ export default function ImmoClient() {
         </div>
 
         <Tabs value={tab} onValueChange={setTab}>
-          <TabsList className="grid grid-cols-4 w-full">
+          <TabsList className="grid grid-cols-5 w-full">
             <TabsTrigger value="explore">Explorer</TabsTrigger>
             <TabsTrigger value="new-offer">Proposer</TabsTrigger>
             <TabsTrigger value="my-offers">Mes offres</TabsTrigger>
             <TabsTrigger value="bookings">Réservations</TabsTrigger>
+            <TabsTrigger value="host">Propriétaire</TabsTrigger>
           </TabsList>
 
           {/* EXPLORE LISTINGS */}
@@ -283,6 +284,67 @@ export default function ImmoClient() {
                 </CardContent>
               </Card>
             ))}
+          </TabsContent>
+
+          {/* HOST / PROPRIÉTAIRE */}
+          <TabsContent value="host" className="mt-4">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2"><Building className="h-5 w-5" /> Ajouter un bien immobilier</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid md:grid-cols-2 gap-4">
+                  <div><Label>Titre du bien *</Label><Input id="host-title" placeholder="Appartement 3 pièces centre-ville" /></div>
+                  <div>
+                    <Label>Type de bien</Label>
+                    <Select onValueChange={v => document.getElementById('host-ptype')?.setAttribute('data-value', v)}>
+                      <SelectTrigger><SelectValue placeholder="Type" /></SelectTrigger>
+                      <SelectContent>{PROPERTY_TYPES.map(t => <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>)}</SelectContent>
+                    </Select>
+                  </div>
+                  <div><Label>Ville *</Label><Input id="host-city" placeholder="Cotonou" /></div>
+                  <div><Label>Pays</Label><Input id="host-country" placeholder="Bénin" defaultValue="Bénin" /></div>
+                  <div><Label>Adresse</Label><Input id="host-address" placeholder="Adresse complète" /></div>
+                  <div><Label>Prix par nuit (FCFA) *</Label><Input id="host-price" type="number" placeholder="15000" /></div>
+                  <div><Label>Nombre max. de personnes</Label><Input id="host-guests" type="number" defaultValue="2" /></div>
+                  <div><Label>Chambres</Label><Input id="host-bedrooms" type="number" defaultValue="1" /></div>
+                </div>
+                <div><Label>Description</Label><Textarea id="host-desc" placeholder="Décrivez votre bien..." /></div>
+                <Button className="w-full" size="lg" onClick={async () => {
+                  if (!user) return;
+                  const title = (document.getElementById('host-title') as HTMLInputElement)?.value;
+                  const city = (document.getElementById('host-city') as HTMLInputElement)?.value;
+                  const country = (document.getElementById('host-country') as HTMLInputElement)?.value || 'Bénin';
+                  const address = (document.getElementById('host-address') as HTMLInputElement)?.value;
+                  const price = parseFloat((document.getElementById('host-price') as HTMLInputElement)?.value || '0');
+                  const guests = parseInt((document.getElementById('host-guests') as HTMLInputElement)?.value || '2');
+                  const bedrooms = parseInt((document.getElementById('host-bedrooms') as HTMLInputElement)?.value || '1');
+                  const desc = (document.getElementById('host-desc') as HTMLTextAreaElement)?.value;
+                  const ptype = document.getElementById('host-ptype')?.getAttribute('data-value') || 'apartment';
+
+                  if (!title || !city || !price) {
+                    toast({ title: 'Erreur', description: 'Remplissez titre, ville et prix', variant: 'destructive' });
+                    return;
+                  }
+
+                  const { error } = await (supabase as any).from('immo_listings').insert({
+                    host_id: user.id, title, description: desc, property_type: ptype,
+                    address, city, country, price_per_night: price, max_guests: guests,
+                    bedrooms, bathrooms: 1, is_active: true, is_verified: false,
+                  });
+
+                  if (error) { toast({ title: 'Erreur', description: error.message, variant: 'destructive' }); return; }
+                  toast({ title: '✅ Bien ajouté !', description: 'Votre bien est visible dans l\'annuaire immobilier.' });
+                  if ('Notification' in window && Notification.permission === 'granted') {
+                    new Notification('MSN Immo', { body: 'Votre bien a été ajouté avec succès !' });
+                  }
+                  fetchData();
+                  setTab('explore');
+                }}>
+                  <Building className="h-4 w-4 mr-2" /> Publier mon bien
+                </Button>
+              </CardContent>
+            </Card>
           </TabsContent>
         </Tabs>
       </div>

@@ -1,4 +1,4 @@
-// Service pour gérer les notifications push PWA
+// Service pour gérer les notifications push via l'API Notification du navigateur
 
 export const requestNotificationPermission = async (): Promise<NotificationPermission> => {
   if (!('Notification' in window)) {
@@ -6,77 +6,48 @@ export const requestNotificationPermission = async (): Promise<NotificationPermi
     return 'denied';
   }
 
+  if (Notification.permission === 'granted') return 'granted';
+  if (Notification.permission === 'denied') return 'denied';
+
   const permission = await Notification.requestPermission();
   return permission;
 };
 
-export const showNotification = async (title: string, options?: NotificationOptions) => {
-  if (!('serviceWorker' in navigator)) {
-    console.warn('Service Worker non supporté');
+export const showBrowserNotification = (title: string, body: string, options?: NotificationOptions) => {
+  if (!('Notification' in window)) return;
+  if (Notification.permission !== 'granted') {
+    requestNotificationPermission().then(perm => {
+      if (perm === 'granted') {
+        new Notification(title, { body, icon: '/pwa-192x192.png', badge: '/pwa-192x192.png', ...options });
+      }
+    });
     return;
   }
-
-  const permission = await requestNotificationPermission();
-  
-  if (permission === 'granted') {
-    const registration = await navigator.serviceWorker.ready;
-    await registration.showNotification(title, {
-      badge: '/pwa-192x192.png',
-      icon: '/pwa-192x192.png',
-      ...options,
-    });
-  }
+  new Notification(title, { body, icon: '/pwa-192x192.png', badge: '/pwa-192x192.png', ...options });
 };
 
-export const subscribeToPushNotifications = async () => {
-  if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
-    console.warn('Push notifications non supportées');
-    return null;
-  }
+// Notification helpers for common operations
+export const notifyOrderPlaced = (productName: string) =>
+  showBrowserNotification('🛒 Commande passée', `Votre commande pour "${productName}" a été enregistrée.`);
 
-  try {
-    const registration = await navigator.serviceWorker.ready;
-    const reg = registration as ServiceWorkerRegistration & { pushManager: any };
-    
-    // Vérifier si déjà inscrit
-    let subscription = await reg.pushManager.getSubscription();
-    
-    if (!subscription) {
-      subscription = await reg.pushManager.subscribe({
-        userVisibleOnly: true,
-        applicationServerKey: null,
-      });
-    }
-    
-    return subscription;
-  } catch (error) {
-    console.error('Erreur lors de l\'inscription aux push notifications:', error);
-    return null;
-  }
-};
+export const notifyPaymentSuccess = (amount: string) =>
+  showBrowserNotification('💰 Paiement réussi', `Paiement de ${amount} effectué avec succès.`);
 
-export const unsubscribeFromPushNotifications = async () => {
-  if (!('serviceWorker' in navigator)) return;
+export const notifyNewMessage = (senderName: string) =>
+  showBrowserNotification('💬 Nouveau message', `${senderName} vous a envoyé un message.`);
 
-  try {
-    const registration = await navigator.serviceWorker.ready;
-    const reg = registration as ServiceWorkerRegistration & { pushManager: any };
-    const subscription = await reg.pushManager.getSubscription();
-    
-    if (subscription) {
-      await subscription.unsubscribe();
-      console.log('Désinscription des push notifications réussie');
-    }
-  } catch (error) {
-    console.error('Erreur lors de la désinscription:', error);
-  }
-};
+export const notifyIncomingCall = (callerCode: string) =>
+  showBrowserNotification('📞 Appel entrant', `Appel de ${callerCode}`, { requireInteraction: true, tag: 'incoming-call' });
 
-// Fonction utilitaire pour envoyer une notification de test
-export const sendTestNotification = async () => {
-  await showNotification('Test Notification', {
-    body: 'Ceci est une notification de test des Moissonneurs!',
-    tag: 'test',
-    requireInteraction: false,
-  });
-};
+export const notifyRideAccepted = () =>
+  showBrowserNotification('🚖 Chauffeur trouvé', 'Un conducteur a accepté votre course !');
+
+export const notifyBookingConfirmed = (title: string) =>
+  showBrowserNotification('✅ Réservation confirmée', `Votre réservation "${title}" est confirmée.`);
+
+export const notifyWalletCredited = (amount: string) =>
+  showBrowserNotification('💳 Portefeuille crédité', `${amount} MSN ajoutés à votre portefeuille.`);
+
+// Backward-compatible test notification
+export const sendTestNotification = () =>
+  showBrowserNotification('Test Notification', 'Ceci est une notification de test des Moissonneurs!');
