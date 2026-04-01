@@ -22,7 +22,7 @@ export const useRealtimeLocation = (): UseRealtimeLocationReturn => {
   const [isTracking, setIsTracking] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const watchIdRef = useRef<number | null>(null);
-  const updateIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const updateIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => {
     const savedTrackingState = localStorage.getItem('location_tracking_active');

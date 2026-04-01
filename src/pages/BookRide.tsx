@@ -131,9 +131,9 @@ export default function BookRide() {
       async (pos) => {
         const { latitude, longitude } = pos.coords;
         try {
-          const res = await fetch(`https://api.mapbox.com/geocoding/v5/mapbox.places/${longitude},${latitude}.json?access_token=${MAPBOX_TOKEN}&limit=1&language=fr`);
+          const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&accept-language=fr`);
           const data = await res.json();
-          const name = data.features?.[0]?.place_name || 'Ma position';
+          const name = data.display_name || 'Ma position';
           setPickup({ address: name, lat: latitude, lng: longitude });
           setPickupQuery(name);
         } catch {
