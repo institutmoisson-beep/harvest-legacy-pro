@@ -659,7 +659,7 @@ export default function AdminDashboard() {
 
         <AdminPromoCodesManager />
 
-        <AdminTontineAnalytics />
+        
 
         {/* Transactions Table */}
         <Card className="glass-card mb-8">
