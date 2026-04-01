@@ -8,6 +8,7 @@ import {
   Download,
   Coins,
   ShoppingBag,
+  Store,
   Users,
   ShoppingCart,
   CreditCard,
