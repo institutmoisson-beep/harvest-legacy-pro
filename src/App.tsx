@@ -19,7 +19,7 @@ const Profile = lazy(() => import("./pages/Profile"));
 const ProposerProduit = lazy(() => import("./pages/ProposerProduit"));
 const AgentDashboard = lazy(() => import("./pages/AgentDashboard"));
 const Messages = lazy(() => import("./pages/Messages"));
-const InvestorDashboard = lazy(() => import("./pages/InvestorDashboard"));
+
 const MerchantDashboard = lazy(() => import("./pages/MerchantDashboard"));
 const MyShop = lazy(() => import("./pages/MyShop"));
 const ShopsDashboard = lazy(() => import("./pages/ShopsDashboard"));
