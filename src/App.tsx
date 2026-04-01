@@ -88,10 +88,6 @@ const AppContent = () => {
         <Route path="/proposer" element={<ProposerProduit />} />
         <Route path="/agent" element={<AgentDashboard />} />
         <Route path="/messages" element={<Messages />} />
-        <Route path="/tontines" element={<Tontines />} />
-        <Route path="/tontines/:id" element={<TontineDetail />} />
-        <Route path="/investments" element={<Investments />} />
-        <Route path="/investor-dashboard" element={<InvestorDashboard />} />
         <Route path="/merchant" element={<MerchantDashboard />} />
         <Route path="/my-shop" element={<ShopDashboard />} />
         <Route path="/shops-dashboard" element={<ShopsDashboard />} />
