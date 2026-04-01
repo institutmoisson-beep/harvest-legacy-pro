@@ -106,13 +106,16 @@ export default function BookRide() {
     return () => clearInterval(interval);
   }, [activeRide, rideDriver]);
 
-  // Geocoding search
+  // Geocoding search using Nominatim (OpenStreetMap) for better African coverage
   const searchLocation = async (query: string, type: 'pickup' | 'dropoff') => {
     if (query.length < 3) { type === 'pickup' ? setPickupSuggestions([]) : setDropoffSuggestions([]); return; }
     try {
-      const res = await fetch(`https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(query)}.json?access_token=${MAPBOX_TOKEN}&limit=5&language=fr`);
+      const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=8&addressdetails=1&accept-language=fr&countrycodes=bj,ml,sn,ci,tg,bf,ne,gn,cm,ga,cg,cd,mg`);
       const data = await res.json();
-      const suggestions = (data.features || []).map((f: any) => ({ place_name: f.place_name, center: f.center }));
+      const suggestions = (data || []).map((f: any) => ({
+        place_name: f.display_name,
+        center: [parseFloat(f.lon), parseFloat(f.lat)] as [number, number],
+      }));
       type === 'pickup' ? setPickupSuggestions(suggestions) : setDropoffSuggestions(suggestions);
     } catch { /* ignore */ }
   };
