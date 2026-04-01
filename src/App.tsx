@@ -108,9 +108,6 @@ const AppContent = () => {
         <Route path="/admin/deliveries" element={<AdminDelivery />} />
         <Route path="/marketplace" element={<Marketplace />} />
         <Route path="/product/:productId" element={<ProductDetail />} />
-        <Route path="/establish" element={<EstablishmentDashboard />} />
-        <Route path="/menu/:slug" element={<QRMenu />} />
-        <Route path="/checkout" element={<QRCheckout />} />
         <Route path="/order-confirmation/:orderId" element={<OrderConfirmation />} />
         <Route path="/product/:productId/payment" element={<ProductPayment />} />
         <Route path="/order/:orderId/downloads" element={<OrderDownloads />} />
