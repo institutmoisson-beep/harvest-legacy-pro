@@ -97,7 +97,7 @@ const AppContent = () => {
         <Route path="/my-savings" element={<MySavings />} />
         <Route path="/admin/credits" element={<AdminCredits />} />
         <Route path="/partner-dashboard" element={<PartnerDashboard />} />
-        <Route path="/tontine-dashboard" element={<TontineDashboard />} />
+        
         <Route path="/orders-dashboard" element={<OrdersDashboard />} />
         <Route path="/notifications" element={<NotificationsCenter />} />
         <Route path="/install" element={<InstallPWA />} />
