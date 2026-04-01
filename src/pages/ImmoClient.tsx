@@ -149,11 +149,12 @@ export default function ImmoClient() {
         </div>
 
         <Tabs value={tab} onValueChange={setTab}>
-          <TabsList className="grid grid-cols-4 w-full">
+          <TabsList className="grid grid-cols-5 w-full">
             <TabsTrigger value="explore">Explorer</TabsTrigger>
             <TabsTrigger value="new-offer">Proposer</TabsTrigger>
             <TabsTrigger value="my-offers">Mes offres</TabsTrigger>
             <TabsTrigger value="bookings">Réservations</TabsTrigger>
+            <TabsTrigger value="host">Propriétaire</TabsTrigger>
           </TabsList>
 
           {/* EXPLORE LISTINGS */}
