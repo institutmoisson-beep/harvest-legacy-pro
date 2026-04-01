@@ -161,6 +161,11 @@ const App = () => {
     }, 0);
   }, []);
 
+  useEffect(() => {
+    // Request notification permission on first visit
+    requestNotificationPermission();
+  }, []);
+
   return (
     <TooltipProvider>
       <Toaster />
