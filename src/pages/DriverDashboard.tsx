@@ -141,10 +141,56 @@ export default function DriverDashboard() {
 
   if (!driver) return (
     <div className="min-h-screen flex items-center justify-center p-4">
-      <Card className="max-w-md w-full"><CardContent className="py-12 text-center">
-        <p className="text-lg font-medium mb-2">Vous n'êtes pas inscrit comme conducteur</p>
-        <p className="text-muted-foreground mb-4">Contactez l'administrateur pour être ajouté.</p>
-        <Button onClick={() => navigate('/dashboard')}>Retour au tableau de bord</Button>
+      <Card className="max-w-md w-full"><CardContent className="py-12 text-center space-y-4">
+        <p className="text-lg font-medium mb-2">🚗 Devenez conducteur communautaire</p>
+        <p className="text-muted-foreground">Vous avez un véhicule ou une moto ? Inscrivez-vous pour proposer des courses aux utilisateurs proches de vous.</p>
+        <div className="space-y-3">
+          <Input placeholder="Votre nom complet" id="driver-name" />
+          <Input placeholder="Numéro de téléphone" id="driver-phone" />
+          <Input placeholder="Numéro de permis" id="driver-license" />
+          <Select onValueChange={(v) => document.getElementById('driver-vtype')?.setAttribute('data-value', v)}>
+            <SelectTrigger><SelectValue placeholder="Type de véhicule" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="moto">🏍️ Moto</SelectItem>
+              <SelectItem value="vehicule">🚗 Véhicule</SelectItem>
+              <SelectItem value="mini_remorque">🚛 Mini Remorque</SelectItem>
+              <SelectItem value="remorque">🚚 Remorque</SelectItem>
+            </SelectContent>
+          </Select>
+          <Input placeholder="Immatriculation véhicule" id="driver-plate" />
+          <Button className="w-full" onClick={async () => {
+            if (!user) return;
+            const name = (document.getElementById('driver-name') as HTMLInputElement)?.value;
+            const phone = (document.getElementById('driver-phone') as HTMLInputElement)?.value;
+            const license = (document.getElementById('driver-license') as HTMLInputElement)?.value;
+            const plate = (document.getElementById('driver-plate') as HTMLInputElement)?.value;
+            if (!name || !phone) { toast({ title: 'Remplissez tous les champs', variant: 'destructive' }); return; }
+            
+            const { data: newDriver, error } = await (supabase as any).from('transport_drivers').insert({
+              user_id: user.id, full_name: name, phone, license_number: license || null,
+              status: 'offline', is_verified: false, is_community_driver: true,
+            }).select().single();
+            
+            if (error) { toast({ title: 'Erreur', description: error.message, variant: 'destructive' }); return; }
+            
+            // Create vehicle
+            if (plate) {
+              await (supabase as any).from('transport_vehicles').insert({
+                driver_id: newDriver.id, vehicle_type: 'vehicule', plate_number: plate,
+                service_class: 'standard', is_active: true,
+              });
+            }
+            
+            // Add driver role
+            await (supabase as any).from('user_roles').insert({ user_id: user.id, role: 'driver' }).select();
+            
+            toast({ title: '✅ Inscription réussie !', description: 'Vous êtes maintenant conducteur communautaire.' });
+            fetchDriver();
+          }}>
+            S'inscrire comme conducteur
+          </Button>
+        </div>
+        <Button variant="outline" onClick={() => navigate('/dashboard')}>Retour au tableau de bord</Button>
       </CardContent></Card>
     </div>
   );
