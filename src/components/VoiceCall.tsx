@@ -298,6 +298,7 @@ export default function VoiceCall({
         const [stream] = event.streams;
         if (!stream) return;
 
+        // Always attach to audio element for audio playback
         if (remoteAudio.current) {
           remoteAudio.current.srcObject = stream;
           remoteAudio.current.play().catch(() => {});
@@ -308,11 +309,23 @@ export default function VoiceCall({
           remoteVideo.current.play().catch(() => {});
           setCallMode('video');
         }
+
+        // When we receive a track, the connection is effectively live
+        stopRingtone();
+        if (!connectionEstablishedRef.current) {
+          connectionEstablishedRef.current = true;
+          setCallStatus('connected');
+          setConnectedAt(Date.now());
+        }
       };
 
-      pc.onicecandidate = async (event) => {
-        if (!event.candidate) return;
+      const candidateQueue: RTCIceCandidateInit[] = [];
+      let isSendingCandidates = false;
 
+      const flushCandidates = async () => {
+        if (isSendingCandidates || candidateQueue.length === 0) return;
+        isSendingCandidates = true;
+        const batch = candidateQueue.splice(0);
         try {
           const { data: current } = await supabase
             .from('call_sessions')
@@ -321,26 +334,40 @@ export default function VoiceCall({
             .single();
 
           const existing = (current?.ice_candidates as any[]) || [];
+          const newEntries = batch.map(c => ({ from: role, candidate: c }));
           await supabase
             .from('call_sessions')
-            .update({
-              ice_candidates: [...existing, { from: role, candidate: event.candidate.toJSON() }] as any,
-            })
+            .update({ ice_candidates: [...existing, ...newEntries] as any })
             .eq('id', callId);
         } catch (err) {
-          console.error('Error sending ICE candidate:', err);
+          console.error('Error sending ICE candidates:', err);
         }
+        isSendingCandidates = false;
+        if (candidateQueue.length > 0) flushCandidates();
+      };
+
+      pc.onicecandidate = (event) => {
+        if (!event.candidate) return;
+        candidateQueue.push(event.candidate.toJSON());
+        // Debounce: flush after a small delay to batch candidates
+        setTimeout(flushCandidates, 200);
       };
 
       pc.onconnectionstatechange = () => {
         if (pc.connectionState === 'connected') {
           connectionEstablishedRef.current = true;
+          stopRingtone();
+          setCallStatus('connected');
+          if (!connectedAt) setConnectedAt(Date.now());
         }
       };
 
       pc.oniceconnectionstatechange = () => {
         if (pc.iceConnectionState === 'connected' || pc.iceConnectionState === 'completed') {
           connectionEstablishedRef.current = true;
+          stopRingtone();
+          setCallStatus('connected');
+          if (!connectedAt) setConnectedAt(Date.now());
           return;
         }
 
@@ -348,15 +375,20 @@ export default function VoiceCall({
           connectionEstablishedRef.current &&
           (pc.iceConnectionState === 'disconnected' || pc.iceConnectionState === 'failed')
         ) {
-          toast({ title: 'Appel terminé', description: 'La connexion a été perdue' });
-          endCallById(callId);
+          // Give 5 seconds before declaring the call lost (ICE can recover)
+          setTimeout(() => {
+            if (pc.iceConnectionState === 'disconnected' || pc.iceConnectionState === 'failed') {
+              toast({ title: 'Appel terminé', description: 'La connexion a été perdue' });
+              endCallById(callId);
+            }
+          }, 5000);
         }
       };
 
       peerConnection.current = pc;
       return pc;
     },
-    [endCallById]
+    [endCallById, stopRingtone, connectedAt]
   );
 
   useEffect(() => {

@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { Sparkles, Users, TrendingUp, MessageCircle, Send } from "lucide-react";
+import { Sparkles, Users, TrendingUp, MessageCircle, Send, Heart, Shield, Briefcase, Globe } from "lucide-react";
 import heroBackground from "@/assets/hero-background.jpg";
 
 export const HeroSection = () => {
@@ -40,7 +40,7 @@ export const HeroSection = () => {
           <div className="inline-flex items-center gap-2 glass-card px-4 py-2 rounded-full glow-primary animate-pulse">
             <Sparkles className="w-4 h-4 text-accent" />
             <span className="text-sm font-medium gradient-text-cosmic">
-              L'Héritage Ancien Révélé
+              Ensemble, nous récoltons l'avenir
             </span>
           </div>
 
@@ -49,18 +49,17 @@ export const HeroSection = () => {
             <span className="gradient-text-cosmic">Les Moissonneurs</span>
           </h1>
 
-          {/* Subtitle */}
+          {/* Vision Statement */}
           <p className="text-xl md:text-2xl text-muted-foreground leading-relaxed max-w-3xl mx-auto">
-            Depuis les âges anciens, bien avant que les royaumes ne s'installent, 
-            un groupe d'êtres appelés les <span className="text-primary font-semibold">Moissonneurs</span> furent choisis. 
-            Chargés de récolter non seulement les fruits de la terre, mais aussi les âmes, 
-            les idées, les valeurs et les ressources.
+            Notre vision est simple mais puissante : <span className="text-primary font-semibold">se mettre ensemble</span> pour 
+            créer de la richesse, bâtir des emplois, s'entraider et se protéger mutuellement. 
+            Chaque Moissonneur est un maillon essentiel d'une chaîne de solidarité et de prospérité.
           </p>
 
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            À travers chaque époque, ils sont apparus, dans l'ombre, guidant des civilisations 
-            sans jamais se nommer. <span className="text-accent font-semibold">Aujourd'hui, ils sortent du silence</span>, 
-            car l'heure est venue de prendre en main l'héritage oublié.
+            Des milliers de personnes ont déjà relevé le défi. Un père de famille a pu financer 
+            l'éducation de ses enfants. Une jeune entrepreneure a lancé son commerce grâce au réseau. 
+            <span className="text-accent font-semibold"> Votre histoire de réussite commence ici.</span>
           </p>
 
           {/* CTA Buttons */}
@@ -78,10 +77,10 @@ export const HeroSection = () => {
               variant="glass"
               size="xl"
               className="w-full sm:w-auto"
-              onClick={() => window.location.href = '#network'}
+              onClick={() => window.location.href = '#vision'}
             >
-              <TrendingUp className="w-5 h-5" />
-              Explorer le Réseau
+              <Heart className="w-5 h-5" />
+              Notre Vision
             </Button>
             <Button
               variant="cosmic"
