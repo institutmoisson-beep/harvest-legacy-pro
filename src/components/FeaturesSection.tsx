@@ -1,48 +1,47 @@
-import { Network, Wallet, TrendingUp, Users, ShoppingCart, Eye } from "lucide-react";
+import { Network, Wallet, TrendingUp, Users, ShoppingCart, Shield, Heart, Briefcase } from "lucide-react";
 
 export const FeaturesSection = () => {
   const features = [
     {
-      icon: Network,
-      title: "Réseau Binaire MLM",
-      description: "Structure de parrainage binaire avec 20 niveaux de profondeur et commissions dégressives automatiques.",
+      icon: Heart,
+      title: "Entraide & Solidarité",
+      description: "Participez aux cagnottes communautaires, aidez un membre en difficulté. La solidarité est notre force première.",
       gradient: "from-primary to-primary-glow",
+    },
+    {
+      icon: Briefcase,
+      title: "Création d'Emplois",
+      description: "Devenez chauffeur, livreur, agent commercial ou hôte immobilier. Le réseau crée des opportunités concrètes pour tous.",
+      gradient: "from-secondary to-secondary-glow",
+    },
+    {
+      icon: Shield,
+      title: "Protection Mutuelle",
+      description: "Un réseau qui veille sur chacun. Fonds d'urgence, soutien logistique et accompagnement dans les moments difficiles.",
+      gradient: "from-accent to-accent-glow",
+    },
+    {
+      icon: Network,
+      title: "Réseau Multi-niveaux",
+      description: "Construisez un réseau sur 20 niveaux. Chaque membre que vous parrainez renforce toute la communauté.",
+      gradient: "from-primary via-secondary to-accent",
     },
     {
       icon: Wallet,
       title: "Portefeuille MSN",
-      description: "Transférez des MSN entre membres via ID, email ou téléphone. Gérez vos gains en temps réel.",
-      gradient: "from-secondary to-secondary-glow",
-    },
-    {
-      icon: ShoppingCart,
-      title: "Système de Commandes",
-      description: "Créez des fiches de commandes pour vos clients. Gagnez 30% du bénéfice sur chaque commande validée.",
-      gradient: "from-accent to-accent-glow",
-    },
-    {
-      icon: Users,
-      title: "Arbre Généalogique",
-      description: "Visualisez votre réseau complet de filleuls sur 20 niveaux. Suivez la croissance de votre équipe.",
-      gradient: "from-primary via-secondary to-accent",
-    },
-    {
-      icon: TrendingUp,
-      title: "Commissions Multi-niveaux",
-      description: "20% au premier niveau, décroissant progressivement. Gains illimités sur votre réseau.",
+      description: "Gérez vos revenus en temps réel. Transférez, payez des produits, rechargez et retirez en toute sécurité.",
       gradient: "from-secondary to-accent",
     },
     {
-      icon: Eye,
-      title: "Historique Complet",
-      description: "Consultez toutes vos transactions, commissions et l'activité de vos filleuls en détail.",
+      icon: ShoppingCart,
+      title: "Marketplace & Services",
+      description: "Boutiques en ligne, transport, immobilier, billetterie — un écosystème complet pour créer et consommer ensemble.",
       gradient: "from-accent to-primary",
     },
   ];
 
   return (
     <section className="py-24 relative overflow-hidden" id="network">
-      {/* Background decoration */}
       <div className="absolute inset-0 opacity-20">
         <div className="absolute top-20 left-10 w-72 h-72 bg-primary/30 rounded-full blur-3xl" />
         <div className="absolute bottom-20 right-10 w-96 h-96 bg-secondary/30 rounded-full blur-3xl" />
@@ -51,10 +50,10 @@ export const FeaturesSection = () => {
       <div className="container mx-auto px-4 relative z-10">
         <div className="text-center mb-16">
           <h2 className="text-4xl md:text-5xl font-bold mb-4">
-            <span className="gradient-text-cosmic">Fonctionnalités Puissantes</span>
+            <span className="gradient-text-cosmic">Un Écosystème Complet</span>
           </h2>
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-            Un système MLM complet pour bâtir votre empire de récolte
+            Bien plus qu'un réseau — une communauté qui crée de la richesse, des emplois et de la solidarité
           </p>
         </div>
 
