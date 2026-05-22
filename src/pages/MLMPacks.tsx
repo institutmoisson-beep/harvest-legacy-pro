@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { toast } from '@/hooks/use-toast';
 import { Loader2, Package, ShoppingCart, TrendingUp } from 'lucide-react';
-import { sendNotification } from '@/utils/pushNotifications';
+import { showBrowserNotification } from '@/utils/pushNotifications';
 
 interface Pack {
   id: string;
@@ -68,7 +68,7 @@ export default function MLMPacks() {
       return;
     }
     toast({ title: '✅ Pack acheté', description: `Le pack ${pack.name} est désormais activé.` });
-    sendNotification('Pack acheté', { body: `${pack.name} — ${pack.price} FCFA` });
+    showBrowserNotification('Pack acheté', `${pack.name} — ${pack.price} FCFA`);
   };
 
   return (
