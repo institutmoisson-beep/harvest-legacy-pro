@@ -3312,6 +3312,152 @@ export type Database = {
         }
         Relationships: []
       }
+      mlm_pack_commissions: {
+        Row: {
+          amount: number
+          beneficiary_id: string
+          buyer_id: string
+          created_at: string
+          id: string
+          level: number
+          pack_id: string
+          percentage: number
+          purchase_id: string
+        }
+        Insert: {
+          amount: number
+          beneficiary_id: string
+          buyer_id: string
+          created_at?: string
+          id?: string
+          level: number
+          pack_id: string
+          percentage: number
+          purchase_id: string
+        }
+        Update: {
+          amount?: number
+          beneficiary_id?: string
+          buyer_id?: string
+          created_at?: string
+          id?: string
+          level?: number
+          pack_id?: string
+          percentage?: number
+          purchase_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mlm_pack_commissions_pack_id_fkey"
+            columns: ["pack_id"]
+            isOneToOne: false
+            referencedRelation: "mlm_packs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mlm_pack_commissions_purchase_id_fkey"
+            columns: ["purchase_id"]
+            isOneToOne: false
+            referencedRelation: "mlm_pack_purchases"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      mlm_pack_purchases: {
+        Row: {
+          benefit_amount: number
+          buyer_id: string
+          created_at: string
+          id: string
+          pack_id: string
+          price_paid: number
+          status: string
+        }
+        Insert: {
+          benefit_amount: number
+          buyer_id: string
+          created_at?: string
+          id?: string
+          pack_id: string
+          price_paid: number
+          status?: string
+        }
+        Update: {
+          benefit_amount?: number
+          buyer_id?: string
+          created_at?: string
+          id?: string
+          pack_id?: string
+          price_paid?: number
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mlm_pack_purchases_pack_id_fkey"
+            columns: ["pack_id"]
+            isOneToOne: false
+            referencedRelation: "mlm_packs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      mlm_packs: {
+        Row: {
+          base_commission_percentage: number
+          benefit_amount: number
+          created_at: string
+          created_by: string | null
+          decay_rate: number
+          description: string | null
+          id: string
+          images: string[] | null
+          is_active: boolean
+          max_levels: number
+          name: string
+          partner_image_url: string | null
+          partner_logo_url: string | null
+          partner_name: string | null
+          price: number
+          updated_at: string
+        }
+        Insert: {
+          base_commission_percentage?: number
+          benefit_amount: number
+          created_at?: string
+          created_by?: string | null
+          decay_rate?: number
+          description?: string | null
+          id?: string
+          images?: string[] | null
+          is_active?: boolean
+          max_levels?: number
+          name: string
+          partner_image_url?: string | null
+          partner_logo_url?: string | null
+          partner_name?: string | null
+          price: number
+          updated_at?: string
+        }
+        Update: {
+          base_commission_percentage?: number
+          benefit_amount?: number
+          created_at?: string
+          created_by?: string | null
+          decay_rate?: number
+          description?: string | null
+          id?: string
+          images?: string[] | null
+          is_active?: boolean
+          max_levels?: number
+          name?: string
+          partner_image_url?: string | null
+          partner_logo_url?: string | null
+          partner_name?: string | null
+          price?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       moissonneur_fund: {
         Row: {
           id: string
@@ -5938,6 +6084,14 @@ export type Database = {
         Returns: boolean
       }
       is_user_admin: { Args: { _user_id: string }; Returns: boolean }
+      purchase_mlm_pack: {
+        Args: { p_pack_id: string }
+        Returns: {
+          message: string
+          purchase_id: string
+          success: boolean
+        }[]
+      }
       refund_wallet_payment: {
         Args: {
           p_amount: number

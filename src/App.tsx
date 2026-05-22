@@ -63,6 +63,8 @@ const AdminImmo = lazy(() => import("./pages/AdminImmo"));
 const Enterprises = lazy(() => import("./pages/Enterprises"));
 const EnterpriseDetail = lazy(() => import("./pages/EnterpriseDetail"));
 const AdminEnterprises = lazy(() => import("./pages/AdminEnterprises"));
+const MLMPacks = lazy(() => import("./pages/MLMPacks"));
+const AdminMLMPacks = lazy(() => import("./pages/AdminMLMPacks"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 // Composant interne pour utiliser les hooks après AuthProvider
@@ -130,6 +132,8 @@ const AppContent = () => {
         <Route path="/enterprises" element={<Enterprises />} />
         <Route path="/enterprise/:slug" element={<EnterpriseDetail />} />
         <Route path="/admin/enterprises" element={<AdminEnterprises />} />
+        <Route path="/packs" element={<MLMPacks />} />
+        <Route path="/admin/packs" element={<AdminMLMPacks />} />
         {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
         <Route path="*" element={<NotFound />} />
       </Routes>
