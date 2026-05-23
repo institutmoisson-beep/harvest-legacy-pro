@@ -134,6 +134,7 @@ const AppContent = () => {
         <Route path="/enterprise/:slug" element={<EnterpriseDetail />} />
         <Route path="/admin/enterprises" element={<AdminEnterprises />} />
         <Route path="/packs" element={<MLMPacks />} />
+        <Route path="/packs/:id" element={<MLMPackDetail />} />
         <Route path="/admin/packs" element={<AdminMLMPacks />} />
         {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
         <Route path="*" element={<NotFound />} />
