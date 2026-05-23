@@ -64,6 +64,7 @@ const Enterprises = lazy(() => import("./pages/Enterprises"));
 const EnterpriseDetail = lazy(() => import("./pages/EnterpriseDetail"));
 const AdminEnterprises = lazy(() => import("./pages/AdminEnterprises"));
 const MLMPacks = lazy(() => import("./pages/MLMPacks"));
+const MLMPackDetail = lazy(() => import("./pages/MLMPackDetail"));
 const AdminMLMPacks = lazy(() => import("./pages/AdminMLMPacks"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
@@ -133,6 +134,7 @@ const AppContent = () => {
         <Route path="/enterprise/:slug" element={<EnterpriseDetail />} />
         <Route path="/admin/enterprises" element={<AdminEnterprises />} />
         <Route path="/packs" element={<MLMPacks />} />
+        <Route path="/packs/:id" element={<MLMPackDetail />} />
         <Route path="/admin/packs" element={<AdminMLMPacks />} />
         {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
         <Route path="*" element={<NotFound />} />

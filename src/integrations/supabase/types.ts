@@ -6223,6 +6223,9 @@ export type Database = {
         | "transfer"
         | "commission"
         | "order_profit"
+        | "order_payment"
+        | "pack_purchase"
+        | "badge_reward"
       vehicle_type: "moto" | "vehicule" | "mini_remorque" | "remorque"
     }
     CompositeTypes: {
@@ -6448,6 +6451,9 @@ export const Constants = {
         "transfer",
         "commission",
         "order_profit",
+        "order_payment",
+        "pack_purchase",
+        "badge_reward",
       ],
       vehicle_type: ["moto", "vehicule", "mini_remorque", "remorque"],
     },
