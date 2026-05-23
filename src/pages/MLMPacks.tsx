@@ -94,7 +94,11 @@ export default function MLMPacks() {
             {packs.map((p) => {
               const level1 = (p.benefit_amount * p.base_commission_percentage) / 100;
               return (
-                <Card key={p.id} className="overflow-hidden glass-card hover:glow-primary transition-all">
+                <Card
+                  key={p.id}
+                  className="overflow-hidden glass-card hover:glow-primary transition-all cursor-pointer"
+                  onClick={() => navigate(`/packs/${p.id}`)}
+                >
                   {p.images?.[0] && (
                     <img src={p.images[0]} alt={p.name} loading="lazy"
                          className="w-full h-48 object-cover" />
@@ -129,7 +133,7 @@ export default function MLMPacks() {
                     </div>
                     <Button
                       className="w-full"
-                      onClick={() => buy(p)}
+                      onClick={(e) => { e.stopPropagation(); buy(p); }}
                       disabled={buyingId === p.id}
                     >
                       {buyingId === p.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <ShoppingCart className="w-4 h-4 mr-2" />}
