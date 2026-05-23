@@ -64,6 +64,7 @@ const Enterprises = lazy(() => import("./pages/Enterprises"));
 const EnterpriseDetail = lazy(() => import("./pages/EnterpriseDetail"));
 const AdminEnterprises = lazy(() => import("./pages/AdminEnterprises"));
 const MLMPacks = lazy(() => import("./pages/MLMPacks"));
+const MLMPackDetail = lazy(() => import("./pages/MLMPackDetail"));
 const AdminMLMPacks = lazy(() => import("./pages/AdminMLMPacks"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
