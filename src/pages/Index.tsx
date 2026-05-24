@@ -75,7 +75,7 @@ const Index = () => {
           <h1 className="text-5xl md:text-7xl lg:text-8xl leading-[1.02] mb-6 font-black">
             Bâtir la <span style={{ color: MOOV }}>Richesse</span>
             <br />
-            par la <span style={display} className="italic" style={{ color: VIOLET, fontFamily: "'DM Serif Display', serif" }}>Solidarité</span>
+            par la <span className="italic" style={{ color: VIOLET, fontFamily: "'DM Serif Display', serif" }}>Solidarité</span>
           </h1>
           <p className="max-w-2xl mx-auto text-base md:text-xl leading-relaxed text-black/70 mb-10">
             Se mettre ensemble pour créer de la richesse, bâtir des emplois, et nous protéger
