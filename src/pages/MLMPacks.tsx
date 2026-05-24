@@ -5,9 +5,8 @@ import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { toast } from '@/hooks/use-toast';
 import { Loader2, Package, ShoppingCart, TrendingUp } from 'lucide-react';
-import { showBrowserNotification } from '@/utils/pushNotifications';
+import { formatFCFA, formatPriceWithMSN, fcfaToMsn, formatMSN } from '@/lib/currency';
 
 interface Pack {
   id: string;
