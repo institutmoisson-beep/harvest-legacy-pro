@@ -5,9 +5,13 @@ import { useAuth } from '@/hooks/useAuth';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
 import { toast } from '@/hooks/use-toast';
-import { Loader2, ArrowLeft, ShoppingCart, TrendingUp, Package, Wallet } from 'lucide-react';
+import { Loader2, ArrowLeft, ShoppingCart, TrendingUp, Package, Wallet, MapPin, Phone } from 'lucide-react';
 import { showBrowserNotification } from '@/utils/pushNotifications';
+import { formatPriceWithMSN, formatFCFA, fcfaToMsn, formatMSN } from '@/lib/currency';
 
 interface Pack {
   id: string;
@@ -34,6 +38,12 @@ export default function MLMPackDetail() {
   const [balance, setBalance] = useState<number | null>(null);
   const [activeImg, setActiveImg] = useState(0);
 
+  // Livraison
+  const [address, setAddress] = useState('');
+  const [city, setCity] = useState('');
+  const [phone, setPhone] = useState('');
+  const [notes, setNotes] = useState('');
+
   useEffect(() => {
     document.title = pack ? `${pack.name} — Pack Moissonneur` : 'Pack Moissonneur';
   }, [pack]);
@@ -44,8 +54,12 @@ export default function MLMPackDetail() {
       const { data } = await (supabase as any).from('mlm_packs').select('*').eq('id', id).maybeSingle();
       setPack(data as Pack);
       if (user) {
-        const { data: w } = await supabase.from('wallets').select('balance').eq('user_id', user.id).maybeSingle();
+        const [{ data: w }, { data: profile }] = await Promise.all([
+          supabase.from('wallets').select('balance').eq('user_id', user.id).maybeSingle(),
+          supabase.from('profiles').select('phone').eq('id', user.id).maybeSingle(),
+        ]);
         setBalance(Number(w?.balance ?? 0));
+        if (profile?.phone) setPhone(profile.phone);
       }
       setLoading(false);
     })();
@@ -54,8 +68,22 @@ export default function MLMPackDetail() {
   const buy = async () => {
     if (!user) { navigate('/auth'); return; }
     if (!pack) return;
+    if (address.trim().length < 5) {
+      toast({ title: 'Adresse requise', description: 'Renseignez une adresse de livraison complète.', variant: 'destructive' });
+      return;
+    }
+    if (phone.trim().length < 6) {
+      toast({ title: 'Téléphone requis', description: 'Renseignez un numéro de téléphone valide.', variant: 'destructive' });
+      return;
+    }
     setBuying(true);
-    const { data, error } = await (supabase as any).rpc('purchase_mlm_pack', { p_pack_id: pack.id });
+    const { data, error } = await (supabase as any).rpc('purchase_mlm_pack', {
+      p_pack_id: pack.id,
+      p_delivery_address: address.trim(),
+      p_delivery_city: city.trim() || null,
+      p_delivery_phone: phone.trim(),
+      p_delivery_notes: notes.trim() || null,
+    });
     setBuying(false);
     if (error) { toast({ title: 'Erreur', description: error.message, variant: 'destructive' }); return; }
     const r = Array.isArray(data) ? data[0] : data;
@@ -64,9 +92,9 @@ export default function MLMPackDetail() {
       if (r?.message?.toLowerCase().includes('solde')) setTimeout(() => navigate('/dashboard'), 1500);
       return;
     }
-    toast({ title: '✅ Pack acheté', description: `${pack.name} activé.` });
-    showBrowserNotification('Pack acheté', `${pack.name} — ${pack.price} FCFA`);
-    setTimeout(() => navigate('/packs'), 1200);
+    toast({ title: '✅ Pack acheté', description: `${pack.name} sera livré à l'adresse renseignée.` });
+    showBrowserNotification('Pack acheté', `${pack.name} — ${formatFCFA(pack.price)}`);
+    setTimeout(() => navigate('/packs'), 1500);
   };
 
   if (loading) return <div className="min-h-screen flex items-center justify-center"><Loader2 className="w-8 h-8 animate-spin text-primary" /></div>;
@@ -80,6 +108,7 @@ export default function MLMPackDetail() {
 
   const lvl = (n: number) => (pack.benefit_amount * pack.base_commission_percentage * Math.pow(pack.decay_rate, n - 1)) / 100;
   const insufficient = balance !== null && balance < pack.price;
+  const priceMsn = fcfaToMsn(pack.price);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5 py-6 px-4">
@@ -113,7 +142,10 @@ export default function MLMPackDetail() {
                   </div>
                 )}
               </div>
-              <Badge className="text-base px-3 py-1">{pack.price.toLocaleString()} FCFA</Badge>
+              <div className="text-right">
+                <Badge className="text-base px-3 py-1">{formatFCFA(pack.price)}</Badge>
+                <div className="text-xs text-muted-foreground mt-1">≈ {formatMSN(priceMsn)}</div>
+              </div>
             </div>
 
             {pack.description && <p className="text-muted-foreground whitespace-pre-line">{pack.description}</p>}
@@ -124,17 +156,46 @@ export default function MLMPackDetail() {
 
             <div className="rounded-lg bg-primary/5 p-4 space-y-2">
               <div className="flex items-center gap-2 text-primary font-semibold">
-                <TrendingUp className="w-5 h-5" /> Bénéfice du pack : {pack.benefit_amount.toLocaleString()} FCFA
+                <TrendingUp className="w-5 h-5" /> Bénéfice : {formatPriceWithMSN(pack.benefit_amount)}
               </div>
-              <div className="text-sm">Commission niveau 1 : <strong>{lvl(1).toLocaleString()} FCFA</strong> ({pack.base_commission_percentage}%)</div>
+              <div className="text-sm">Commission niveau 1 : <strong>{formatPriceWithMSN(lvl(1))}</strong> ({pack.base_commission_percentage}%)</div>
               <div className="text-sm">Décroissance : {((1 - pack.decay_rate) * 100).toFixed(0)}% par niveau · jusqu'au niveau {pack.max_levels}</div>
               <div className="grid grid-cols-3 sm:grid-cols-5 gap-2 mt-3">
                 {[1, 2, 3, 4, 5].map(n => (
                   <div key={n} className="rounded bg-background p-2 text-center text-xs">
                     <div className="text-muted-foreground">N{n}</div>
-                    <div className="font-semibold">{Math.round(lvl(n)).toLocaleString()}</div>
+                    <div className="font-semibold">{formatFCFA(lvl(n))}</div>
                   </div>
                 ))}
+              </div>
+            </div>
+
+            {/* Livraison */}
+            <div className="rounded-lg border p-4 space-y-3">
+              <div className="flex items-center gap-2 font-semibold">
+                <MapPin className="w-5 h-5 text-primary" /> Adresse de livraison
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="addr">Adresse complète *</Label>
+                <Input id="addr" placeholder="Rue, quartier, point de repère…"
+                       value={address} onChange={(e) => setAddress(e.target.value)} />
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="space-y-2">
+                  <Label htmlFor="city">Ville</Label>
+                  <Input id="city" placeholder="Abidjan, Dakar…"
+                         value={city} onChange={(e) => setCity(e.target.value)} />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="phone" className="flex items-center gap-1"><Phone className="w-3 h-3" /> Téléphone *</Label>
+                  <Input id="phone" placeholder="+225 …"
+                         value={phone} onChange={(e) => setPhone(e.target.value)} />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="notes">Notes (optionnel)</Label>
+                <Textarea id="notes" rows={2} placeholder="Instructions pour le livreur…"
+                          value={notes} onChange={(e) => setNotes(e.target.value)} />
               </div>
             </div>
 
@@ -142,14 +203,14 @@ export default function MLMPackDetail() {
               <div className="flex items-center justify-between rounded-lg border p-3 text-sm">
                 <span className="flex items-center gap-2"><Wallet className="w-4 h-4" /> Solde portefeuille</span>
                 <span className={`font-semibold ${insufficient ? 'text-destructive' : 'text-primary'}`}>
-                  {balance.toLocaleString()} FCFA
+                  {formatFCFA(balance)} · {formatMSN(fcfaToMsn(balance))}
                 </span>
               </div>
             )}
 
             <Button className="w-full" size="lg" onClick={buy} disabled={buying}>
               {buying ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <ShoppingCart className="w-4 h-4 mr-2" />}
-              {insufficient ? 'Recharger & Acheter' : 'Acheter avec mon portefeuille'}
+              {insufficient ? 'Recharger & Acheter' : `Acheter — ${formatFCFA(pack.price)}`}
             </Button>
           </CardContent>
         </Card>

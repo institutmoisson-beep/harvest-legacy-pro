@@ -3368,6 +3368,10 @@ export type Database = {
           benefit_amount: number
           buyer_id: string
           created_at: string
+          delivery_address: string | null
+          delivery_city: string | null
+          delivery_notes: string | null
+          delivery_phone: string | null
           id: string
           pack_id: string
           price_paid: number
@@ -3377,6 +3381,10 @@ export type Database = {
           benefit_amount: number
           buyer_id: string
           created_at?: string
+          delivery_address?: string | null
+          delivery_city?: string | null
+          delivery_notes?: string | null
+          delivery_phone?: string | null
           id?: string
           pack_id: string
           price_paid: number
@@ -3386,6 +3394,10 @@ export type Database = {
           benefit_amount?: number
           buyer_id?: string
           created_at?: string
+          delivery_address?: string | null
+          delivery_city?: string | null
+          delivery_notes?: string | null
+          delivery_phone?: string | null
           id?: string
           pack_id?: string
           price_paid?: number
@@ -6084,14 +6096,29 @@ export type Database = {
         Returns: boolean
       }
       is_user_admin: { Args: { _user_id: string }; Returns: boolean }
-      purchase_mlm_pack: {
-        Args: { p_pack_id: string }
-        Returns: {
-          message: string
-          purchase_id: string
-          success: boolean
-        }[]
-      }
+      purchase_mlm_pack:
+        | {
+            Args: { p_pack_id: string }
+            Returns: {
+              message: string
+              purchase_id: string
+              success: boolean
+            }[]
+          }
+        | {
+            Args: {
+              p_delivery_address?: string
+              p_delivery_city?: string
+              p_delivery_notes?: string
+              p_delivery_phone?: string
+              p_pack_id: string
+            }
+            Returns: {
+              message: string
+              purchase_id: string
+              success: boolean
+            }[]
+          }
       refund_wallet_payment: {
         Args: {
           p_amount: number

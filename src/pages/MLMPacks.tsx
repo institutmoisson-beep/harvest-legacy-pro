@@ -5,9 +5,8 @@ import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { toast } from '@/hooks/use-toast';
 import { Loader2, Package, ShoppingCart, TrendingUp } from 'lucide-react';
-import { showBrowserNotification } from '@/utils/pushNotifications';
+import { formatFCFA, formatPriceWithMSN, fcfaToMsn, formatMSN } from '@/lib/currency';
 
 interface Pack {
   id: string;
@@ -29,7 +28,6 @@ export default function MLMPacks() {
   const navigate = useNavigate();
   const [packs, setPacks] = useState<Pack[]>([]);
   const [loading, setLoading] = useState(true);
-  const [buyingId, setBuyingId] = useState<string | null>(null);
 
   useEffect(() => {
     document.title = 'Packs Moissonneur — Investir & Gagner';
@@ -47,29 +45,6 @@ export default function MLMPacks() {
     setLoading(false);
   };
 
-  const buy = async (pack: Pack) => {
-    if (!user) {
-      navigate('/auth');
-      return;
-    }
-    setBuyingId(pack.id);
-    const { data, error } = await (supabase as any).rpc('purchase_mlm_pack', { p_pack_id: pack.id });
-    setBuyingId(null);
-    if (error) {
-      toast({ title: 'Erreur', description: error.message, variant: 'destructive' });
-      return;
-    }
-    const result = Array.isArray(data) ? data[0] : data;
-    if (!result?.success) {
-      toast({ title: 'Achat impossible', description: result?.message || 'Erreur', variant: 'destructive' });
-      if (result?.message?.toLowerCase().includes('solde')) {
-        setTimeout(() => navigate('/dashboard'), 1500);
-      }
-      return;
-    }
-    toast({ title: '✅ Pack acheté', description: `Le pack ${pack.name} est désormais activé.` });
-    showBrowserNotification('Pack acheté', `${pack.name} — ${pack.price} FCFA`);
-  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5 py-8 px-4">
@@ -106,7 +81,10 @@ export default function MLMPacks() {
                   <CardHeader>
                     <div className="flex items-start justify-between gap-2">
                       <CardTitle className="text-xl">{p.name}</CardTitle>
-                      <Badge variant="secondary">{p.price.toLocaleString()} FCFA</Badge>
+                      <div className="text-right">
+                        <Badge variant="secondary">{formatFCFA(p.price)}</Badge>
+                        <div className="text-[10px] text-muted-foreground mt-1">{formatMSN(fcfaToMsn(p.price))}</div>
+                      </div>
                     </div>
                     {p.partner_name && (
                       <div className="flex items-center gap-2 mt-2">
@@ -122,10 +100,10 @@ export default function MLMPacks() {
                     <div className="rounded-lg bg-primary/5 p-3 space-y-1 text-sm">
                       <div className="flex items-center gap-2 text-primary font-semibold">
                         <TrendingUp className="w-4 h-4" />
-                        Bénéfice : {p.benefit_amount.toLocaleString()} FCFA
+                        Bénéfice : {formatPriceWithMSN(p.benefit_amount)}
                       </div>
                       <div className="text-xs text-muted-foreground">
-                        Commission niveau 1 : <span className="font-semibold text-foreground">{level1.toLocaleString()} FCFA</span> ({p.base_commission_percentage}%)
+                        Commission niveau 1 : <span className="font-semibold text-foreground">{formatFCFA(level1)}</span> ({p.base_commission_percentage}%)
                       </div>
                       <div className="text-xs text-muted-foreground">
                         Décroissance : {((1 - p.decay_rate) * 100).toFixed(0)}% par niveau · jusqu'au niveau {p.max_levels}
@@ -133,13 +111,13 @@ export default function MLMPacks() {
                     </div>
                     <Button
                       className="w-full"
-                      onClick={(e) => { e.stopPropagation(); buy(p); }}
-                      disabled={buyingId === p.id}
+                      onClick={(e) => { e.stopPropagation(); navigate(`/packs/${p.id}`); }}
                     >
-                      {buyingId === p.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <ShoppingCart className="w-4 h-4 mr-2" />}
-                      Acheter avec mon portefeuille
+                      <ShoppingCart className="w-4 h-4 mr-2" />
+                      Voir & Acheter
                     </Button>
                   </CardContent>
+
                 </Card>
               );
             })}

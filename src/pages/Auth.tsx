@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -8,6 +8,8 @@ import { useAuth } from '@/hooks/useAuth';
 import { Loader2 } from 'lucide-react';
 import { z } from 'zod';
 import { useSearchParams } from 'react-router-dom';
+import { MathCaptcha, MathCaptchaHandle } from '@/components/MathCaptcha';
+import { toast } from '@/hooks/use-toast';
 
 const signUpSchema = z.object({
   email: z.string().email({ message: "Email invalide" }),
@@ -29,6 +31,8 @@ export default function Auth() {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [showResetPassword, setShowResetPassword] = useState(false);
   const [resetEmail, setResetEmail] = useState('');
+  const signInCaptcha = useRef<MathCaptchaHandle>(null);
+  const signUpCaptcha = useRef<MathCaptchaHandle>(null);
 
   // Sign Up Form State
   const [signUpForm, setSignUpForm] = useState({
@@ -56,7 +60,12 @@ export default function Auth() {
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrors({});
-    
+
+    if (!signUpCaptcha.current?.validate()) {
+      toast({ title: 'Vérification anti-robot échouée', description: 'Résolvez le calcul pour valider votre inscription.', variant: 'destructive' });
+      return;
+    }
+
     try {
       signUpSchema.parse(signUpForm);
       setLoading(true);
@@ -77,6 +86,7 @@ export default function Auth() {
         });
         setErrors(fieldErrors);
       }
+      signUpCaptcha.current?.reset();
     } finally {
       setLoading(false);
     }
@@ -85,7 +95,12 @@ export default function Auth() {
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrors({});
-    
+
+    if (!signInCaptcha.current?.validate()) {
+      toast({ title: 'Vérification anti-robot échouée', description: 'Résolvez le calcul pour vous connecter.', variant: 'destructive' });
+      return;
+    }
+
     try {
       signInSchema.parse(signInForm);
       setLoading(true);
@@ -100,10 +115,12 @@ export default function Auth() {
         });
         setErrors(fieldErrors);
       }
+      signInCaptcha.current?.reset();
     } finally {
       setLoading(false);
     }
   };
+
 
   const handleResetPassword = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -168,6 +185,8 @@ export default function Auth() {
                     />
                     {errors.password && <p className="text-sm text-destructive">{errors.password}</p>}
                   </div>
+
+                  <MathCaptcha ref={signInCaptcha} />
 
                   <Button type="submit" className="w-full" disabled={loading}>
                     {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
@@ -288,6 +307,8 @@ export default function Auth() {
                   />
                   {errors.referralCode && <p className="text-sm text-destructive">{errors.referralCode}</p>}
                 </div>
+
+                <MathCaptcha ref={signUpCaptcha} />
 
                 <Button type="submit" className="w-full" disabled={loading}>
                   {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
