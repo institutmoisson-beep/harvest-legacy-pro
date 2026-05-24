@@ -186,6 +186,8 @@ export default function Auth() {
                     {errors.password && <p className="text-sm text-destructive">{errors.password}</p>}
                   </div>
 
+                  <MathCaptcha ref={signInCaptcha} />
+
                   <Button type="submit" className="w-full" disabled={loading}>
                     {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                     Se connecter
@@ -305,6 +307,8 @@ export default function Auth() {
                   />
                   {errors.referralCode && <p className="text-sm text-destructive">{errors.referralCode}</p>}
                 </div>
+
+                <MathCaptcha ref={signUpCaptcha} />
 
                 <Button type="submit" className="w-full" disabled={loading}>
                   {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
