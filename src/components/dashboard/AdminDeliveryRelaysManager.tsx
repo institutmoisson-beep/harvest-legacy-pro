@@ -25,20 +25,42 @@ interface RelayPoint {
 export default function AdminDeliveryRelaysManager() {
   const [relays, setRelays] = useState<RelayPoint[]>([]);
   const [loading, setLoading] = useState(false);
+  const [shops, setShops] = useState<any[]>([]);
+  const [selectedShop, setSelectedShop] = useState<string>('');
+  const [shopHostType, setShopHostType] = useState<string>('shop');
+  const [converting, setConverting] = useState(false);
   const [newRelay, setNewRelay] = useState({
     name: '',
     type: 'shop',
+    host_type: 'shop',
     address: '',
     city: '',
     country: '',
     phone: '',
     latitude: '',
     longitude: '',
+    description: '',
   });
 
   useEffect(() => {
     fetchRelays();
+    (async () => {
+      const { data } = await (supabase as any).from('shop_settings').select('id, shop_name, shop_city').order('shop_name');
+      setShops(data || []);
+    })();
   }, []);
+
+  const convertShop = async () => {
+    if (!selectedShop) return;
+    setConverting(true);
+    const { error } = await (supabase as any).rpc('convert_shop_to_relay', { p_shop_id: selectedShop, p_host_type: shopHostType });
+    setConverting(false);
+    if (error) { toast({ title: 'Erreur', description: error.message, variant: 'destructive' }); return; }
+    toast({ title: 'Succès', description: 'Boutique transformée en point relais' });
+    setSelectedShop('');
+    fetchRelays();
+  };
+
 
   const fetchRelays = async () => {
     try {
@@ -70,9 +92,11 @@ export default function AdminDeliveryRelaysManager() {
 
     setLoading(true);
     try {
-      const { error } = await supabase.from('delivery_relay_points').insert({
+      const { error } = await (supabase as any).from('delivery_relay_points').insert({
         name: newRelay.name,
         type: newRelay.type,
+        host_type: newRelay.host_type,
+        description: newRelay.description || null,
         address: newRelay.address,
         city: newRelay.city,
         country: newRelay.country || 'Côte d\'Ivoire',
@@ -91,12 +115,14 @@ export default function AdminDeliveryRelaysManager() {
       setNewRelay({
         name: '',
         type: 'shop',
+        host_type: 'shop',
         address: '',
         city: '',
         country: '',
         phone: '',
         latitude: '',
         longitude: '',
+        description: '',
       });
 
       fetchRelays();
@@ -165,6 +191,34 @@ export default function AdminDeliveryRelaysManager() {
     <div className="space-y-6">
       <Card>
         <CardHeader>
+          <CardTitle>🔄 Transformer une boutique en point relais</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+            <Select value={selectedShop} onValueChange={setSelectedShop}>
+              <SelectTrigger><SelectValue placeholder="Choisir une boutique" /></SelectTrigger>
+              <SelectContent>
+                {shops.map(s => <SelectItem key={s.id} value={s.id}>{s.shop_name} {s.shop_city ? `(${s.shop_city})` : ''}</SelectItem>)}
+              </SelectContent>
+            </Select>
+            <Select value={shopHostType} onValueChange={setShopHostType}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="shop">🏪 Boutique</SelectItem>
+                <SelectItem value="maquis">🍽️ Maquis</SelectItem>
+                <SelectItem value="partner">🤝 Partenaire</SelectItem>
+                <SelectItem value="other">📍 Autre espace</SelectItem>
+              </SelectContent>
+            </Select>
+            <Button onClick={convertShop} disabled={!selectedShop || converting}>
+              {converting ? '...' : 'Transformer en relais'}
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <MapPin className="w-5 h-5" />
             Ajouter un Point Relais
@@ -182,18 +236,19 @@ export default function AdminDeliveryRelaysManager() {
             </div>
 
             <div>
-              <Label>Type</Label>
-              <Select value={newRelay.type} onValueChange={(value) => setNewRelay({ ...newRelay, type: value })}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
+              <Label>Type d'hôte</Label>
+              <Select value={newRelay.host_type} onValueChange={(value) => setNewRelay({ ...newRelay, host_type: value })}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="shop">Boutique</SelectItem>
-                  <SelectItem value="moissonneur_box">Box Moissonneur</SelectItem>
-                  <SelectItem value="partner">Partenaire</SelectItem>
+                  <SelectItem value="shop">🏪 Boutique</SelectItem>
+                  <SelectItem value="maquis">🍽️ Maquis</SelectItem>
+                  <SelectItem value="moissonneur_box">📦 Box Moissonneur</SelectItem>
+                  <SelectItem value="partner">🤝 Partenaire</SelectItem>
+                  <SelectItem value="other">📍 Autre</SelectItem>
                 </SelectContent>
               </Select>
             </div>
+
 
             <div>
               <Label>Adresse *</Label>

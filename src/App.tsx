@@ -6,6 +6,7 @@ import { requestNotificationPermission } from '@/utils/pushNotifications';
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import VisitLogger from "@/components/VisitLogger";
 import { AuthProvider } from "@/hooks/useAuth";
+import { UserCurrencyProvider } from "@/hooks/useUserCurrency";
 import { usePWABadge } from "@/hooks/usePWABadge";
 import LoadingScreen from "@/components/LoadingScreen";
 import VoiceCall from '@/components/VoiceCall';
@@ -66,6 +67,7 @@ const AdminEnterprises = lazy(() => import("./pages/AdminEnterprises"));
 const MLMPacks = lazy(() => import("./pages/MLMPacks"));
 const MLMPackDetail = lazy(() => import("./pages/MLMPackDetail"));
 const AdminMLMPacks = lazy(() => import("./pages/AdminMLMPacks"));
+const MyRelayDeliveries = lazy(() => import("./pages/MyRelayDeliveries"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 // Composant interne pour utiliser les hooks après AuthProvider
@@ -136,6 +138,7 @@ const AppContent = () => {
         <Route path="/packs" element={<MLMPacks />} />
         <Route path="/packs/:id" element={<MLMPackDetail />} />
         <Route path="/admin/packs" element={<AdminMLMPacks />} />
+        <Route path="/mes-livraisons" element={<MyRelayDeliveries />} />
         {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
         <Route path="*" element={<NotFound />} />
       </Routes>
@@ -179,8 +182,10 @@ const App = () => {
       <BrowserRouter>
         <VisitLogger />
         <AuthProvider>
-          <VoiceCall hideTrigger />
-          <AppContent />
+          <UserCurrencyProvider>
+            <VoiceCall hideTrigger />
+            <AppContent />
+          </UserCurrencyProvider>
         </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>

@@ -8,10 +8,13 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { toast } from '@/hooks/use-toast';
-import { Loader2, ArrowLeft, ShoppingCart, TrendingUp, Package, Wallet, MapPin, Phone } from 'lucide-react';
+import { Loader2, ArrowLeft, ShoppingCart, TrendingUp, Package, Wallet, MapPin, Phone, Store, Home } from 'lucide-react';
 import { showBrowserNotification } from '@/utils/pushNotifications';
 import { formatPriceWithMSN, formatFCFA, fcfaToMsn, formatMSN } from '@/lib/currency';
+import { useUserCurrency } from '@/hooks/useUserCurrency';
+import RelayPointPicker from '@/components/relay/RelayPointPicker';
 
 interface Pack {
   id: string;
@@ -37,8 +40,11 @@ export default function MLMPackDetail() {
   const [buying, setBuying] = useState(false);
   const [balance, setBalance] = useState<number | null>(null);
   const [activeImg, setActiveImg] = useState(0);
+  const { format: fmt } = useUserCurrency();
 
   // Livraison
+  const [mode, setMode] = useState<'address' | 'relay'>('address');
+  const [relayId, setRelayId] = useState<string | null>(null);
   const [address, setAddress] = useState('');
   const [city, setCity] = useState('');
   const [phone, setPhone] = useState('');
@@ -68,21 +74,30 @@ export default function MLMPackDetail() {
   const buy = async () => {
     if (!user) { navigate('/auth'); return; }
     if (!pack) return;
-    if (address.trim().length < 5) {
-      toast({ title: 'Adresse requise', description: 'Renseignez une adresse de livraison complète.', variant: 'destructive' });
-      return;
-    }
-    if (phone.trim().length < 6) {
-      toast({ title: 'Téléphone requis', description: 'Renseignez un numéro de téléphone valide.', variant: 'destructive' });
-      return;
+    if (mode === 'relay') {
+      if (!relayId) {
+        toast({ title: 'Point relais requis', description: 'Sélectionnez un point relais pour le retrait.', variant: 'destructive' });
+        return;
+      }
+    } else {
+      if (address.trim().length < 5) {
+        toast({ title: 'Adresse requise', description: 'Renseignez une adresse de livraison complète.', variant: 'destructive' });
+        return;
+      }
+      if (phone.trim().length < 6) {
+        toast({ title: 'Téléphone requis', description: 'Renseignez un numéro de téléphone valide.', variant: 'destructive' });
+        return;
+      }
     }
     setBuying(true);
     const { data, error } = await (supabase as any).rpc('purchase_mlm_pack', {
       p_pack_id: pack.id,
-      p_delivery_address: address.trim(),
-      p_delivery_city: city.trim() || null,
-      p_delivery_phone: phone.trim(),
+      p_delivery_address: mode === 'address' ? address.trim() : null,
+      p_delivery_city: mode === 'address' ? (city.trim() || null) : null,
+      p_delivery_phone: mode === 'address' ? phone.trim() : null,
       p_delivery_notes: notes.trim() || null,
+      p_delivery_mode: mode,
+      p_relay_point_id: mode === 'relay' ? relayId : null,
     });
     setBuying(false);
     if (error) { toast({ title: 'Erreur', description: error.message, variant: 'destructive' }); return; }
@@ -92,9 +107,15 @@ export default function MLMPackDetail() {
       if (r?.message?.toLowerCase().includes('solde')) setTimeout(() => navigate('/dashboard'), 1500);
       return;
     }
-    toast({ title: '✅ Pack acheté', description: `${pack.name} sera livré à l'adresse renseignée.` });
-    showBrowserNotification('Pack acheté', `${pack.name} — ${formatFCFA(pack.price)}`);
-    setTimeout(() => navigate('/packs'), 1500);
+    if (mode === 'relay' && r?.pickup_code) {
+      toast({ title: '✅ Pack acheté', description: `Code de retrait : ${r.pickup_code}` });
+      showBrowserNotification('Pack acheté', `Code de retrait : ${r.pickup_code}`);
+      setTimeout(() => navigate('/mes-livraisons'), 1500);
+    } else {
+      toast({ title: '✅ Pack acheté', description: `${pack.name} sera livré à l'adresse renseignée.` });
+      showBrowserNotification('Pack acheté', `${pack.name} — ${fmt(pack.price)}`);
+      setTimeout(() => navigate('/packs'), 1500);
+    }
   };
 
   if (loading) return <div className="min-h-screen flex items-center justify-center"><Loader2 className="w-8 h-8 animate-spin text-primary" /></div>;
@@ -143,8 +164,8 @@ export default function MLMPackDetail() {
                 )}
               </div>
               <div className="text-right">
-                <Badge className="text-base px-3 py-1">{formatFCFA(pack.price)}</Badge>
-                <div className="text-xs text-muted-foreground mt-1">≈ {formatMSN(priceMsn)}</div>
+                <Badge className="text-base px-3 py-1">{fmt(pack.price)}</Badge>
+                <div className="text-xs text-muted-foreground mt-1">{formatFCFA(pack.price)} · {formatMSN(priceMsn)}</div>
               </div>
             </div>
 
@@ -172,45 +193,62 @@ export default function MLMPackDetail() {
 
             {/* Livraison */}
             <div className="rounded-lg border p-4 space-y-3">
-              <div className="flex items-center gap-2 font-semibold">
-                <MapPin className="w-5 h-5 text-primary" /> Adresse de livraison
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="addr">Adresse complète *</Label>
-                <Input id="addr" placeholder="Rue, quartier, point de repère…"
-                       value={address} onChange={(e) => setAddress(e.target.value)} />
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div className="space-y-2">
-                  <Label htmlFor="city">Ville</Label>
-                  <Input id="city" placeholder="Abidjan, Dakar…"
-                         value={city} onChange={(e) => setCity(e.target.value)} />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="phone" className="flex items-center gap-1"><Phone className="w-3 h-3" /> Téléphone *</Label>
-                  <Input id="phone" placeholder="+225 …"
-                         value={phone} onChange={(e) => setPhone(e.target.value)} />
-                </div>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="notes">Notes (optionnel)</Label>
-                <Textarea id="notes" rows={2} placeholder="Instructions pour le livreur…"
-                          value={notes} onChange={(e) => setNotes(e.target.value)} />
-              </div>
+              <div className="font-semibold flex items-center gap-2"><MapPin className="w-5 h-5 text-primary" /> Mode de livraison</div>
+              <RadioGroup value={mode} onValueChange={(v) => setMode(v as any)} className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                <label className={`flex items-center gap-2 rounded-md border p-3 cursor-pointer ${mode==='address'?'border-primary bg-primary/5':''}`}>
+                  <RadioGroupItem value="address" />
+                  <Home className="w-4 h-4 text-primary" />
+                  <span className="text-sm font-medium">Livraison à domicile</span>
+                </label>
+                <label className={`flex items-center gap-2 rounded-md border p-3 cursor-pointer ${mode==='relay'?'border-primary bg-primary/5':''}`}>
+                  <RadioGroupItem value="relay" />
+                  <Store className="w-4 h-4 text-primary" />
+                  <span className="text-sm font-medium">Retrait en point relais</span>
+                </label>
+              </RadioGroup>
+
+              {mode === 'address' ? (
+                <>
+                  <div className="space-y-2">
+                    <Label htmlFor="addr">Adresse complète *</Label>
+                    <Input id="addr" placeholder="Rue, quartier, point de repère…"
+                           value={address} onChange={(e) => setAddress(e.target.value)} />
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div className="space-y-2">
+                      <Label htmlFor="city">Ville</Label>
+                      <Input id="city" placeholder="Abidjan, Dakar…"
+                             value={city} onChange={(e) => setCity(e.target.value)} />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="phone" className="flex items-center gap-1"><Phone className="w-3 h-3" /> Téléphone *</Label>
+                      <Input id="phone" placeholder="+225 …"
+                             value={phone} onChange={(e) => setPhone(e.target.value)} />
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="notes">Notes (optionnel)</Label>
+                    <Textarea id="notes" rows={2} placeholder="Instructions pour le livreur…"
+                              value={notes} onChange={(e) => setNotes(e.target.value)} />
+                  </div>
+                </>
+              ) : (
+                <RelayPointPicker value={relayId} onChange={setRelayId} />
+              )}
             </div>
 
             {user && balance !== null && (
               <div className="flex items-center justify-between rounded-lg border p-3 text-sm">
                 <span className="flex items-center gap-2"><Wallet className="w-4 h-4" /> Solde portefeuille</span>
                 <span className={`font-semibold ${insufficient ? 'text-destructive' : 'text-primary'}`}>
-                  {formatFCFA(balance)} · {formatMSN(fcfaToMsn(balance))}
+                  {fmt(balance)} · {formatMSN(fcfaToMsn(balance))}
                 </span>
               </div>
             )}
 
             <Button className="w-full" size="lg" onClick={buy} disabled={buying}>
               {buying ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <ShoppingCart className="w-4 h-4 mr-2" />}
-              {insufficient ? 'Recharger & Acheter' : `Acheter — ${formatFCFA(pack.price)}`}
+              {insufficient ? 'Recharger & Acheter' : `Acheter — ${fmt(pack.price)}`}
             </Button>
           </CardContent>
         </Card>

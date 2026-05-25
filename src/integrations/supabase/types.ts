@@ -1258,6 +1258,33 @@ export type Database = {
         }
         Relationships: []
       }
+      currency_rates: {
+        Row: {
+          code: string
+          is_active: boolean
+          name: string
+          rate_to_fcfa: number
+          symbol: string
+          updated_at: string
+        }
+        Insert: {
+          code: string
+          is_active?: boolean
+          name: string
+          rate_to_fcfa?: number
+          symbol: string
+          updated_at?: string
+        }
+        Update: {
+          code?: string
+          is_active?: boolean
+          name?: string
+          rate_to_fcfa?: number
+          symbol?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       deliveries: {
         Row: {
           actual_pickup_date: string | null
@@ -1643,6 +1670,9 @@ export type Database = {
           city: string
           country: string
           created_at: string | null
+          description: string | null
+          host_type: string
+          host_user_id: string | null
           id: string
           is_active: boolean | null
           latitude: number | null
@@ -1659,6 +1689,9 @@ export type Database = {
           city: string
           country: string
           created_at?: string | null
+          description?: string | null
+          host_type?: string
+          host_user_id?: string | null
           id?: string
           is_active?: boolean | null
           latitude?: number | null
@@ -1675,6 +1708,9 @@ export type Database = {
           city?: string
           country?: string
           created_at?: string | null
+          description?: string | null
+          host_type?: string
+          host_user_id?: string | null
           id?: string
           is_active?: boolean | null
           latitude?: number | null
@@ -3370,11 +3406,15 @@ export type Database = {
           created_at: string
           delivery_address: string | null
           delivery_city: string | null
+          delivery_mode: string
           delivery_notes: string | null
           delivery_phone: string | null
           id: string
           pack_id: string
+          picked_up_at: string | null
+          pickup_code: string | null
           price_paid: number
+          relay_point_id: string | null
           status: string
         }
         Insert: {
@@ -3383,11 +3423,15 @@ export type Database = {
           created_at?: string
           delivery_address?: string | null
           delivery_city?: string | null
+          delivery_mode?: string
           delivery_notes?: string | null
           delivery_phone?: string | null
           id?: string
           pack_id: string
+          picked_up_at?: string | null
+          pickup_code?: string | null
           price_paid: number
+          relay_point_id?: string | null
           status?: string
         }
         Update: {
@@ -3396,11 +3440,15 @@ export type Database = {
           created_at?: string
           delivery_address?: string | null
           delivery_city?: string | null
+          delivery_mode?: string
           delivery_notes?: string | null
           delivery_phone?: string | null
           id?: string
           pack_id?: string
+          picked_up_at?: string | null
+          pickup_code?: string | null
           price_paid?: number
+          relay_point_id?: string | null
           status?: string
         }
         Relationships: [
@@ -3409,6 +3457,13 @@ export type Database = {
             columns: ["pack_id"]
             isOneToOne: false
             referencedRelation: "mlm_packs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mlm_pack_purchases_relay_point_id_fkey"
+            columns: ["relay_point_id"]
+            isOneToOne: false
+            referencedRelation: "delivery_relay_points"
             referencedColumns: ["id"]
           },
         ]
@@ -4057,6 +4112,7 @@ export type Database = {
           id_number: string | null
           id_verified: boolean | null
           phone: string | null
+          preferred_currency: string
           referral_code: string
           referred_by: string | null
           updated_at: string | null
@@ -4072,6 +4128,7 @@ export type Database = {
           id_number?: string | null
           id_verified?: boolean | null
           phone?: string | null
+          preferred_currency?: string
           referral_code: string
           referred_by?: string | null
           updated_at?: string | null
@@ -4087,6 +4144,7 @@ export type Database = {
           id_number?: string | null
           id_verified?: boolean | null
           phone?: string | null
+          preferred_currency?: string
           referral_code?: string
           referred_by?: string | null
           updated_at?: string | null
@@ -5969,6 +6027,10 @@ export type Database = {
         Args: { p_agent_id: string }
         Returns: undefined
       }
+      convert_shop_to_relay: {
+        Args: { p_host_type?: string; p_shop_id: string }
+        Returns: string
+      }
       debit_wallet_for_payment: {
         Args: {
           p_amount: number
@@ -6115,6 +6177,23 @@ export type Database = {
             }
             Returns: {
               message: string
+              purchase_id: string
+              success: boolean
+            }[]
+          }
+        | {
+            Args: {
+              p_delivery_address?: string
+              p_delivery_city?: string
+              p_delivery_mode?: string
+              p_delivery_notes?: string
+              p_delivery_phone?: string
+              p_pack_id: string
+              p_relay_point_id?: string
+            }
+            Returns: {
+              message: string
+              pickup_code: string
               purchase_id: string
               success: boolean
             }[]
