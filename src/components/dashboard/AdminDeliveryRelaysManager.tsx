@@ -25,20 +25,42 @@ interface RelayPoint {
 export default function AdminDeliveryRelaysManager() {
   const [relays, setRelays] = useState<RelayPoint[]>([]);
   const [loading, setLoading] = useState(false);
+  const [shops, setShops] = useState<any[]>([]);
+  const [selectedShop, setSelectedShop] = useState<string>('');
+  const [shopHostType, setShopHostType] = useState<string>('shop');
+  const [converting, setConverting] = useState(false);
   const [newRelay, setNewRelay] = useState({
     name: '',
     type: 'shop',
+    host_type: 'shop',
     address: '',
     city: '',
     country: '',
     phone: '',
     latitude: '',
     longitude: '',
+    description: '',
   });
 
   useEffect(() => {
     fetchRelays();
+    (async () => {
+      const { data } = await (supabase as any).from('shop_settings').select('id, shop_name, shop_city').order('shop_name');
+      setShops(data || []);
+    })();
   }, []);
+
+  const convertShop = async () => {
+    if (!selectedShop) return;
+    setConverting(true);
+    const { error } = await (supabase as any).rpc('convert_shop_to_relay', { p_shop_id: selectedShop, p_host_type: shopHostType });
+    setConverting(false);
+    if (error) { toast({ title: 'Erreur', description: error.message, variant: 'destructive' }); return; }
+    toast({ title: 'Succès', description: 'Boutique transformée en point relais' });
+    setSelectedShop('');
+    fetchRelays();
+  };
+
 
   const fetchRelays = async () => {
     try {
