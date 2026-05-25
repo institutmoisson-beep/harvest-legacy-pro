@@ -8,10 +8,13 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { toast } from '@/hooks/use-toast';
-import { Loader2, ArrowLeft, ShoppingCart, TrendingUp, Package, Wallet, MapPin, Phone } from 'lucide-react';
+import { Loader2, ArrowLeft, ShoppingCart, TrendingUp, Package, Wallet, MapPin, Phone, Store, Home } from 'lucide-react';
 import { showBrowserNotification } from '@/utils/pushNotifications';
 import { formatPriceWithMSN, formatFCFA, fcfaToMsn, formatMSN } from '@/lib/currency';
+import { useUserCurrency } from '@/hooks/useUserCurrency';
+import RelayPointPicker from '@/components/relay/RelayPointPicker';
 
 interface Pack {
   id: string;
@@ -37,8 +40,11 @@ export default function MLMPackDetail() {
   const [buying, setBuying] = useState(false);
   const [balance, setBalance] = useState<number | null>(null);
   const [activeImg, setActiveImg] = useState(0);
+  const { format: fmt } = useUserCurrency();
 
   // Livraison
+  const [mode, setMode] = useState<'address' | 'relay'>('address');
+  const [relayId, setRelayId] = useState<string | null>(null);
   const [address, setAddress] = useState('');
   const [city, setCity] = useState('');
   const [phone, setPhone] = useState('');
@@ -68,21 +74,30 @@ export default function MLMPackDetail() {
   const buy = async () => {
     if (!user) { navigate('/auth'); return; }
     if (!pack) return;
-    if (address.trim().length < 5) {
-      toast({ title: 'Adresse requise', description: 'Renseignez une adresse de livraison complète.', variant: 'destructive' });
-      return;
-    }
-    if (phone.trim().length < 6) {
-      toast({ title: 'Téléphone requis', description: 'Renseignez un numéro de téléphone valide.', variant: 'destructive' });
-      return;
+    if (mode === 'relay') {
+      if (!relayId) {
+        toast({ title: 'Point relais requis', description: 'Sélectionnez un point relais pour le retrait.', variant: 'destructive' });
+        return;
+      }
+    } else {
+      if (address.trim().length < 5) {
+        toast({ title: 'Adresse requise', description: 'Renseignez une adresse de livraison complète.', variant: 'destructive' });
+        return;
+      }
+      if (phone.trim().length < 6) {
+        toast({ title: 'Téléphone requis', description: 'Renseignez un numéro de téléphone valide.', variant: 'destructive' });
+        return;
+      }
     }
     setBuying(true);
     const { data, error } = await (supabase as any).rpc('purchase_mlm_pack', {
       p_pack_id: pack.id,
-      p_delivery_address: address.trim(),
-      p_delivery_city: city.trim() || null,
-      p_delivery_phone: phone.trim(),
+      p_delivery_address: mode === 'address' ? address.trim() : null,
+      p_delivery_city: mode === 'address' ? (city.trim() || null) : null,
+      p_delivery_phone: mode === 'address' ? phone.trim() : null,
       p_delivery_notes: notes.trim() || null,
+      p_delivery_mode: mode,
+      p_relay_point_id: mode === 'relay' ? relayId : null,
     });
     setBuying(false);
     if (error) { toast({ title: 'Erreur', description: error.message, variant: 'destructive' }); return; }
@@ -92,9 +107,15 @@ export default function MLMPackDetail() {
       if (r?.message?.toLowerCase().includes('solde')) setTimeout(() => navigate('/dashboard'), 1500);
       return;
     }
-    toast({ title: '✅ Pack acheté', description: `${pack.name} sera livré à l'adresse renseignée.` });
-    showBrowserNotification('Pack acheté', `${pack.name} — ${formatFCFA(pack.price)}`);
-    setTimeout(() => navigate('/packs'), 1500);
+    if (mode === 'relay' && r?.pickup_code) {
+      toast({ title: '✅ Pack acheté', description: `Code de retrait : ${r.pickup_code}` });
+      showBrowserNotification('Pack acheté', `Code de retrait : ${r.pickup_code}`);
+      setTimeout(() => navigate('/mes-livraisons'), 1500);
+    } else {
+      toast({ title: '✅ Pack acheté', description: `${pack.name} sera livré à l'adresse renseignée.` });
+      showBrowserNotification('Pack acheté', `${pack.name} — ${fmt(pack.price)}`);
+      setTimeout(() => navigate('/packs'), 1500);
+    }
   };
 
   if (loading) return <div className="min-h-screen flex items-center justify-center"><Loader2 className="w-8 h-8 animate-spin text-primary" /></div>;
