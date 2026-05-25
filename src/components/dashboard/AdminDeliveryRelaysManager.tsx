@@ -92,9 +92,11 @@ export default function AdminDeliveryRelaysManager() {
 
     setLoading(true);
     try {
-      const { error } = await supabase.from('delivery_relay_points').insert({
+      const { error } = await (supabase as any).from('delivery_relay_points').insert({
         name: newRelay.name,
         type: newRelay.type,
+        host_type: newRelay.host_type,
+        description: newRelay.description || null,
         address: newRelay.address,
         city: newRelay.city,
         country: newRelay.country || 'Côte d\'Ivoire',
@@ -113,12 +115,14 @@ export default function AdminDeliveryRelaysManager() {
       setNewRelay({
         name: '',
         type: 'shop',
+        host_type: 'shop',
         address: '',
         city: '',
         country: '',
         phone: '',
         latitude: '',
         longitude: '',
+        description: '',
       });
 
       fetchRelays();
