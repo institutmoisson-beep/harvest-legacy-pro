@@ -193,31 +193,48 @@ export default function MLMPackDetail() {
 
             {/* Livraison */}
             <div className="rounded-lg border p-4 space-y-3">
-              <div className="flex items-center gap-2 font-semibold">
-                <MapPin className="w-5 h-5 text-primary" /> Adresse de livraison
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="addr">Adresse complète *</Label>
-                <Input id="addr" placeholder="Rue, quartier, point de repère…"
-                       value={address} onChange={(e) => setAddress(e.target.value)} />
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div className="space-y-2">
-                  <Label htmlFor="city">Ville</Label>
-                  <Input id="city" placeholder="Abidjan, Dakar…"
-                         value={city} onChange={(e) => setCity(e.target.value)} />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="phone" className="flex items-center gap-1"><Phone className="w-3 h-3" /> Téléphone *</Label>
-                  <Input id="phone" placeholder="+225 …"
-                         value={phone} onChange={(e) => setPhone(e.target.value)} />
-                </div>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="notes">Notes (optionnel)</Label>
-                <Textarea id="notes" rows={2} placeholder="Instructions pour le livreur…"
-                          value={notes} onChange={(e) => setNotes(e.target.value)} />
-              </div>
+              <div className="font-semibold flex items-center gap-2"><MapPin className="w-5 h-5 text-primary" /> Mode de livraison</div>
+              <RadioGroup value={mode} onValueChange={(v) => setMode(v as any)} className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                <label className={`flex items-center gap-2 rounded-md border p-3 cursor-pointer ${mode==='address'?'border-primary bg-primary/5':''}`}>
+                  <RadioGroupItem value="address" />
+                  <Home className="w-4 h-4 text-primary" />
+                  <span className="text-sm font-medium">Livraison à domicile</span>
+                </label>
+                <label className={`flex items-center gap-2 rounded-md border p-3 cursor-pointer ${mode==='relay'?'border-primary bg-primary/5':''}`}>
+                  <RadioGroupItem value="relay" />
+                  <Store className="w-4 h-4 text-primary" />
+                  <span className="text-sm font-medium">Retrait en point relais</span>
+                </label>
+              </RadioGroup>
+
+              {mode === 'address' ? (
+                <>
+                  <div className="space-y-2">
+                    <Label htmlFor="addr">Adresse complète *</Label>
+                    <Input id="addr" placeholder="Rue, quartier, point de repère…"
+                           value={address} onChange={(e) => setAddress(e.target.value)} />
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div className="space-y-2">
+                      <Label htmlFor="city">Ville</Label>
+                      <Input id="city" placeholder="Abidjan, Dakar…"
+                             value={city} onChange={(e) => setCity(e.target.value)} />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="phone" className="flex items-center gap-1"><Phone className="w-3 h-3" /> Téléphone *</Label>
+                      <Input id="phone" placeholder="+225 …"
+                             value={phone} onChange={(e) => setPhone(e.target.value)} />
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="notes">Notes (optionnel)</Label>
+                    <Textarea id="notes" rows={2} placeholder="Instructions pour le livreur…"
+                              value={notes} onChange={(e) => setNotes(e.target.value)} />
+                  </div>
+                </>
+              ) : (
+                <RelayPointPicker value={relayId} onChange={setRelayId} />
+              )}
             </div>
 
             {user && balance !== null && (
