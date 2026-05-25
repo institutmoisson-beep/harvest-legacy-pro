@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { Sprout, Users, Shield, TrendingUp, HeartHandshake, Wallet, ArrowRight, Sparkles } from "lucide-react";
+import MemberHubSheet from "@/components/home/MemberHubSheet";
 
 const display = { fontFamily: "'DM Serif Display', serif" };
 const sans = { fontFamily: "'Fira Sans', sans-serif" };
@@ -51,13 +52,20 @@ const Index = () => {
           <a href="#ecosysteme" className="hover:opacity-60 transition">Écosystème</a>
           <a href="#histoires" className="hover:opacity-60 transition">Histoires</a>
         </div>
-        <Link
-          to="/auth"
-          className="text-white px-5 py-2.5 text-xs font-bold uppercase tracking-wider rounded-full transition-all hover:scale-105"
-          style={{ background: `linear-gradient(135deg, ${MOOV}, ${VIOLET})` }}
-        >
-          Rejoindre
-        </Link>
+        <div className="flex items-center gap-2">
+          <MemberHubSheet trigger={
+            <button className="hidden md:inline-flex items-center gap-1.5 px-4 py-2 text-xs font-bold uppercase tracking-wider rounded-full border-2 border-black hover:bg-black hover:text-white transition">
+              <Sparkles className="w-3.5 h-3.5" /> Espace membre
+            </button>
+          } />
+          <Link
+            to="/auth"
+            className="text-white px-5 py-2.5 text-xs font-bold uppercase tracking-wider rounded-full transition-all hover:scale-105"
+            style={{ background: `linear-gradient(135deg, ${MOOV}, ${VIOLET})` }}
+          >
+            Rejoindre
+          </Link>
+        </div>
       </nav>
 
       {/* HERO */}
@@ -97,6 +105,12 @@ const Index = () => {
             >
               Découvrir les Packs
             </Link>
+            <MemberHubSheet />
+          </div>
+
+          {/* Bouton flottant Espace Gestionnaire — visible partout */}
+          <div className="fixed bottom-6 right-6 z-50 md:hidden">
+            <MemberHubSheet />
           </div>
 
           {/* Stats glass */}
