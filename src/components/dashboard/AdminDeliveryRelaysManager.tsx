@@ -191,6 +191,34 @@ export default function AdminDeliveryRelaysManager() {
     <div className="space-y-6">
       <Card>
         <CardHeader>
+          <CardTitle>🔄 Transformer une boutique en point relais</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+            <Select value={selectedShop} onValueChange={setSelectedShop}>
+              <SelectTrigger><SelectValue placeholder="Choisir une boutique" /></SelectTrigger>
+              <SelectContent>
+                {shops.map(s => <SelectItem key={s.id} value={s.id}>{s.shop_name} {s.shop_city ? `(${s.shop_city})` : ''}</SelectItem>)}
+              </SelectContent>
+            </Select>
+            <Select value={shopHostType} onValueChange={setShopHostType}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="shop">🏪 Boutique</SelectItem>
+                <SelectItem value="maquis">🍽️ Maquis</SelectItem>
+                <SelectItem value="partner">🤝 Partenaire</SelectItem>
+                <SelectItem value="other">📍 Autre espace</SelectItem>
+              </SelectContent>
+            </Select>
+            <Button onClick={convertShop} disabled={!selectedShop || converting}>
+              {converting ? '...' : 'Transformer en relais'}
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <MapPin className="w-5 h-5" />
             Ajouter un Point Relais
@@ -208,18 +236,19 @@ export default function AdminDeliveryRelaysManager() {
             </div>
 
             <div>
-              <Label>Type</Label>
-              <Select value={newRelay.type} onValueChange={(value) => setNewRelay({ ...newRelay, type: value })}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
+              <Label>Type d'hôte</Label>
+              <Select value={newRelay.host_type} onValueChange={(value) => setNewRelay({ ...newRelay, host_type: value })}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="shop">Boutique</SelectItem>
-                  <SelectItem value="moissonneur_box">Box Moissonneur</SelectItem>
-                  <SelectItem value="partner">Partenaire</SelectItem>
+                  <SelectItem value="shop">🏪 Boutique</SelectItem>
+                  <SelectItem value="maquis">🍽️ Maquis</SelectItem>
+                  <SelectItem value="moissonneur_box">📦 Box Moissonneur</SelectItem>
+                  <SelectItem value="partner">🤝 Partenaire</SelectItem>
+                  <SelectItem value="other">📍 Autre</SelectItem>
                 </SelectContent>
               </Select>
             </div>
+
 
             <div>
               <Label>Adresse *</Label>
