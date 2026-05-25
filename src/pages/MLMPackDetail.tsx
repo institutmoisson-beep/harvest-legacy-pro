@@ -241,14 +241,14 @@ export default function MLMPackDetail() {
               <div className="flex items-center justify-between rounded-lg border p-3 text-sm">
                 <span className="flex items-center gap-2"><Wallet className="w-4 h-4" /> Solde portefeuille</span>
                 <span className={`font-semibold ${insufficient ? 'text-destructive' : 'text-primary'}`}>
-                  {formatFCFA(balance)} · {formatMSN(fcfaToMsn(balance))}
+                  {fmt(balance)} · {formatMSN(fcfaToMsn(balance))}
                 </span>
               </div>
             )}
 
             <Button className="w-full" size="lg" onClick={buy} disabled={buying}>
               {buying ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <ShoppingCart className="w-4 h-4 mr-2" />}
-              {insufficient ? 'Recharger & Acheter' : `Acheter — ${formatFCFA(pack.price)}`}
+              {insufficient ? 'Recharger & Acheter' : `Acheter — ${fmt(pack.price)}`}
             </Button>
           </CardContent>
         </Card>
