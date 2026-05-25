@@ -164,8 +164,8 @@ export default function MLMPackDetail() {
                 )}
               </div>
               <div className="text-right">
-                <Badge className="text-base px-3 py-1">{formatFCFA(pack.price)}</Badge>
-                <div className="text-xs text-muted-foreground mt-1">≈ {formatMSN(priceMsn)}</div>
+                <Badge className="text-base px-3 py-1">{fmt(pack.price)}</Badge>
+                <div className="text-xs text-muted-foreground mt-1">{formatFCFA(pack.price)} · {formatMSN(priceMsn)}</div>
               </div>
             </div>
 
