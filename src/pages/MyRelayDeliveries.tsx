@@ -59,7 +59,7 @@ export default function MyRelayDeliveries() {
     <div className="min-h-screen bg-gradient-to-br from-background to-primary/5 py-6 px-4">
       <div className="container mx-auto max-w-3xl space-y-4">
         <Button variant="ghost" onClick={() => navigate('/dashboard')}><ArrowLeft className="w-4 h-4 mr-2" />Retour</Button>
-        <h1 className="text-2xl font-bold flex items-center gap-2"><Truck className="w-6 h-6 text-primary" />Mes retraits en point relais</h1>
+        <h1 className="text-2xl font-bold flex items-center gap-2"><Truck className="w-6 h-6 text-primary" />Mes commandes & livraisons</h1>
 
         {rows.length === 0 && (
           <Card><CardContent className="p-8 text-center text-muted-foreground">
