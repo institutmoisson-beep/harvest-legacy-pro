@@ -15,6 +15,7 @@ import { showBrowserNotification } from '@/utils/pushNotifications';
 import { formatPriceWithMSN, formatFCFA, fcfaToMsn, formatMSN } from '@/lib/currency';
 import { useUserCurrency } from '@/hooks/useUserCurrency';
 import RelayPointPicker from '@/components/relay/RelayPointPicker';
+import PackDocumentsActions from '@/components/documents/PackDocumentsActions';
 
 interface Pack {
   id: string;
@@ -49,6 +50,9 @@ export default function MLMPackDetail() {
   const [city, setCity] = useState('');
   const [phone, setPhone] = useState('');
   const [notes, setNotes] = useState('');
+  const [purchaseDone, setPurchaseDone] = useState<null | {
+    purchase: any; buyer: any; relay: any;
+  }>(null);
 
   useEffect(() => {
     document.title = pack ? `${pack.name} — Pack Moissonneur` : 'Pack Moissonneur';
@@ -107,14 +111,34 @@ export default function MLMPackDetail() {
       if (r?.message?.toLowerCase().includes('solde')) setTimeout(() => navigate('/dashboard'), 1500);
       return;
     }
+    // Récupérer la commande créée pour les documents
+    const { data: latest } = await (supabase as any)
+      .from('mlm_pack_purchases')
+      .select('id, tracking_code, pickup_code, delivery_mode, delivery_address, delivery_city, delivery_phone, delivery_notes, created_at, relay:delivery_relay_points(name,address,city,country,phone)')
+      .eq('buyer_id', user.id)
+      .eq('pack_id', pack.id)
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    const { data: prof } = await supabase
+      .from('profiles')
+      .select('full_name, phone, id_number')
+      .eq('id', user.id)
+      .maybeSingle();
+
+    setPurchaseDone({
+      purchase: latest || { id: r?.purchase_id || 'n/a', tracking_code: null, pickup_code: r?.pickup_code },
+      buyer: { ...prof, email: user.email },
+      relay: latest?.relay || null,
+    });
+
     if (mode === 'relay' && r?.pickup_code) {
       toast({ title: '✅ Pack acheté', description: `Code de retrait : ${r.pickup_code}` });
       showBrowserNotification('Pack acheté', `Code de retrait : ${r.pickup_code}`);
-      setTimeout(() => navigate('/mes-livraisons'), 1500);
     } else {
       toast({ title: '✅ Pack acheté', description: `${pack.name} sera livré à l'adresse renseignée.` });
       showBrowserNotification('Pack acheté', `${pack.name} — ${fmt(pack.price)}`);
-      setTimeout(() => navigate('/packs'), 1500);
     }
   };
 
