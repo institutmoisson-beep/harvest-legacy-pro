@@ -89,6 +89,19 @@ export default function MyRelayDeliveries() {
                 </div>
               )}
 
+              {buyer && r.pack && (
+                <div className="pt-2 border-t">
+                  <div className="text-xs text-muted-foreground mb-2">Documents officiels</div>
+                  <PackDocumentsActions
+                    purchase={r as any}
+                    buyer={buyer}
+                    pack={{ name: r.pack.name, price: r.pack.price, benefit_amount: r.pack.benefit_amount }}
+                    relay={r.relay}
+                    size="sm"
+                  />
+                </div>
+              )}
+
               {r.pickup_code && !r.picked_up_at && (
                 <div className="rounded-md border-2 border-dashed border-primary p-3 text-center">
                   <div className="text-xs text-muted-foreground">Code de retrait</div>
