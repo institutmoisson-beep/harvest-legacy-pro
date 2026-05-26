@@ -15,6 +15,7 @@ import { showBrowserNotification } from '@/utils/pushNotifications';
 import { formatPriceWithMSN, formatFCFA, fcfaToMsn, formatMSN } from '@/lib/currency';
 import { useUserCurrency } from '@/hooks/useUserCurrency';
 import RelayPointPicker from '@/components/relay/RelayPointPicker';
+import PackDocumentsActions from '@/components/documents/PackDocumentsActions';
 
 interface Pack {
   id: string;
@@ -49,6 +50,9 @@ export default function MLMPackDetail() {
   const [city, setCity] = useState('');
   const [phone, setPhone] = useState('');
   const [notes, setNotes] = useState('');
+  const [purchaseDone, setPurchaseDone] = useState<null | {
+    purchase: any; buyer: any; relay: any;
+  }>(null);
 
   useEffect(() => {
     document.title = pack ? `${pack.name} — Pack Moissonneur` : 'Pack Moissonneur';
@@ -107,14 +111,34 @@ export default function MLMPackDetail() {
       if (r?.message?.toLowerCase().includes('solde')) setTimeout(() => navigate('/dashboard'), 1500);
       return;
     }
+    // Récupérer la commande créée pour les documents
+    const { data: latest } = await (supabase as any)
+      .from('mlm_pack_purchases')
+      .select('id, tracking_code, pickup_code, delivery_mode, delivery_address, delivery_city, delivery_phone, delivery_notes, created_at, relay:delivery_relay_points(name,address,city,country,phone)')
+      .eq('buyer_id', user.id)
+      .eq('pack_id', pack.id)
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    const { data: prof } = await supabase
+      .from('profiles')
+      .select('full_name, phone, id_number')
+      .eq('id', user.id)
+      .maybeSingle();
+
+    setPurchaseDone({
+      purchase: latest || { id: r?.purchase_id || 'n/a', tracking_code: null, pickup_code: r?.pickup_code },
+      buyer: { ...prof, email: user.email },
+      relay: latest?.relay || null,
+    });
+
     if (mode === 'relay' && r?.pickup_code) {
       toast({ title: '✅ Pack acheté', description: `Code de retrait : ${r.pickup_code}` });
       showBrowserNotification('Pack acheté', `Code de retrait : ${r.pickup_code}`);
-      setTimeout(() => navigate('/mes-livraisons'), 1500);
     } else {
       toast({ title: '✅ Pack acheté', description: `${pack.name} sera livré à l'adresse renseignée.` });
       showBrowserNotification('Pack acheté', `${pack.name} — ${fmt(pack.price)}`);
-      setTimeout(() => navigate('/packs'), 1500);
     }
   };
 
@@ -131,10 +155,44 @@ export default function MLMPackDetail() {
   const insufficient = balance !== null && balance < pack.price;
   const priceMsn = fcfaToMsn(pack.price);
 
+  if (purchaseDone) {
+    const ref = purchaseDone.purchase?.tracking_code || purchaseDone.purchase?.pickup_code || purchaseDone.purchase?.id?.slice(0, 8);
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5 py-6 px-4">
+        <div className="container mx-auto max-w-2xl space-y-6">
+          <Card>
+            <CardContent className="p-6 space-y-4">
+              <div className="text-center space-y-2">
+                <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-emerald-100 text-emerald-700">✓</div>
+                <h1 className="text-2xl font-bold">Achat confirmé</h1>
+                <p className="text-muted-foreground">Téléchargez vos documents officiels signés par le Directeur Général.</p>
+                <div className="rounded-md border-2 border-dashed border-primary p-3 inline-block">
+                  <div className="text-xs text-muted-foreground">Code unique de commande</div>
+                  <div className="text-xl font-black tracking-widest text-primary">{ref}</div>
+                </div>
+              </div>
+              <PackDocumentsActions
+                purchase={purchaseDone.purchase}
+                buyer={purchaseDone.buyer}
+                pack={{ name: pack.name, price: pack.price, benefit_amount: pack.benefit_amount, description: pack.description }}
+                relay={purchaseDone.relay}
+              />
+              <div className="flex gap-2 pt-2">
+                <Button className="flex-1" variant="outline" onClick={() => navigate('/mes-livraisons')}>Mes livraisons</Button>
+                <Button className="flex-1" onClick={() => navigate('/packs')}>Autres packs</Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5 py-6 px-4">
       <div className="container mx-auto max-w-4xl space-y-6">
         <Button variant="ghost" onClick={() => navigate('/packs')}><ArrowLeft className="w-4 h-4 mr-2" />Tous les packs</Button>
+
 
         <Card className="overflow-hidden">
           {pack.images && pack.images.length > 0 && (

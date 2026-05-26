@@ -68,6 +68,7 @@ const MLMPacks = lazy(() => import("./pages/MLMPacks"));
 const MLMPackDetail = lazy(() => import("./pages/MLMPackDetail"));
 const AdminMLMPacks = lazy(() => import("./pages/AdminMLMPacks"));
 const MyRelayDeliveries = lazy(() => import("./pages/MyRelayDeliveries"));
+const BroadcastChannel = lazy(() => import("./pages/BroadcastChannel"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 // Composant interne pour utiliser les hooks après AuthProvider
@@ -139,6 +140,7 @@ const AppContent = () => {
         <Route path="/packs/:id" element={<MLMPackDetail />} />
         <Route path="/admin/packs" element={<AdminMLMPacks />} />
         <Route path="/mes-livraisons" element={<MyRelayDeliveries />} />
+        <Route path="/canal" element={<BroadcastChannel />} />
         {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
         <Route path="*" element={<NotFound />} />
       </Routes>

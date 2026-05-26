@@ -28,6 +28,9 @@ import AdminDeliveryRelaysManager from '@/components/dashboard/AdminDeliveryRela
 import AdminDeliveryPackagesManager from '@/components/dashboard/AdminDeliveryPackagesManager';
 import AdminEventsInline from '@/components/dashboard/AdminEventsInline';
 import AdminFundraisersInline from '@/components/dashboard/AdminFundraisersInline';
+import AdminTaskHub from '@/components/dashboard/AdminTaskHub';
+import BroadcastChannelAdmin from '@/components/dashboard/BroadcastChannelAdmin';
+import { useState as useStateReact } from 'react';
 
 export default function LevelAdmin() {
   const { user } = useAuth();
@@ -81,48 +84,57 @@ export default function LevelAdmin() {
           </CardContent>
         </Card>
 
-        <Tabs defaultValue="roles" className="w-full">
-          <TabsList className="flex flex-wrap gap-2">
-            <TabsTrigger value="roles">Rôles & Accès</TabsTrigger>
-            <TabsTrigger value="permissions">Permissions</TabsTrigger>
-            <TabsTrigger value="geographic">Représentants</TabsTrigger>
-            <TabsTrigger value="events">🎫 Événements</TabsTrigger>
-            <TabsTrigger value="fundraisers">💝 Cagnottes</TabsTrigger>
-            <TabsTrigger value="credits">Crédits & Épargnes</TabsTrigger>
-            <TabsTrigger value="orders">Commandes</TabsTrigger>
-            <TabsTrigger value="transactions">Transactions</TabsTrigger>
-            <TabsTrigger value="tontines">Tontines</TabsTrigger>
-            <TabsTrigger value="treasury">Trésorerie</TabsTrigger>
-            <TabsTrigger value="fund">Fonds Moissonneur</TabsTrigger>
-            <TabsTrigger value="delivery">Livraison</TabsTrigger>
-            <TabsTrigger value="promo">Codes Promo</TabsTrigger>
-            <TabsTrigger value="payments">Contacts Mobile Money</TabsTrigger>
-            <TabsTrigger value="crypto">Adresses Crypto</TabsTrigger>
-            <TabsTrigger value="visits">Visites</TabsTrigger>
-            <TabsTrigger value="audit">Audit</TabsTrigger>
-            <TabsTrigger value="members">Membres</TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="roles" className="mt-4 space-y-6"><RoleManagement /></TabsContent>
-          <TabsContent value="permissions"><PermissionsManager /></TabsContent>
-          <TabsContent value="geographic"><GeographicRepresentativesManager /></TabsContent>
-          <TabsContent value="events" className="mt-4"><AdminEventsInline /></TabsContent>
-          <TabsContent value="fundraisers" className="mt-4"><AdminFundraisersInline /></TabsContent>
-          <TabsContent value="credits" className="mt-4"><AdminCredits /></TabsContent>
-          <TabsContent value="orders" className="mt-4 space-y-6"><AdminOrdersExport /><AdminOrdersSection /></TabsContent>
-          <TabsContent value="transactions"><AdminTransactionsSection /></TabsContent>
-          <TabsContent value="tontines" className="mt-4 space-y-6"><AdminTontineAnalytics /></TabsContent>
-          <TabsContent value="treasury" className="mt-4 space-y-6"><TreasurySection /><FundWithdrawalsHistory /></TabsContent>
-          <TabsContent value="fund" className="mt-4 space-y-6"><MoissonneurFund /></TabsContent>
-          <TabsContent value="delivery" className="mt-4 space-y-6"><AdminDeliveryRelaysManager /><AdminDeliveryPackagesManager /></TabsContent>
-          <TabsContent value="promo" className="mt-4 space-y-6"><AdminPromoCodesManager /></TabsContent>
-          <TabsContent value="payments" className="mt-4 space-y-6"><PaymentContactsManager /></TabsContent>
-          <TabsContent value="crypto" className="mt-4 space-y-6"><AdminCryptoWalletsManager /></TabsContent>
-          <TabsContent value="visits" className="mt-4 space-y-6"><VisitsAnalyticsSection /></TabsContent>
-          <TabsContent value="audit" className="mt-4 space-y-6"><AuditLogsViewer /></TabsContent>
-          <TabsContent value="members" className="mt-4 space-y-6"><MemberManagement /></TabsContent>
-        </Tabs>
+        <LevelAdminTabs />
       </div>
     </div>
+  );
+}
+
+function LevelAdminTabs() {
+  const [tab, setTab] = useStateReact('hub');
+  return (
+    <Tabs value={tab} onValueChange={setTab} className="w-full">
+      <TabsList className="flex flex-wrap gap-2">
+        <TabsTrigger value="hub">🧭 Gestionnaire</TabsTrigger>
+        <TabsTrigger value="broadcast">📢 Canal</TabsTrigger>
+        <TabsTrigger value="roles">Rôles & Accès</TabsTrigger>
+        <TabsTrigger value="permissions">Permissions</TabsTrigger>
+        <TabsTrigger value="geographic">Représentants</TabsTrigger>
+        <TabsTrigger value="events">🎫 Événements</TabsTrigger>
+        <TabsTrigger value="fundraisers">💝 Cagnottes</TabsTrigger>
+        <TabsTrigger value="credits">Crédits & Épargnes</TabsTrigger>
+        <TabsTrigger value="orders">Commandes</TabsTrigger>
+        <TabsTrigger value="transactions">Transactions</TabsTrigger>
+        <TabsTrigger value="treasury">Trésorerie</TabsTrigger>
+        <TabsTrigger value="fund">Fonds Moissonneur</TabsTrigger>
+        <TabsTrigger value="delivery">Livraison</TabsTrigger>
+        <TabsTrigger value="promo">Codes Promo</TabsTrigger>
+        <TabsTrigger value="payments">Contacts Mobile Money</TabsTrigger>
+        <TabsTrigger value="crypto">Adresses Crypto</TabsTrigger>
+        <TabsTrigger value="visits">Visites</TabsTrigger>
+        <TabsTrigger value="audit">Audit</TabsTrigger>
+        <TabsTrigger value="members">Membres</TabsTrigger>
+      </TabsList>
+
+      <TabsContent value="hub" className="mt-4"><AdminTaskHub onNavigate={(t) => setTab(t)} /></TabsContent>
+      <TabsContent value="broadcast" className="mt-4"><BroadcastChannelAdmin /></TabsContent>
+      <TabsContent value="roles" className="mt-4 space-y-6"><RoleManagement /></TabsContent>
+      <TabsContent value="permissions"><PermissionsManager /></TabsContent>
+      <TabsContent value="geographic"><GeographicRepresentativesManager /></TabsContent>
+      <TabsContent value="events" className="mt-4"><AdminEventsInline /></TabsContent>
+      <TabsContent value="fundraisers" className="mt-4"><AdminFundraisersInline /></TabsContent>
+      <TabsContent value="credits" className="mt-4"><AdminCredits /></TabsContent>
+      <TabsContent value="orders" className="mt-4 space-y-6"><AdminOrdersExport /><AdminOrdersSection /></TabsContent>
+      <TabsContent value="transactions"><AdminTransactionsSection /></TabsContent>
+      <TabsContent value="treasury" className="mt-4 space-y-6"><TreasurySection /><FundWithdrawalsHistory /></TabsContent>
+      <TabsContent value="fund" className="mt-4 space-y-6"><MoissonneurFund /></TabsContent>
+      <TabsContent value="delivery" className="mt-4 space-y-6"><AdminDeliveryRelaysManager /><AdminDeliveryPackagesManager /></TabsContent>
+      <TabsContent value="promo" className="mt-4 space-y-6"><AdminPromoCodesManager /></TabsContent>
+      <TabsContent value="payments" className="mt-4 space-y-6"><PaymentContactsManager /></TabsContent>
+      <TabsContent value="crypto" className="mt-4 space-y-6"><AdminCryptoWalletsManager /></TabsContent>
+      <TabsContent value="visits" className="mt-4 space-y-6"><VisitsAnalyticsSection /></TabsContent>
+      <TabsContent value="audit" className="mt-4 space-y-6"><AuditLogsViewer /></TabsContent>
+      <TabsContent value="members" className="mt-4 space-y-6"><MemberManagement /></TabsContent>
+    </Tabs>
   );
 }

@@ -622,6 +622,77 @@ export type Database = {
         }
         Relationships: []
       }
+      broadcast_channel_messages: {
+        Row: {
+          author_id: string
+          body: string
+          category: string
+          created_at: string
+          id: string
+          image_url: string | null
+          link_label: string | null
+          link_url: string | null
+          published_at: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          author_id: string
+          body: string
+          category?: string
+          created_at?: string
+          id?: string
+          image_url?: string | null
+          link_label?: string | null
+          link_url?: string | null
+          published_at?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          author_id?: string
+          body?: string
+          category?: string
+          created_at?: string
+          id?: string
+          image_url?: string | null
+          link_label?: string | null
+          link_url?: string | null
+          published_at?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      broadcast_channel_reads: {
+        Row: {
+          id: string
+          message_id: string
+          read_at: string
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          message_id: string
+          read_at?: string
+          user_id: string
+        }
+        Update: {
+          id?: string
+          message_id?: string
+          read_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "broadcast_channel_reads_message_id_fkey"
+            columns: ["message_id"]
+            isOneToOne: false
+            referencedRelation: "broadcast_channel_messages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       call_center_agents: {
         Row: {
           active_call_id: string | null
@@ -3416,6 +3487,7 @@ export type Database = {
           price_paid: number
           relay_point_id: string | null
           status: string
+          tracking_code: string | null
         }
         Insert: {
           benefit_amount: number
@@ -3433,6 +3505,7 @@ export type Database = {
           price_paid: number
           relay_point_id?: string | null
           status?: string
+          tracking_code?: string | null
         }
         Update: {
           benefit_amount?: number
@@ -3450,6 +3523,7 @@ export type Database = {
           price_paid?: number
           relay_point_id?: string | null
           status?: string
+          tracking_code?: string | null
         }
         Relationships: [
           {
@@ -6055,6 +6129,7 @@ export type Database = {
       generate_pickup_code: { Args: never; Returns: string }
       generate_referral_code: { Args: never; Returns: string }
       generate_reservation_code: { Args: never; Returns: string }
+      generate_tracking_code: { Args: never; Returns: string }
       generate_withdrawal_code: { Args: never; Returns: string }
       get_agent_tier: {
         Args: { p_agent_id: string }

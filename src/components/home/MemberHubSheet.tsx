@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import CurrencySelector from '@/components/CurrencySelector';
 import {
   LayoutDashboard, Store, Wallet, Package, MessageSquare, LogIn, UserPlus,
-  Truck, Phone, Settings2, Users, Sparkles
+  Truck, Phone, Settings2, Users, Sparkles, Radio,
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 
@@ -12,6 +12,7 @@ const items = (logged: boolean) => [
   !logged && { to: '/auth', label: 'Connexion', icon: LogIn, color: 'from-emerald-500 to-emerald-600' },
   !logged && { to: '/auth?signup=1', label: 'Créer un compte', icon: UserPlus, color: 'from-violet-500 to-violet-600' },
   { to: '/dashboard', label: 'Mon tableau de bord', icon: LayoutDashboard, color: 'from-emerald-500 to-emerald-700' },
+  { to: '/canal', label: 'Canal Officiel', icon: Radio, color: 'from-violet-600 to-purple-700' },
   { to: '/marketplace', label: 'Marketplace boutiques', icon: Store, color: 'from-violet-500 to-violet-700' },
   { to: '/packs', label: 'Packs MSN Meno', icon: Package, color: 'from-amber-500 to-orange-600' },
   { to: '/my-shop', label: 'Ma boutique', icon: Store, color: 'from-pink-500 to-rose-600' },

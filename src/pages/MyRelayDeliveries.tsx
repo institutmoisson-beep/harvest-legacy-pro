@@ -6,15 +6,21 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Loader2, Package, MapPin, CheckCircle2, Truck, ArrowLeft } from 'lucide-react';
+import PackDocumentsActions from '@/components/documents/PackDocumentsActions';
 
 interface Row {
   id: string;
   created_at: string;
   delivery_mode: string;
+  tracking_code: string | null;
   pickup_code: string | null;
+  delivery_address: string | null;
+  delivery_city: string | null;
+  delivery_phone: string | null;
+  delivery_notes: string | null;
   picked_up_at: string | null;
   status: string;
-  pack: { name: string } | null;
+  pack: { name: string; price: number; benefit_amount: number } | null;
   relay: { name: string; address: string; city: string; country: string; phone: string | null } | null;
 }
 
@@ -23,6 +29,7 @@ export default function MyRelayDeliveries() {
   const navigate = useNavigate();
   const [rows, setRows] = useState<Row[]>([]);
   const [loading, setLoading] = useState(true);
+  const [buyer, setBuyer] = useState<any>(null);
 
   useEffect(() => {
     document.title = 'Mes livraisons en point relais';
@@ -32,13 +39,16 @@ export default function MyRelayDeliveries() {
     if (!user) { navigate('/auth'); return; }
     (async () => {
       setLoading(true);
-      const { data } = await (supabase as any)
-        .from('mlm_pack_purchases')
-        .select('id, created_at, delivery_mode, pickup_code, picked_up_at, status, pack:mlm_packs(name), relay:delivery_relay_points(name,address,city,country,phone)')
-        .eq('buyer_id', user.id)
-        .eq('delivery_mode', 'relay')
-        .order('created_at', { ascending: false });
+      const [{ data }, { data: prof }] = await Promise.all([
+        (supabase as any)
+          .from('mlm_pack_purchases')
+          .select('id, created_at, delivery_mode, tracking_code, pickup_code, delivery_address, delivery_city, delivery_phone, delivery_notes, picked_up_at, status, pack:mlm_packs(name,price,benefit_amount), relay:delivery_relay_points(name,address,city,country,phone)')
+          .eq('buyer_id', user.id)
+          .order('created_at', { ascending: false }),
+        supabase.from('profiles').select('full_name, phone, id_number').eq('id', user.id).maybeSingle(),
+      ]);
       setRows((data || []) as any);
+      setBuyer({ ...(prof || {}), email: user.email });
       setLoading(false);
     })();
   }, [user, navigate]);
@@ -49,7 +59,7 @@ export default function MyRelayDeliveries() {
     <div className="min-h-screen bg-gradient-to-br from-background to-primary/5 py-6 px-4">
       <div className="container mx-auto max-w-3xl space-y-4">
         <Button variant="ghost" onClick={() => navigate('/dashboard')}><ArrowLeft className="w-4 h-4 mr-2" />Retour</Button>
-        <h1 className="text-2xl font-bold flex items-center gap-2"><Truck className="w-6 h-6 text-primary" />Mes retraits en point relais</h1>
+        <h1 className="text-2xl font-bold flex items-center gap-2"><Truck className="w-6 h-6 text-primary" />Mes commandes & livraisons</h1>
 
         {rows.length === 0 && (
           <Card><CardContent className="p-8 text-center text-muted-foreground">
@@ -76,6 +86,19 @@ export default function MyRelayDeliveries() {
                   <div className="font-semibold flex items-center gap-1"><MapPin className="w-4 h-4 text-primary" />{r.relay.name}</div>
                   <div className="text-muted-foreground">{r.relay.address}, {r.relay.city}, {r.relay.country}</div>
                   {r.relay.phone && <div className="text-muted-foreground">📞 {r.relay.phone}</div>}
+                </div>
+              )}
+
+              {buyer && r.pack && (
+                <div className="pt-2 border-t">
+                  <div className="text-xs text-muted-foreground mb-2">Documents officiels</div>
+                  <PackDocumentsActions
+                    purchase={r as any}
+                    buyer={buyer}
+                    pack={{ name: r.pack.name, price: r.pack.price, benefit_amount: r.pack.benefit_amount }}
+                    relay={r.relay}
+                    size="sm"
+                  />
                 </div>
               )}
 

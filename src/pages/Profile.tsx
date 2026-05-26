@@ -8,8 +8,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Separator } from "@/components/ui/separator";
 import { toast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, User, Lock, FileText } from "lucide-react";
+import { ArrowLeft, User, Lock, FileText, Download } from "lucide-react";
 import JobDomainSelector from "@/components/dashboard/JobDomainSelector";
+import { generateMembershipContract } from "@/lib/documents/membershipContract";
 
 export default function Profile() {
   const { user, updatePassword } = useAuth();
@@ -130,6 +131,29 @@ export default function Profile() {
         </Button>
 
         <div className="space-y-6">
+          <Card className="border-primary/40">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2"><FileText className="h-5 w-5 text-primary" />Contrat d'adhésion communautaire</CardTitle>
+              <CardDescription>
+                Téléchargez votre contrat d'adhésion à la communauté Moissonneur, pré-signé par le Directeur Général.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Button
+                onClick={() => generateMembershipContract({
+                  full_name: profile.full_name,
+                  phone: profile.phone,
+                  email: user?.email,
+                  id_number: profile.id_number,
+                })}
+                style={{ background: 'linear-gradient(135deg,#00A859,#7C3AED)' }}
+                className="text-white"
+              >
+                <Download className="w-4 h-4 mr-2" /> Télécharger mon contrat d'adhésion (PDF)
+              </Button>
+            </CardContent>
+          </Card>
+
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
