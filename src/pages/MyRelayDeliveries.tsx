@@ -6,15 +6,21 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Loader2, Package, MapPin, CheckCircle2, Truck, ArrowLeft } from 'lucide-react';
+import PackDocumentsActions from '@/components/documents/PackDocumentsActions';
 
 interface Row {
   id: string;
   created_at: string;
   delivery_mode: string;
+  tracking_code: string | null;
   pickup_code: string | null;
+  delivery_address: string | null;
+  delivery_city: string | null;
+  delivery_phone: string | null;
+  delivery_notes: string | null;
   picked_up_at: string | null;
   status: string;
-  pack: { name: string } | null;
+  pack: { name: string; price: number; benefit_amount: number } | null;
   relay: { name: string; address: string; city: string; country: string; phone: string | null } | null;
 }
 
@@ -23,6 +29,7 @@ export default function MyRelayDeliveries() {
   const navigate = useNavigate();
   const [rows, setRows] = useState<Row[]>([]);
   const [loading, setLoading] = useState(true);
+  const [buyer, setBuyer] = useState<any>(null);
 
   useEffect(() => {
     document.title = 'Mes livraisons en point relais';
@@ -32,13 +39,16 @@ export default function MyRelayDeliveries() {
     if (!user) { navigate('/auth'); return; }
     (async () => {
       setLoading(true);
-      const { data } = await (supabase as any)
-        .from('mlm_pack_purchases')
-        .select('id, created_at, delivery_mode, pickup_code, picked_up_at, status, pack:mlm_packs(name), relay:delivery_relay_points(name,address,city,country,phone)')
-        .eq('buyer_id', user.id)
-        .eq('delivery_mode', 'relay')
-        .order('created_at', { ascending: false });
+      const [{ data }, { data: prof }] = await Promise.all([
+        (supabase as any)
+          .from('mlm_pack_purchases')
+          .select('id, created_at, delivery_mode, tracking_code, pickup_code, delivery_address, delivery_city, delivery_phone, delivery_notes, picked_up_at, status, pack:mlm_packs(name,price,benefit_amount), relay:delivery_relay_points(name,address,city,country,phone)')
+          .eq('buyer_id', user.id)
+          .order('created_at', { ascending: false }),
+        supabase.from('profiles').select('full_name, phone, id_number').eq('id', user.id).maybeSingle(),
+      ]);
       setRows((data || []) as any);
+      setBuyer({ ...(prof || {}), email: user.email });
       setLoading(false);
     })();
   }, [user, navigate]);
