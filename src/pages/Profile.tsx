@@ -8,8 +8,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Separator } from "@/components/ui/separator";
 import { toast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, User, Lock, FileText } from "lucide-react";
+import { ArrowLeft, User, Lock, FileText, Download } from "lucide-react";
 import JobDomainSelector from "@/components/dashboard/JobDomainSelector";
+import { generateMembershipContract } from "@/lib/documents/membershipContract";
 
 export default function Profile() {
   const { user, updatePassword } = useAuth();
