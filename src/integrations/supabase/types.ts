@@ -1578,6 +1578,13 @@ export type Database = {
             foreignKeyName: "delivery_offers_package_id_fkey"
             columns: ["package_id"]
             isOneToOne: false
+            referencedRelation: "available_delivery_packages_public"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "delivery_offers_package_id_fkey"
+            columns: ["package_id"]
+            isOneToOne: false
             referencedRelation: "delivery_packages"
             referencedColumns: ["id"]
           },
@@ -1726,6 +1733,13 @@ export type Database = {
           rating?: number | null
         }
         Relationships: [
+          {
+            foreignKeyName: "delivery_ratings_package_id_fkey"
+            columns: ["package_id"]
+            isOneToOne: false
+            referencedRelation: "available_delivery_packages_public"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "delivery_ratings_package_id_fkey"
             columns: ["package_id"]
@@ -6053,6 +6067,78 @@ export type Database = {
           monthly_volume: number | null
           monthly_withdrawals: number | null
           performance_month: string | null
+        }
+        Relationships: []
+      }
+      available_delivery_packages_public: {
+        Row: {
+          approximate_latitude: number | null
+          approximate_longitude: number | null
+          created_at: string | null
+          customer_city: string | null
+          delivery_commission: number | null
+          id: string | null
+        }
+        Insert: {
+          approximate_latitude?: never
+          approximate_longitude?: never
+          created_at?: string | null
+          customer_city?: string | null
+          delivery_commission?: number | null
+          id?: string | null
+        }
+        Update: {
+          approximate_latitude?: never
+          approximate_longitude?: never
+          created_at?: string | null
+          customer_city?: string | null
+          delivery_commission?: number | null
+          id?: string | null
+        }
+        Relationships: []
+      }
+      crypto_payment_settings_public: {
+        Row: {
+          api_endpoint: string | null
+          created_at: string | null
+          id: number | null
+          is_active: boolean | null
+          provider: string | null
+        }
+        Insert: {
+          api_endpoint?: string | null
+          created_at?: string | null
+          id?: number | null
+          is_active?: boolean | null
+          provider?: string | null
+        }
+        Update: {
+          api_endpoint?: string | null
+          created_at?: string | null
+          id?: number | null
+          is_active?: boolean | null
+          provider?: string | null
+        }
+        Relationships: []
+      }
+      delivery_providers_public: {
+        Row: {
+          created_at: string | null
+          id: string | null
+          is_active: boolean | null
+          name: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string | null
+          is_active?: boolean | null
+          name?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string | null
+          is_active?: boolean | null
+          name?: string | null
         }
         Relationships: []
       }
