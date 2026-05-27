@@ -27,6 +27,7 @@ import FundWithdrawalsHistory from '@/components/dashboard/FundWithdrawalsHistor
 import MoissonneurFund from '@/components/dashboard/MoissonneurFund';
 import CryptoPaymentOptions from '@/components/dashboard/CryptoPaymentOptions';
 import AdminPromoCodesManager from '@/components/dashboard/AdminPromoCodesManager';
+import AdminFeaturesGateway from '@/components/dashboard/AdminFeaturesGateway';
 
 import RoleManagement from '@/components/dashboard/RoleManagement';
 import PermissionsManager from '@/components/dashboard/PermissionsManager';
