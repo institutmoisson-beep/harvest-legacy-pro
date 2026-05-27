@@ -1578,13 +1578,6 @@ export type Database = {
             foreignKeyName: "delivery_offers_package_id_fkey"
             columns: ["package_id"]
             isOneToOne: false
-            referencedRelation: "available_delivery_packages_public"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "delivery_offers_package_id_fkey"
-            columns: ["package_id"]
-            isOneToOne: false
             referencedRelation: "delivery_packages"
             referencedColumns: ["id"]
           },
@@ -1733,13 +1726,6 @@ export type Database = {
           rating?: number | null
         }
         Relationships: [
-          {
-            foreignKeyName: "delivery_ratings_package_id_fkey"
-            columns: ["package_id"]
-            isOneToOne: false
-            referencedRelation: "available_delivery_packages_public"
-            referencedColumns: ["id"]
-          },
           {
             foreignKeyName: "delivery_ratings_package_id_fkey"
             columns: ["package_id"]
@@ -6070,33 +6056,6 @@ export type Database = {
         }
         Relationships: []
       }
-      available_delivery_packages_public: {
-        Row: {
-          approximate_latitude: number | null
-          approximate_longitude: number | null
-          created_at: string | null
-          customer_city: string | null
-          delivery_commission: number | null
-          id: string | null
-        }
-        Insert: {
-          approximate_latitude?: never
-          approximate_longitude?: never
-          created_at?: string | null
-          customer_city?: string | null
-          delivery_commission?: number | null
-          id?: string | null
-        }
-        Update: {
-          approximate_latitude?: never
-          approximate_longitude?: never
-          created_at?: string | null
-          customer_city?: string | null
-          delivery_commission?: number | null
-          id?: string | null
-        }
-        Relationships: []
-      }
       crypto_payment_settings_public: {
         Row: {
           api_endpoint: string | null
@@ -6236,6 +6195,17 @@ export type Database = {
           phone: string
           referral_code: string
           roles: Json
+        }[]
+      }
+      get_available_delivery_packages: {
+        Args: never
+        Returns: {
+          approximate_latitude: number
+          approximate_longitude: number
+          created_at: string
+          customer_city: string
+          delivery_commission: number
+          id: string
         }[]
       }
       get_role_access_level: {
