@@ -6056,6 +6056,51 @@ export type Database = {
         }
         Relationships: []
       }
+      crypto_payment_settings_public: {
+        Row: {
+          api_endpoint: string | null
+          created_at: string | null
+          id: number | null
+          is_active: boolean | null
+          provider: string | null
+        }
+        Insert: {
+          api_endpoint?: string | null
+          created_at?: string | null
+          id?: number | null
+          is_active?: boolean | null
+          provider?: string | null
+        }
+        Update: {
+          api_endpoint?: string | null
+          created_at?: string | null
+          id?: number | null
+          is_active?: boolean | null
+          provider?: string | null
+        }
+        Relationships: []
+      }
+      delivery_providers_public: {
+        Row: {
+          created_at: string | null
+          id: string | null
+          is_active: boolean | null
+          name: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string | null
+          is_active?: boolean | null
+          name?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string | null
+          is_active?: boolean | null
+          name?: string | null
+        }
+        Relationships: []
+      }
       users_with_roles: {
         Row: {
           career_level: Database["public"]["Enums"]["career_level"] | null
@@ -6150,6 +6195,17 @@ export type Database = {
           phone: string
           referral_code: string
           roles: Json
+        }[]
+      }
+      get_available_delivery_packages: {
+        Args: never
+        Returns: {
+          approximate_latitude: number
+          approximate_longitude: number
+          created_at: string
+          customer_city: string
+          delivery_commission: number
+          id: string
         }[]
       }
       get_role_access_level: {

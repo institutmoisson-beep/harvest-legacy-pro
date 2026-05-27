@@ -177,18 +177,23 @@ export const useNearbyDeliveries = () => {
     ) => {
       setLoading(true);
       try {
-        const { data, error } = await supabase
-          .from('delivery_packages')
-          .select('*')
-          .eq('delivery_method', 'community_delivery')
-          .eq('status', 'pending')
-          .is('deliverer_id', null)
-          .order('created_at', { ascending: false });
+        const { data, error } = await supabase.rpc('get_available_delivery_packages' as any);
 
         if (error) throw error;
 
+        const safePackages = (data || []).map((pkg: any) => ({
+          id: pkg.id,
+          customer_city: pkg.customer_city,
+          customer_address: 'Zone approximative affichée après acceptation',
+          customer_phone: 'Masqué avant attribution',
+          customer_latitude: pkg.approximate_latitude,
+          customer_longitude: pkg.approximate_longitude,
+          delivery_commission: pkg.delivery_commission,
+          created_at: pkg.created_at,
+        }));
+
         // Filter by distance
-        const nearby = (data || []).filter((pkg) => {
+        const nearby = safePackages.filter((pkg: any) => {
           if (!pkg.customer_latitude || !pkg.customer_longitude) return false;
 
           const distance = calculateDistance(
