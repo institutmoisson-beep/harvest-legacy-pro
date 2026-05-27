@@ -187,6 +187,7 @@ const App = () => {
         <AuthProvider>
           <UserCurrencyProvider>
             <VoiceCall hideTrigger />
+            <PWAInstallPrompt />
             <AppContent />
           </UserCurrencyProvider>
         </AuthProvider>
