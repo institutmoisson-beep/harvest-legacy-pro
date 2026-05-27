@@ -10,6 +10,7 @@ import { UserCurrencyProvider } from "@/hooks/useUserCurrency";
 import { usePWABadge } from "@/hooks/usePWABadge";
 import LoadingScreen from "@/components/LoadingScreen";
 import VoiceCall from '@/components/VoiceCall';
+import PWAInstallPrompt from '@/components/PWAInstallPrompt';
 import { supabase } from '@/integrations/supabase/client';
 
 // Lazy load des pages pour réduire le bundle initial
@@ -186,6 +187,7 @@ const App = () => {
         <AuthProvider>
           <UserCurrencyProvider>
             <VoiceCall hideTrigger />
+            <PWAInstallPrompt />
             <AppContent />
           </UserCurrencyProvider>
         </AuthProvider>
