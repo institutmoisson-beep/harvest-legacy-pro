@@ -27,6 +27,7 @@ import FundWithdrawalsHistory from '@/components/dashboard/FundWithdrawalsHistor
 import MoissonneurFund from '@/components/dashboard/MoissonneurFund';
 import CryptoPaymentOptions from '@/components/dashboard/CryptoPaymentOptions';
 import AdminPromoCodesManager from '@/components/dashboard/AdminPromoCodesManager';
+import AdminFeaturesGateway from '@/components/dashboard/AdminFeaturesGateway';
 
 import RoleManagement from '@/components/dashboard/RoleManagement';
 import PermissionsManager from '@/components/dashboard/PermissionsManager';
@@ -291,21 +292,6 @@ export default function AdminDashboard() {
             </p>
           </div>
           <div className="flex gap-2">
-            <Button onClick={() => navigate('/admin/call-center')} variant="outline">
-              📞 Centre d'Appel
-            </Button>
-            <Button onClick={() => navigate('/admin/deliveries')} variant="outline">
-              📦 Livraisons
-            </Button>
-            <Button onClick={() => navigate('/admin/transport')} variant="outline">
-              🚗 Transport
-            </Button>
-            <Button onClick={() => navigate('/admin/immo')} variant="outline">
-              🏠 MSN Immo
-            </Button>
-            <Button onClick={() => navigate('/admin/enterprises')} variant="outline">
-              🏢 Entreprises
-            </Button>
             <Button onClick={() => navigate('/dashboard')} variant="outline">
               Mon Dashboard
             </Button>
@@ -313,6 +299,11 @@ export default function AdminDashboard() {
               Déconnexion
             </Button>
           </div>
+        </div>
+
+        {/* Centralized feature gateway */}
+        <div className="mb-8">
+          <AdminFeaturesGateway />
         </div>
 
         {/* Stats Cards */}

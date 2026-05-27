@@ -30,7 +30,9 @@ import AdminEventsInline from '@/components/dashboard/AdminEventsInline';
 import AdminFundraisersInline from '@/components/dashboard/AdminFundraisersInline';
 import AdminTaskHub from '@/components/dashboard/AdminTaskHub';
 import BroadcastChannelAdmin from '@/components/dashboard/BroadcastChannelAdmin';
+import AdminFeaturesGateway from '@/components/dashboard/AdminFeaturesGateway';
 import { useState as useStateReact } from 'react';
+import { useSearchParams } from 'react-router-dom';
 
 export default function LevelAdmin() {
   const { user } = useAuth();
@@ -84,6 +86,10 @@ export default function LevelAdmin() {
           </CardContent>
         </Card>
 
+        <div className="mb-6">
+          <AdminFeaturesGateway />
+        </div>
+
         <LevelAdminTabs />
       </div>
     </div>
@@ -91,9 +97,15 @@ export default function LevelAdmin() {
 }
 
 function LevelAdminTabs() {
-  const [tab, setTab] = useStateReact('hub');
+  const [searchParams, setSearchParams] = useSearchParams();
+  const initial = searchParams.get('tab') || 'hub';
+  const [tab, setTab] = useStateReact(initial);
+  const handleTabChange = (v: string) => {
+    setTab(v);
+    setSearchParams({ tab: v }, { replace: true });
+  };
   return (
-    <Tabs value={tab} onValueChange={setTab} className="w-full">
+    <Tabs value={tab} onValueChange={handleTabChange} className="w-full">
       <TabsList className="flex flex-wrap gap-2">
         <TabsTrigger value="hub">🧭 Gestionnaire</TabsTrigger>
         <TabsTrigger value="broadcast">📢 Canal</TabsTrigger>
