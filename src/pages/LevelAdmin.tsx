@@ -86,6 +86,10 @@ export default function LevelAdmin() {
           </CardContent>
         </Card>
 
+        <div className="mb-6">
+          <AdminFeaturesGateway />
+        </div>
+
         <LevelAdminTabs />
       </div>
     </div>
@@ -93,9 +97,15 @@ export default function LevelAdmin() {
 }
 
 function LevelAdminTabs() {
-  const [tab, setTab] = useStateReact('hub');
+  const [searchParams, setSearchParams] = useSearchParams();
+  const initial = searchParams.get('tab') || 'hub';
+  const [tab, setTab] = useStateReact(initial);
+  const handleTabChange = (v: string) => {
+    setTab(v);
+    setSearchParams({ tab: v }, { replace: true });
+  };
   return (
-    <Tabs value={tab} onValueChange={setTab} className="w-full">
+    <Tabs value={tab} onValueChange={handleTabChange} className="w-full">
       <TabsList className="flex flex-wrap gap-2">
         <TabsTrigger value="hub">🧭 Gestionnaire</TabsTrigger>
         <TabsTrigger value="broadcast">📢 Canal</TabsTrigger>
