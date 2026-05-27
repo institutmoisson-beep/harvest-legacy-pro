@@ -3332,7 +3332,6 @@ export type Database = {
           id: number
           merchant_id: number | null
           name: string | null
-          password_hash: string | null
         }
         Insert: {
           active?: boolean | null
@@ -3341,7 +3340,6 @@ export type Database = {
           id?: number
           merchant_id?: number | null
           name?: string | null
-          password_hash?: string | null
         }
         Update: {
           active?: boolean | null
@@ -3350,7 +3348,6 @@ export type Database = {
           id?: number
           merchant_id?: number | null
           name?: string | null
-          password_hash?: string | null
         }
         Relationships: [
           {
