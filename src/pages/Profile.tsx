@@ -27,6 +27,11 @@ export default function Profile() {
     newPassword: "",
     confirmPassword: "",
   });
+  const [activePack, setActivePack] = useState<{
+    pack_name: string;
+    purchased_at: string;
+    tracking_code: string | null;
+  } | null>(null);
 
   useEffect(() => {
     if (!user) {
