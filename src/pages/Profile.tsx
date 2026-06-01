@@ -60,6 +60,11 @@ export default function Profile() {
       });
     }
   };
+
+  const loadProfile = async () => {
+    try {
+      const { data, error } = await supabase
+        .from("profiles")
         .select("full_name, phone, id_number")
         .eq("id", user?.id)
         .single();
