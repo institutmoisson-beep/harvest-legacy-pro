@@ -39,12 +39,27 @@ export default function Profile() {
       return;
     }
     loadProfile();
+    loadActivePack();
   }, [user, navigate]);
 
-  const loadProfile = async () => {
-    try {
-      const { data, error } = await supabase
-        .from("profiles")
+  const loadActivePack = async () => {
+    if (!user) return;
+    const { data } = await (supabase as any)
+      .from("mlm_pack_purchases")
+      .select("created_at, tracking_code, mlm_packs(name)")
+      .eq("buyer_id", user.id)
+      .eq("status", "completed")
+      .order("created_at", { ascending: true })
+      .limit(1)
+      .maybeSingle();
+    if (data) {
+      setActivePack({
+        pack_name: data.mlm_packs?.name || "Pack MLM",
+        purchased_at: data.created_at,
+        tracking_code: data.tracking_code || null,
+      });
+    }
+  };
         .select("full_name, phone, id_number")
         .eq("id", user?.id)
         .single();
