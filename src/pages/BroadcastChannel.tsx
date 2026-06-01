@@ -5,7 +5,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Loader2, ArrowLeft, Megaphone, ExternalLink, CheckCircle2, Radio } from 'lucide-react';
+import { Loader2, ArrowLeft, Megaphone, ExternalLink, CheckCircle2, Radio, User as UserIcon } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 
 interface Msg {
@@ -17,6 +17,7 @@ interface Msg {
   link_label: string | null;
   category: string;
   published_at: string;
+  target_user_id: string | null;
 }
 
 export default function BroadcastChannel() {
@@ -83,8 +84,11 @@ export default function BroadcastChannel() {
               <CardContent className="p-5 space-y-3">
                 <div className="flex items-start justify-between gap-3">
                   <div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 flex-wrap">
                       <Badge variant="secondary" className="capitalize">{m.category}</Badge>
+                      {m.target_user_id && (
+                        <Badge className="bg-primary"><UserIcon className="w-3 h-3 mr-1" />Message privé</Badge>
+                      )}
                       {!isRead && <Badge className="bg-primary">Nouveau</Badge>}
                     </div>
                     <h2 className="text-lg font-bold mt-1">{m.title}</h2>

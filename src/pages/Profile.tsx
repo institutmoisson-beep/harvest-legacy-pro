@@ -8,9 +8,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Separator } from "@/components/ui/separator";
 import { toast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, User, Lock, FileText, Download } from "lucide-react";
+import { ArrowLeft, User, Lock, FileText, Download, ShieldCheck, Scroll, Lock as LockIcon } from "lucide-react";
 import JobDomainSelector from "@/components/dashboard/JobDomainSelector";
 import { generateMembershipContract } from "@/lib/documents/membershipContract";
+import { generateStatutes } from "@/lib/documents/statutes";
+import { generateInternalRules } from "@/lib/documents/internalRules";
 
 export default function Profile() {
   const { user, updatePassword } = useAuth();
@@ -25,6 +27,11 @@ export default function Profile() {
     newPassword: "",
     confirmPassword: "",
   });
+  const [activePack, setActivePack] = useState<{
+    pack_name: string;
+    purchased_at: string;
+    tracking_code: string | null;
+  } | null>(null);
 
   useEffect(() => {
     if (!user) {
@@ -32,7 +39,27 @@ export default function Profile() {
       return;
     }
     loadProfile();
+    loadActivePack();
   }, [user, navigate]);
+
+  const loadActivePack = async () => {
+    if (!user) return;
+    const { data } = await (supabase as any)
+      .from("mlm_pack_purchases")
+      .select("created_at, tracking_code, mlm_packs(name)")
+      .eq("buyer_id", user.id)
+      .eq("status", "completed")
+      .order("created_at", { ascending: true })
+      .limit(1)
+      .maybeSingle();
+    if (data) {
+      setActivePack({
+        pack_name: data.mlm_packs?.name || "Pack MLM",
+        purchased_at: data.created_at,
+        tracking_code: data.tracking_code || null,
+      });
+    }
+  };
 
   const loadProfile = async () => {
     try {
@@ -133,24 +160,63 @@ export default function Profile() {
         <div className="space-y-6">
           <Card className="border-primary/40">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2"><FileText className="h-5 w-5 text-primary" />Contrat d'adhésion communautaire</CardTitle>
+              <CardTitle className="flex items-center gap-2"><FileText className="h-5 w-5 text-primary" />Documents officiels Institut Moisson</CardTitle>
               <CardDescription>
-                Téléchargez votre contrat d'adhésion à la communauté Moissonneur, pré-signé par le Directeur Général.
+                {activePack ? (
+                  <>Pack actif : <span className="font-semibold text-foreground">{activePack.pack_name}</span> — Votre MLM est activé. Téléchargez vos contrats officiels pré-signés par la Direction Générale.</>
+                ) : (
+                  "Achetez un pack MLM pour activer votre statut de Membre Moissonneur et débloquer vos contrats officiels."
+                )}
               </CardDescription>
             </CardHeader>
-            <CardContent>
-              <Button
-                onClick={() => generateMembershipContract({
-                  full_name: profile.full_name,
-                  phone: profile.phone,
-                  email: user?.email,
-                  id_number: profile.id_number,
-                })}
-                style={{ background: 'linear-gradient(135deg,#00A859,#7C3AED)' }}
-                className="text-white"
-              >
-                <Download className="w-4 h-4 mr-2" /> Télécharger mon contrat d'adhésion (PDF)
-              </Button>
+            <CardContent className="space-y-3">
+              {!activePack && (
+                <div className="flex items-center gap-3 rounded-md border border-dashed p-4 bg-muted/40 text-sm text-muted-foreground">
+                  <LockIcon className="h-5 w-5 text-muted-foreground shrink-0" />
+                  <div className="flex-1">
+                    <div className="font-medium text-foreground">Documents verrouillés</div>
+                    L'accès aux contrats d'adhésion, statuts et règlement intérieur est réservé aux membres ayant souscrit un Pack MLM.
+                  </div>
+                  <Button size="sm" variant="outline" onClick={() => navigate('/mlm-packs')}>Voir les packs</Button>
+                </div>
+              )}
+
+              {activePack && (
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                  <Button
+                    onClick={() => generateMembershipContract(
+                      {
+                        full_name: profile.full_name,
+                        phone: profile.phone,
+                        email: user?.email,
+                        id_number: profile.id_number,
+                      },
+                      activePack.tracking_code || undefined,
+                      {
+                        user_id: user?.id,
+                        pack_name: activePack.pack_name,
+                        registration_date: new Date(activePack.purchased_at).toLocaleString('fr-FR'),
+                      },
+                    )}
+                    style={{ background: 'linear-gradient(135deg,#00A859,#7C3AED)' }}
+                    className="text-white"
+                  >
+                    <Download className="w-4 h-4 mr-2" /> Contrat d'adhésion
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={() => generateStatutes(activePack.tracking_code || undefined)}
+                  >
+                    <Scroll className="w-4 h-4 mr-2" /> Statuts de l'organisation
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={() => generateInternalRules(activePack.tracking_code || undefined)}
+                  >
+                    <ShieldCheck className="w-4 h-4 mr-2" /> Règlement intérieur
+                  </Button>
+                </div>
+              )}
             </CardContent>
           </Card>
 

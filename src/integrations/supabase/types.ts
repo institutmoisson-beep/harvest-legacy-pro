@@ -633,6 +633,7 @@ export type Database = {
           link_label: string | null
           link_url: string | null
           published_at: string
+          target_user_id: string | null
           title: string
           updated_at: string
         }
@@ -646,6 +647,7 @@ export type Database = {
           link_label?: string | null
           link_url?: string | null
           published_at?: string
+          target_user_id?: string | null
           title: string
           updated_at?: string
         }
@@ -659,6 +661,7 @@ export type Database = {
           link_label?: string | null
           link_url?: string | null
           published_at?: string
+          target_user_id?: string | null
           title?: string
           updated_at?: string
         }
