@@ -160,24 +160,63 @@ export default function Profile() {
         <div className="space-y-6">
           <Card className="border-primary/40">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2"><FileText className="h-5 w-5 text-primary" />Contrat d'adhésion communautaire</CardTitle>
+              <CardTitle className="flex items-center gap-2"><FileText className="h-5 w-5 text-primary" />Documents officiels Institut Moisson</CardTitle>
               <CardDescription>
-                Téléchargez votre contrat d'adhésion à la communauté Moissonneur, pré-signé par le Directeur Général.
+                {activePack ? (
+                  <>Pack actif : <span className="font-semibold text-foreground">{activePack.pack_name}</span> — Votre MLM est activé. Téléchargez vos contrats officiels pré-signés par la Direction Générale.</>
+                ) : (
+                  "Achetez un pack MLM pour activer votre statut de Membre Moissonneur et débloquer vos contrats officiels."
+                )}
               </CardDescription>
             </CardHeader>
-            <CardContent>
-              <Button
-                onClick={() => generateMembershipContract({
-                  full_name: profile.full_name,
-                  phone: profile.phone,
-                  email: user?.email,
-                  id_number: profile.id_number,
-                })}
-                style={{ background: 'linear-gradient(135deg,#00A859,#7C3AED)' }}
-                className="text-white"
-              >
-                <Download className="w-4 h-4 mr-2" /> Télécharger mon contrat d'adhésion (PDF)
-              </Button>
+            <CardContent className="space-y-3">
+              {!activePack && (
+                <div className="flex items-center gap-3 rounded-md border border-dashed p-4 bg-muted/40 text-sm text-muted-foreground">
+                  <LockIcon className="h-5 w-5 text-muted-foreground shrink-0" />
+                  <div className="flex-1">
+                    <div className="font-medium text-foreground">Documents verrouillés</div>
+                    L'accès aux contrats d'adhésion, statuts et règlement intérieur est réservé aux membres ayant souscrit un Pack MLM.
+                  </div>
+                  <Button size="sm" variant="outline" onClick={() => navigate('/mlm-packs')}>Voir les packs</Button>
+                </div>
+              )}
+
+              {activePack && (
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                  <Button
+                    onClick={() => generateMembershipContract(
+                      {
+                        full_name: profile.full_name,
+                        phone: profile.phone,
+                        email: user?.email,
+                        id_number: profile.id_number,
+                      },
+                      activePack.tracking_code || undefined,
+                      {
+                        user_id: user?.id,
+                        pack_name: activePack.pack_name,
+                        registration_date: new Date(activePack.purchased_at).toLocaleString('fr-FR'),
+                      },
+                    )}
+                    style={{ background: 'linear-gradient(135deg,#00A859,#7C3AED)' }}
+                    className="text-white"
+                  >
+                    <Download className="w-4 h-4 mr-2" /> Contrat d'adhésion
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={() => generateStatutes(activePack.tracking_code || undefined)}
+                  >
+                    <Scroll className="w-4 h-4 mr-2" /> Statuts de l'organisation
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={() => generateInternalRules(activePack.tracking_code || undefined)}
+                  >
+                    <ShieldCheck className="w-4 h-4 mr-2" /> Règlement intérieur
+                  </Button>
+                </div>
+              )}
             </CardContent>
           </Card>
 
