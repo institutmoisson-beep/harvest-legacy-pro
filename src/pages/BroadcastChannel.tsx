@@ -5,7 +5,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Loader2, ArrowLeft, Megaphone, ExternalLink, CheckCircle2, Radio } from 'lucide-react';
+import { Loader2, ArrowLeft, Megaphone, ExternalLink, CheckCircle2, Radio, User as UserIcon } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 
 interface Msg {
@@ -17,6 +17,7 @@ interface Msg {
   link_label: string | null;
   category: string;
   published_at: string;
+  target_user_id: string | null;
 }
 
 export default function BroadcastChannel() {
