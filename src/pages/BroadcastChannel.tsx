@@ -84,8 +84,11 @@ export default function BroadcastChannel() {
               <CardContent className="p-5 space-y-3">
                 <div className="flex items-start justify-between gap-3">
                   <div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 flex-wrap">
                       <Badge variant="secondary" className="capitalize">{m.category}</Badge>
+                      {m.target_user_id && (
+                        <Badge className="bg-primary"><UserIcon className="w-3 h-3 mr-1" />Message privé</Badge>
+                      )}
                       {!isRead && <Badge className="bg-primary">Nouveau</Badge>}
                     </div>
                     <h2 className="text-lg font-bold mt-1">{m.title}</h2>
