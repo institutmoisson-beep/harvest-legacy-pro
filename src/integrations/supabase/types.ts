@@ -3599,6 +3599,184 @@ export type Database = {
         }
         Relationships: []
       }
+      moisson_community_investments: {
+        Row: {
+          contract_signed_url: string | null
+          created_at: string
+          id: string
+          investment_date: string
+          payment_method: string | null
+          payout_received: number
+          project_id: string
+          shares_purchased: number
+          total_amount_invested: number
+          user_id: string
+        }
+        Insert: {
+          contract_signed_url?: string | null
+          created_at?: string
+          id?: string
+          investment_date?: string
+          payment_method?: string | null
+          payout_received?: number
+          project_id: string
+          shares_purchased: number
+          total_amount_invested: number
+          user_id: string
+        }
+        Update: {
+          contract_signed_url?: string | null
+          created_at?: string
+          id?: string
+          investment_date?: string
+          payment_method?: string | null
+          payout_received?: number
+          project_id?: string
+          shares_purchased?: number
+          total_amount_invested?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "moisson_community_investments_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "moisson_projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      moisson_project_updates: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          image_url: string | null
+          posted_by: string
+          project_id: string
+          title: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: string
+          image_url?: string | null
+          posted_by: string
+          project_id: string
+          title: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          image_url?: string | null
+          posted_by?: string
+          project_id?: string
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "moisson_project_updates_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "moisson_projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      moisson_projects: {
+        Row: {
+          category: string
+          cover_image: string | null
+          created_at: string
+          created_by: string | null
+          description: string
+          end_date: string | null
+          estimated_roi: number
+          global_target: number
+          id: string
+          share_price: number
+          shares_sold: number
+          start_date: string | null
+          status: string
+          title: string
+          total_distributed: number | null
+          total_revenue: number | null
+          total_shares: number
+          updated_at: string
+        }
+        Insert: {
+          category: string
+          cover_image?: string | null
+          created_at?: string
+          created_by?: string | null
+          description: string
+          end_date?: string | null
+          estimated_roi?: number
+          global_target: number
+          id?: string
+          share_price: number
+          shares_sold?: number
+          start_date?: string | null
+          status?: string
+          title: string
+          total_distributed?: number | null
+          total_revenue?: number | null
+          total_shares: number
+          updated_at?: string
+        }
+        Update: {
+          category?: string
+          cover_image?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string
+          end_date?: string | null
+          estimated_roi?: number
+          global_target?: number
+          id?: string
+          share_price?: number
+          shares_sold?: number
+          start_date?: string | null
+          status?: string
+          title?: string
+          total_distributed?: number | null
+          total_revenue?: number | null
+          total_shares?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      moisson_user_wallets: {
+        Row: {
+          created_at: string
+          current_balance: number
+          id: string
+          total_deposited: number
+          total_withdrawn: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          current_balance?: number
+          id?: string
+          total_deposited?: number
+          total_withdrawn?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          current_balance?: number
+          id?: string
+          total_deposited?: number
+          total_withdrawn?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       moissonneur_fund: {
         Row: {
           id: string
@@ -6168,6 +6346,15 @@ export type Database = {
       }
       delete_user_account: { Args: { p_user_id: string }; Returns: undefined }
       detect_inactive_agents: { Args: never; Returns: undefined }
+      distribute_moisson_dividends: {
+        Args: { p_project_id: string; p_total_revenue: number }
+        Returns: {
+          beneficiaries: number
+          message: string
+          success: boolean
+          total_distributed: number
+        }[]
+      }
       ensure_super_admin: { Args: never; Returns: undefined }
       generate_appointment_code: { Args: never; Returns: string }
       generate_delivery_code: { Args: never; Returns: string }
@@ -6289,6 +6476,18 @@ export type Database = {
         Returns: boolean
       }
       is_user_admin: { Args: { _user_id: string }; Returns: boolean }
+      moisson_invest_in_project: {
+        Args: {
+          p_payment_method: string
+          p_project_id: string
+          p_shares: number
+        }
+        Returns: {
+          investment_id: string
+          message: string
+          success: boolean
+        }[]
+      }
       purchase_mlm_pack:
         | {
             Args: { p_pack_id: string }
