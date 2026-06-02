@@ -70,6 +70,8 @@ const MLMPackDetail = lazy(() => import("./pages/MLMPackDetail"));
 const AdminMLMPacks = lazy(() => import("./pages/AdminMLMPacks"));
 const MyRelayDeliveries = lazy(() => import("./pages/MyRelayDeliveries"));
 const BroadcastChannel = lazy(() => import("./pages/BroadcastChannel"));
+const MoissonGrenier = lazy(() => import("./pages/MoissonGrenier"));
+const MoissonProjectDetail = lazy(() => import("./pages/MoissonProjectDetail"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 // Composant interne pour utiliser les hooks après AuthProvider
