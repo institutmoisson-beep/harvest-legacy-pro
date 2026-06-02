@@ -110,6 +110,7 @@ function LevelAdminTabs() {
       <TabsList className="flex flex-wrap gap-2">
         <TabsTrigger value="hub">🧭 Gestionnaire</TabsTrigger>
         <TabsTrigger value="broadcast">📢 Canal</TabsTrigger>
+        <TabsTrigger value="grenier">🌾 Grenier</TabsTrigger>
         <TabsTrigger value="roles">Rôles & Accès</TabsTrigger>
         <TabsTrigger value="permissions">Permissions</TabsTrigger>
         <TabsTrigger value="geographic">Représentants</TabsTrigger>
