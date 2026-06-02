@@ -132,6 +132,7 @@ function LevelAdminTabs() {
 
       <TabsContent value="hub" className="mt-4"><AdminTaskHub onNavigate={(t) => setTab(t)} /></TabsContent>
       <TabsContent value="broadcast" className="mt-4"><BroadcastChannelAdmin /></TabsContent>
+      <TabsContent value="grenier" className="mt-4"><MoissonProjectsManager /></TabsContent>
       <TabsContent value="roles" className="mt-4 space-y-6"><RoleManagement /></TabsContent>
       <TabsContent value="permissions"><PermissionsManager /></TabsContent>
       <TabsContent value="geographic"><GeographicRepresentativesManager /></TabsContent>
