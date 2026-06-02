@@ -144,6 +144,8 @@ const AppContent = () => {
         <Route path="/admin/packs" element={<AdminMLMPacks />} />
         <Route path="/mes-livraisons" element={<MyRelayDeliveries />} />
         <Route path="/canal" element={<BroadcastChannel />} />
+        <Route path="/grenier" element={<MoissonGrenier />} />
+        <Route path="/grenier/:id" element={<MoissonProjectDetail />} />
         {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
         <Route path="*" element={<NotFound />} />
       </Routes>
