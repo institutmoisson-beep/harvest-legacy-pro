@@ -31,6 +31,7 @@ import AdminFundraisersInline from '@/components/dashboard/AdminFundraisersInlin
 import AdminTaskHub from '@/components/dashboard/AdminTaskHub';
 import BroadcastChannelAdmin from '@/components/dashboard/BroadcastChannelAdmin';
 import AdminFeaturesGateway from '@/components/dashboard/AdminFeaturesGateway';
+import MoissonProjectsManager from '@/components/dashboard/MoissonProjectsManager';
 import { useState as useStateReact } from 'react';
 import { useSearchParams } from 'react-router-dom';
 
@@ -109,6 +110,7 @@ function LevelAdminTabs() {
       <TabsList className="flex flex-wrap gap-2">
         <TabsTrigger value="hub">🧭 Gestionnaire</TabsTrigger>
         <TabsTrigger value="broadcast">📢 Canal</TabsTrigger>
+        <TabsTrigger value="grenier">🌾 Grenier</TabsTrigger>
         <TabsTrigger value="roles">Rôles & Accès</TabsTrigger>
         <TabsTrigger value="permissions">Permissions</TabsTrigger>
         <TabsTrigger value="geographic">Représentants</TabsTrigger>
@@ -130,6 +132,7 @@ function LevelAdminTabs() {
 
       <TabsContent value="hub" className="mt-4"><AdminTaskHub onNavigate={(t) => setTab(t)} /></TabsContent>
       <TabsContent value="broadcast" className="mt-4"><BroadcastChannelAdmin /></TabsContent>
+      <TabsContent value="grenier" className="mt-4"><MoissonProjectsManager /></TabsContent>
       <TabsContent value="roles" className="mt-4 space-y-6"><RoleManagement /></TabsContent>
       <TabsContent value="permissions"><PermissionsManager /></TabsContent>
       <TabsContent value="geographic"><GeographicRepresentativesManager /></TabsContent>
