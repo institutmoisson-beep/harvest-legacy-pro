@@ -31,6 +31,7 @@ import AdminFundraisersInline from '@/components/dashboard/AdminFundraisersInlin
 import AdminTaskHub from '@/components/dashboard/AdminTaskHub';
 import BroadcastChannelAdmin from '@/components/dashboard/BroadcastChannelAdmin';
 import AdminFeaturesGateway from '@/components/dashboard/AdminFeaturesGateway';
+import MoissonProjectsManager from '@/components/dashboard/MoissonProjectsManager';
 import { useState as useStateReact } from 'react';
 import { useSearchParams } from 'react-router-dom';
 
