@@ -72,6 +72,8 @@ const MyRelayDeliveries = lazy(() => import("./pages/MyRelayDeliveries"));
 const BroadcastChannel = lazy(() => import("./pages/BroadcastChannel"));
 const MoissonGrenier = lazy(() => import("./pages/MoissonGrenier"));
 const MoissonProjectDetail = lazy(() => import("./pages/MoissonProjectDetail"));
+const CarteMoissonneur = lazy(() => import("./pages/CarteMoissonneur"));
+const VerifierMoissonneur = lazy(() => import("./pages/VerifierMoissonneur"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 // Composant interne pour utiliser les hooks après AuthProvider
@@ -146,6 +148,9 @@ const AppContent = () => {
         <Route path="/canal" element={<BroadcastChannel />} />
         <Route path="/grenier" element={<MoissonGrenier />} />
         <Route path="/grenier/:id" element={<MoissonProjectDetail />} />
+        <Route path="/ma-carte" element={<CarteMoissonneur />} />
+        <Route path="/verifier" element={<VerifierMoissonneur />} />
+        <Route path="/verify" element={<VerifierMoissonneur />} />
         {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
         <Route path="*" element={<NotFound />} />
       </Routes>

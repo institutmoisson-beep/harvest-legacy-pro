@@ -22,6 +22,9 @@ import {
   Car,
   Building,
   Package,
+  Wheat,
+  IdCard,
+  ScanLine,
 } from 'lucide-react';
 import VoiceCall from '@/components/VoiceCall';
 
@@ -56,6 +59,9 @@ const MENU_ITEMS = [
   { icon: Building, label: 'MSN Immo', route: '/immo', always: true },
   { icon: Building, label: 'Entreprises', route: '/enterprises', always: true },
   { icon: Package, label: 'Packs MLM', route: '/packs', always: true },
+  { icon: Wheat, label: 'Le Grenier', route: '/grenier', always: true },
+  { icon: IdCard, label: 'Ma Carte', route: '/ma-carte', always: true },
+  { icon: ScanLine, label: 'Vérifier', route: '/verifier', always: true },
 ];
 
 export default function DashboardGateway({ hasAdminAccess, hasMerchantRole, hasDriverRole, onSignOut }: DashboardGatewayProps) {

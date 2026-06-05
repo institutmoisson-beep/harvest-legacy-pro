@@ -4354,13 +4354,16 @@ export type Database = {
       }
       profiles: {
         Row: {
+          avatar_url: string | null
           binary_parent_id: string | null
           binary_position: string | null
           career_level: Database["public"]["Enums"]["career_level"] | null
           career_level_updated_at: string | null
           created_at: string | null
+          est_souverain: boolean
           full_name: string
           id: string
+          id_moissonneur: string | null
           id_number: string | null
           id_verified: boolean | null
           phone: string | null
@@ -4368,15 +4371,19 @@ export type Database = {
           referral_code: string
           referred_by: string | null
           updated_at: string | null
+          verification_token: string
         }
         Insert: {
+          avatar_url?: string | null
           binary_parent_id?: string | null
           binary_position?: string | null
           career_level?: Database["public"]["Enums"]["career_level"] | null
           career_level_updated_at?: string | null
           created_at?: string | null
+          est_souverain?: boolean
           full_name: string
           id: string
+          id_moissonneur?: string | null
           id_number?: string | null
           id_verified?: boolean | null
           phone?: string | null
@@ -4384,15 +4391,19 @@ export type Database = {
           referral_code: string
           referred_by?: string | null
           updated_at?: string | null
+          verification_token?: string
         }
         Update: {
+          avatar_url?: string | null
           binary_parent_id?: string | null
           binary_position?: string | null
           career_level?: Database["public"]["Enums"]["career_level"] | null
           career_level_updated_at?: string | null
           created_at?: string | null
+          est_souverain?: boolean
           full_name?: string
           id?: string
+          id_moissonneur?: string | null
           id_number?: string | null
           id_verified?: boolean | null
           phone?: string | null
@@ -4400,6 +4411,7 @@ export type Database = {
           referral_code?: string
           referred_by?: string | null
           updated_at?: string | null
+          verification_token?: string
         }
         Relationships: [
           {
@@ -6566,6 +6578,17 @@ export type Database = {
           function_name: string
           has_search_path: boolean
           is_security_definer: boolean
+        }[]
+      }
+      verify_moissonneur: {
+        Args: { _token: string }
+        Returns: {
+          avatar_url: string
+          career_level: string
+          est_souverain: boolean
+          full_name: string
+          id: string
+          id_moissonneur: string
         }[]
       }
     }
