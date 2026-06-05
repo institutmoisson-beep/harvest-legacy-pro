@@ -148,6 +148,9 @@ const AppContent = () => {
         <Route path="/canal" element={<BroadcastChannel />} />
         <Route path="/grenier" element={<MoissonGrenier />} />
         <Route path="/grenier/:id" element={<MoissonProjectDetail />} />
+        <Route path="/ma-carte" element={<CarteMoissonneur />} />
+        <Route path="/verifier" element={<VerifierMoissonneur />} />
+        <Route path="/verify" element={<VerifierMoissonneur />} />
         {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
         <Route path="*" element={<NotFound />} />
       </Routes>
