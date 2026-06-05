@@ -22,6 +22,9 @@ import {
   Car,
   Building,
   Package,
+  Wheat,
+  IdCard,
+  ScanLine,
 } from 'lucide-react';
 import VoiceCall from '@/components/VoiceCall';
 
