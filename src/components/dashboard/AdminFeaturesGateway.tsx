@@ -5,7 +5,7 @@ import {
   Shield, Phone, Truck, Car, Building, Building2, Package, Ticket, Heart,
   Wallet, CreditCard, Megaphone, Users, UserCog, Lock, MapPin, ShoppingCart,
   FileText, BarChart3, Coins, Database, Bell, Settings, ShoppingBag,
-  Briefcase, Globe, Layers, Activity,
+  Briefcase, Globe, Layers, Activity, Wheat, IdCard, ScanLine,
 } from 'lucide-react';
 
 interface Item {
