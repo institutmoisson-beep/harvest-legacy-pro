@@ -53,11 +53,18 @@ export default function MoissonGrenier() {
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5 pb-20">
       <header className="relative overflow-hidden border-b border-border bg-gradient-to-r from-emerald-600/10 via-amber-500/10 to-rose-500/10">
         <div className="container mx-auto px-4 py-10 max-w-6xl">
-          <Badge className="mb-3 bg-emerald-600/15 text-emerald-700 border-emerald-500/30">GIE · ONG Institut Moisson</Badge>
-          <h1 className="text-3xl md:text-5xl font-bold tracking-tight">Le Grenier des Moissonneurs</h1>
-          <p className="mt-3 text-base md:text-lg text-muted-foreground max-w-2xl">
-            Investissez ensemble dans des projets à fort impact — cinéma, agrobusiness, tech — portés par le GIE et l'ONG. Achetez des parts, suivez le projet, recevez vos dividendes.
-          </p>
+          <div className="flex justify-between items-start gap-3 flex-wrap">
+            <div>
+              <Badge className="mb-3 bg-emerald-600/15 text-emerald-700 border-emerald-500/30">GIE · ONG Institut Moisson</Badge>
+              <h1 className="text-3xl md:text-5xl font-bold tracking-tight">Le Grenier des Moissonneurs</h1>
+              <p className="mt-3 text-base md:text-lg text-muted-foreground max-w-2xl">
+                Investissez ensemble dans des projets à fort impact — cinéma, agrobusiness, tech — portés par le GIE et l'ONG. Achetez des parts via votre portefeuille MSN, suivez le projet, recevez vos dividendes.
+              </p>
+            </div>
+            <Button asChild variant="outline" className="shrink-0">
+              <Link to="/mes-investissements-grenier">Mes parts</Link>
+            </Button>
+          </div>
         </div>
       </header>
 
