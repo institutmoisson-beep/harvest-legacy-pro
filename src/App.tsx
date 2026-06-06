@@ -72,6 +72,7 @@ const MyRelayDeliveries = lazy(() => import("./pages/MyRelayDeliveries"));
 const BroadcastChannel = lazy(() => import("./pages/BroadcastChannel"));
 const MoissonGrenier = lazy(() => import("./pages/MoissonGrenier"));
 const MoissonProjectDetail = lazy(() => import("./pages/MoissonProjectDetail"));
+const MesInvestissementsGrenier = lazy(() => import("./pages/MesInvestissementsGrenier"));
 const CarteMoissonneur = lazy(() => import("./pages/CarteMoissonneur"));
 const VerifierMoissonneur = lazy(() => import("./pages/VerifierMoissonneur"));
 const NotFound = lazy(() => import("./pages/NotFound"));
