@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from '@/hooks/use-toast';
@@ -11,16 +11,8 @@ import { Slider } from '@/components/ui/slider';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { ArrowLeft, Loader2, TrendingUp, Calendar, ImagePlus, Wallet, CheckCircle2 } from 'lucide-react';
-
-const PAYMENT_METHODS = [
-  { id: 'wave', label: 'Wave', color: 'text-cyan-600' },
-  { id: 'orange', label: 'Orange Money', color: 'text-orange-500' },
-  { id: 'mtn', label: 'MTN MoMo', color: 'text-yellow-500' },
-  { id: 'moov', label: 'Moov Money', color: 'text-blue-600' },
-  { id: 'card', label: 'Carte bancaire', color: 'text-foreground' },
-];
+import { ArrowLeft, Loader2, TrendingUp, Calendar, ImagePlus, Wallet, CheckCircle2, AlertTriangle, History } from 'lucide-react';
+import { generateGrenierReceipt } from '@/lib/documents/grenierReceipt';
 
 const formatFCFA = (n: number) => new Intl.NumberFormat('fr-FR').format(Math.round(n)) + ' FCFA';
 
@@ -30,10 +22,11 @@ export default function MoissonProjectDetail() {
   const { user } = useAuth();
   const [project, setProject] = useState<any>(null);
   const [updates, setUpdates] = useState<any[]>([]);
+  const [profile, setProfile] = useState<any>(null);
+  const [walletBalance, setWalletBalance] = useState<number>(0);
   const [loading, setLoading] = useState(true);
   const [shares, setShares] = useState(1);
   const [modalOpen, setModalOpen] = useState(false);
-  const [paymentMethod, setPaymentMethod] = useState('wave');
   const [submitting, setSubmitting] = useState(false);
 
   const load = async () => {
@@ -44,10 +37,18 @@ export default function MoissonProjectDetail() {
     ]);
     setProject(p);
     setUpdates(u || []);
+    if (user) {
+      const [{ data: prof }, { data: w }] = await Promise.all([
+        (supabase as any).from('profiles').select('*').eq('id', user.id).maybeSingle(),
+        (supabase as any).from('wallets').select('balance').eq('user_id', user.id).maybeSingle(),
+      ]);
+      setProfile(prof);
+      setWalletBalance(Number(w?.balance || 0));
+    }
     setLoading(false);
   };
 
-  useEffect(() => { load(); }, [id]);
+  useEffect(() => { load(); /* eslint-disable-next-line */ }, [id, user]);
 
   if (loading) {
     return <div className="min-h-screen flex items-center justify-center"><Loader2 className="w-8 h-8 animate-spin text-primary" /></div>;
@@ -60,6 +61,7 @@ export default function MoissonProjectDetail() {
   const total = shares * project.share_price;
   const estimatedGain = total * (project.estimated_roi / 100);
   const progress = (project.shares_sold / project.total_shares) * 100;
+  const insufficient = walletBalance < total;
 
   const handleInvest = async () => {
     if (!user) { navigate('/auth'); return; }
@@ -67,28 +69,61 @@ export default function MoissonProjectDetail() {
       toast({ title: 'Nombre de parts invalide', variant: 'destructive' });
       return;
     }
+    if (insufficient) {
+      toast({ title: 'Solde insuffisant', description: 'Rechargez votre portefeuille MSN.', variant: 'destructive' });
+      return;
+    }
     setSubmitting(true);
     const { data, error } = await (supabase as any).rpc('moisson_invest_in_project', {
       p_project_id: project.id,
       p_shares: shares,
-      p_payment_method: paymentMethod,
+      p_payment_method: 'wallet',
     });
     setSubmitting(false);
     if (error || !data?.[0]?.success) {
       toast({ title: 'Échec', description: data?.[0]?.message || error?.message, variant: 'destructive' });
       return;
     }
+    const invId = data[0].investment_id;
     toast({ title: '✅ Investissement confirmé', description: `${shares} part(s) acquise(s) pour ${formatFCFA(total)}` });
     setModalOpen(false);
+
+    // Auto-generate PDF receipt
+    try {
+      generateGrenierReceipt(
+        {
+          id: invId,
+          shares_purchased: shares,
+          total_amount_invested: total,
+          investment_date: new Date().toISOString(),
+          payment_method: 'wallet',
+        },
+        project,
+        {
+          full_name: profile?.full_name,
+          email: profile?.email || user.email,
+          phone: profile?.phone,
+          id_moissonneur: profile?.id_moissonneur,
+        },
+      );
+    } catch (e) {
+      console.error('Receipt generation failed', e);
+    }
+
     load();
   };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5 pb-20">
       <div className="container mx-auto px-4 py-6 max-w-5xl">
-        <Button variant="ghost" onClick={() => navigate('/grenier')} className="mb-4 gap-2">
-          <ArrowLeft className="w-4 h-4" /> Retour au Grenier
-        </Button>
+        <div className="flex justify-between mb-4 flex-wrap gap-2">
+          <Button variant="ghost" onClick={() => navigate('/grenier')} className="gap-2">
+            <ArrowLeft className="w-4 h-4" /> Retour au Grenier
+          </Button>
+          <Button variant="outline" asChild className="gap-2">
+            <Link to="/mes-investissements-grenier"><History className="w-4 h-4" /> Mes parts</Link>
+          </Button>
+        </div>
 
         {project.cover_image && (
           <div className="rounded-2xl overflow-hidden mb-6 max-h-80">
@@ -189,13 +224,21 @@ export default function MoissonProjectDetail() {
                     <span className="font-bold text-primary">{formatFCFA(total + estimatedGain)}</span>
                   </div>
                 </div>
+
+                {user && (
+                  <div className={`rounded-lg p-3 text-sm flex items-center justify-between ${insufficient ? 'bg-destructive/10 text-destructive' : 'bg-emerald-500/10 text-emerald-700'}`}>
+                    <span className="flex items-center gap-2"><Wallet className="w-4 h-4" /> Solde portefeuille</span>
+                    <span className="font-bold">{formatFCFA(walletBalance)}</span>
+                  </div>
+                )}
+
                 <Button
                   size="lg"
                   className="w-full bg-gradient-to-r from-emerald-600 to-amber-500 hover:opacity-90"
                   disabled={available === 0 || project.status !== 'collecte'}
                   onClick={() => setModalOpen(true)}
                 >
-                  Soutenir ce projet via le GIE
+                  Soutenir avec mon portefeuille
                 </Button>
                 {project.status !== 'collecte' && (
                   <p className="text-xs text-center text-muted-foreground">La collecte est fermée.</p>
@@ -215,23 +258,29 @@ export default function MoissonProjectDetail() {
             <div className="rounded-lg bg-muted/50 p-3 text-sm space-y-1">
               <div className="flex justify-between"><span className="text-muted-foreground">Projet</span><span className="font-medium">{project.title}</span></div>
               <div className="flex justify-between"><span className="text-muted-foreground">Parts</span><span className="font-medium">{shares}</span></div>
-              <div className="flex justify-between"><span className="text-muted-foreground">Total</span><span className="font-bold">{formatFCFA(total)}</span></div>
+              <div className="flex justify-between"><span className="text-muted-foreground">Total à débiter</span><span className="font-bold">{formatFCFA(total)}</span></div>
+              <div className="flex justify-between"><span className="text-muted-foreground">Solde après achat</span><span className="font-medium">{formatFCFA(Math.max(0, walletBalance - total))}</span></div>
             </div>
-            <div>
-              <Label className="mb-2 block">Méthode de paiement</Label>
-              <RadioGroup value={paymentMethod} onValueChange={setPaymentMethod} className="grid grid-cols-2 gap-2">
-                {PAYMENT_METHODS.map((m) => (
-                  <label key={m.id} className="flex items-center gap-2 border rounded-lg p-2.5 cursor-pointer hover:bg-muted/50 has-[:checked]:border-primary has-[:checked]:bg-primary/5">
-                    <RadioGroupItem value={m.id} />
-                    <span className={`text-sm font-medium ${m.color}`}>{m.label}</span>
-                  </label>
-                ))}
-              </RadioGroup>
+            <div className="rounded-lg border border-primary/30 bg-primary/5 p-3 flex items-center gap-3 text-sm">
+              <Wallet className="w-5 h-5 text-primary shrink-0" />
+              <div>
+                <div className="font-semibold">Paiement par portefeuille MSN</div>
+                <div className="text-xs text-muted-foreground">Seul le wallet est accepté pour l'achat de parts.</div>
+              </div>
             </div>
+            {insufficient && (
+              <div className="rounded-lg bg-destructive/10 text-destructive p-3 text-sm flex items-start gap-2">
+                <AlertTriangle className="w-4 h-4 mt-0.5 shrink-0" />
+                Solde insuffisant. Rechargez votre portefeuille avant de continuer.
+              </div>
+            )}
+            <p className="text-xs text-muted-foreground">
+              Un reçu PDF détaillé sera automatiquement téléchargé après confirmation et restera consultable depuis « Mes parts ».
+            </p>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setModalOpen(false)}>Annuler</Button>
-            <Button onClick={handleInvest} disabled={submitting} className="gap-2">
+            <Button onClick={handleInvest} disabled={submitting || insufficient} className="gap-2">
               {submitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />}
               Valider le paiement
             </Button>
