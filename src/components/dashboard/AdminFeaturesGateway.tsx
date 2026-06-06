@@ -80,6 +80,9 @@ const GROUPS: Group[] = [
       { label: 'MSN Immo', icon: Building, route: '/admin/immo' },
       { label: 'Entreprises', icon: Building2, route: '/admin/enterprises' },
       { label: 'Métiers / Domaines', icon: Briefcase, route: '/admin/job-domains' },
+      { label: 'Le Grenier (Invest.)', icon: Wheat, route: '/level-admin?tab=grenier', description: 'Projets communautaires' },
+      { label: 'Vérifier Moissonneur', icon: ScanLine, route: '/verifier', description: 'Scanner QR membre' },
+      { label: 'Ma Carte', icon: IdCard, route: '/ma-carte', description: 'Carte digitale' },
     ],
   },
   {
