@@ -149,6 +149,7 @@ const AppContent = () => {
         <Route path="/canal" element={<BroadcastChannel />} />
         <Route path="/grenier" element={<MoissonGrenier />} />
         <Route path="/grenier/:id" element={<MoissonProjectDetail />} />
+        <Route path="/mes-investissements-grenier" element={<MesInvestissementsGrenier />} />
         <Route path="/ma-carte" element={<CarteMoissonneur />} />
         <Route path="/verifier" element={<VerifierMoissonneur />} />
         <Route path="/verify" element={<VerifierMoissonneur />} />
