@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import CurrencySelector from '@/components/CurrencySelector';
 import {
   LayoutDashboard, Store, Wallet, Package, MessageSquare, LogIn, UserPlus,
-  Truck, Phone, Settings2, Users, Sparkles, Radio,
+  Truck, Phone, Settings2, Users, Sparkles, Radio, Wheat, IdCard, ScanLine,
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 
