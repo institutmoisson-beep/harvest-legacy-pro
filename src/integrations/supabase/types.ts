@@ -6490,7 +6490,7 @@ export type Database = {
       is_user_admin: { Args: { _user_id: string }; Returns: boolean }
       moisson_invest_in_project: {
         Args: {
-          p_payment_method: string
+          p_payment_method?: string
           p_project_id: string
           p_shares: number
         }
