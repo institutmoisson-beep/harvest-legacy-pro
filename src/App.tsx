@@ -72,6 +72,7 @@ const MyRelayDeliveries = lazy(() => import("./pages/MyRelayDeliveries"));
 const BroadcastChannel = lazy(() => import("./pages/BroadcastChannel"));
 const MoissonGrenier = lazy(() => import("./pages/MoissonGrenier"));
 const MoissonProjectDetail = lazy(() => import("./pages/MoissonProjectDetail"));
+const MesInvestissementsGrenier = lazy(() => import("./pages/MesInvestissementsGrenier"));
 const CarteMoissonneur = lazy(() => import("./pages/CarteMoissonneur"));
 const VerifierMoissonneur = lazy(() => import("./pages/VerifierMoissonneur"));
 const NotFound = lazy(() => import("./pages/NotFound"));
@@ -148,6 +149,7 @@ const AppContent = () => {
         <Route path="/canal" element={<BroadcastChannel />} />
         <Route path="/grenier" element={<MoissonGrenier />} />
         <Route path="/grenier/:id" element={<MoissonProjectDetail />} />
+        <Route path="/mes-investissements-grenier" element={<MesInvestissementsGrenier />} />
         <Route path="/ma-carte" element={<CarteMoissonneur />} />
         <Route path="/verifier" element={<VerifierMoissonneur />} />
         <Route path="/verify" element={<VerifierMoissonneur />} />
