@@ -39,15 +39,16 @@ interface Stats {
 }
 
 export default function Dashboard() {
-  const { user, signOut } = useAuth();
+  const { user, signOut, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   
   const { profile, wallet, stats, hasAdminAccess, hasMerchantRole, hasDriverRole, isLoading } = useDashboardData(user?.id);
 
   useEffect(() => {
+    if (authLoading) return;
     if (!user) navigate('/auth');
-  }, [user, navigate]);
+  }, [user, authLoading, navigate]);
 
   useEffect(() => {
     if (!user?.id) return;
@@ -73,7 +74,7 @@ export default function Dashboard() {
   const formattedBalance = useMemo(() => wallet?.balance?.toFixed(2) || '0.00', [wallet?.balance]);
   const formattedCommissions = useMemo(() => stats?.totalCommissions?.toFixed(2) || '0.00', [stats?.totalCommissions]);
 
-  if (isLoading || !user) {
+  if (authLoading || isLoading || !user) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-background to-primary/5">
         <div className="text-center space-y-4">

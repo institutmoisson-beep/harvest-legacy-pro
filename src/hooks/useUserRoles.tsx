@@ -8,12 +8,14 @@ interface UserRole {
 }
 
 export function useUserRoles() {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const [roles, setRoles] = useState<UserRole[]>([]);
   const [loading, setLoading] = useState(true);
   const [maxAccessLevel, setMaxAccessLevel] = useState(0);
 
   useEffect(() => {
+    if (authLoading) return;
+
     if (!user) {
       setRoles([]);
       setMaxAccessLevel(0);
@@ -22,7 +24,7 @@ export function useUserRoles() {
     }
 
     fetchUserRoles();
-  }, [user]);
+  }, [user, authLoading]);
 
   const fetchUserRoles = async () => {
     if (!user) {
