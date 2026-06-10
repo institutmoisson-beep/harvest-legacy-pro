@@ -63,7 +63,7 @@ interface Transaction {
 }
 
 export default function AdminDashboard() {
-  const { user, signOut } = useAuth();
+  const { user, signOut, loading: authLoading } = useAuth();
   const { isSuperAdmin, isAdmin, hasAccessLevel, loading: rolesLoading } = useUserRoles();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
@@ -80,6 +80,8 @@ export default function AdminDashboard() {
   });
 
   useEffect(() => {
+    if (authLoading) return;
+
     if (!user) {
       navigate('/auth');
       return;
@@ -115,7 +117,7 @@ export default function AdminDashboard() {
     };
 
     checkAdminAccess();
-  }, [user, rolesLoading, hasAccessLevel, navigate]);
+  }, [user, authLoading, rolesLoading, hasAccessLevel, navigate]);
 
   const fetchData = async () => {
     try {

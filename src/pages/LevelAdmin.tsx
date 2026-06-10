@@ -36,7 +36,7 @@ import { useState as useStateReact } from 'react';
 import { useSearchParams } from 'react-router-dom';
 
 export default function LevelAdmin() {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const { isSuperAdmin, loading: rolesLoading } = useUserRoles();
   const navigate = useNavigate();
 
@@ -45,6 +45,7 @@ export default function LevelAdmin() {
   }, []);
 
   useEffect(() => {
+    if (authLoading) return;
     if (!user) {
       navigate('/auth');
       return;
@@ -55,9 +56,9 @@ export default function LevelAdmin() {
       toast({ title: 'Accès refusé', description: "Ce tableau de bord est réservé au Super Administrateur.", variant: 'destructive' });
       navigate('/dashboard');
     }
-  }, [user, rolesLoading, isSuperAdmin, navigate]);
+  }, [user, authLoading, rolesLoading, isSuperAdmin, navigate]);
 
-  if (!user || rolesLoading) {
+  if (authLoading || !user || rolesLoading) {
     return (
       <div className="container mx-auto px-4 py-8">
         <Card><CardHeader><CardTitle>Chargement…</CardTitle></CardHeader><CardContent><p>Vérification des accès administrateur…</p></CardContent></Card>
