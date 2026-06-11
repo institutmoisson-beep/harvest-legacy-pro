@@ -4425,6 +4425,13 @@ export type Database = {
             foreignKeyName: "profiles_binary_parent_id_fkey"
             columns: ["binary_parent_id"]
             isOneToOne: false
+            referencedRelation: "referral_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "profiles_binary_parent_id_fkey"
+            columns: ["binary_parent_id"]
+            isOneToOne: false
             referencedRelation: "users_with_roles"
             referencedColumns: ["id"]
           },
@@ -4433,6 +4440,13 @@ export type Database = {
             columns: ["referred_by"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "profiles_referred_by_fkey"
+            columns: ["referred_by"]
+            isOneToOne: false
+            referencedRelation: "referral_profiles"
             referencedColumns: ["id"]
           },
           {
@@ -6294,6 +6308,39 @@ export type Database = {
         }
         Relationships: []
       }
+      referral_profiles: {
+        Row: {
+          avatar_url: string | null
+          career_level: Database["public"]["Enums"]["career_level"] | null
+          created_at: string | null
+          est_souverain: boolean | null
+          full_name: string | null
+          id: string | null
+          id_moissonneur: string | null
+          referral_code: string | null
+        }
+        Insert: {
+          avatar_url?: string | null
+          career_level?: Database["public"]["Enums"]["career_level"] | null
+          created_at?: string | null
+          est_souverain?: boolean | null
+          full_name?: string | null
+          id?: string | null
+          id_moissonneur?: string | null
+          referral_code?: string | null
+        }
+        Update: {
+          avatar_url?: string | null
+          career_level?: Database["public"]["Enums"]["career_level"] | null
+          created_at?: string | null
+          est_souverain?: boolean | null
+          full_name?: string | null
+          id?: string | null
+          id_moissonneur?: string | null
+          referral_code?: string | null
+        }
+        Relationships: []
+      }
       users_with_roles: {
         Row: {
           career_level: Database["public"]["Enums"]["career_level"] | null
@@ -6310,6 +6357,66 @@ export type Database = {
     }
     Functions: {
       activate_user_account: { Args: { p_user_id: string }; Returns: undefined }
+      admin_get_driver_full: {
+        Args: { _driver_id: string }
+        Returns: {
+          approved_at: string | null
+          approved_by: string | null
+          created_at: string | null
+          current_latitude: number | null
+          current_longitude: number | null
+          full_name: string
+          id: string
+          identity_document_url: string | null
+          identity_number: string
+          is_approved: boolean | null
+          last_location_update: string | null
+          license_document_url: string | null
+          license_expiry: string | null
+          license_number: string
+          notes: string | null
+          phone: string
+          photo_url: string | null
+          rating: number | null
+          status: Database["public"]["Enums"]["driver_status"] | null
+          total_earnings: number | null
+          total_rides: number | null
+          updated_at: string | null
+          user_id: string
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "transport_drivers"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
+      admin_get_vehicle_full: {
+        Args: { _vehicle_id: string }
+        Returns: {
+          brand: string
+          color: string | null
+          created_at: string | null
+          driver_id: string
+          id: string
+          insurance_expiry: string | null
+          insurance_number: string | null
+          is_active: boolean | null
+          model: string
+          plate_number: string
+          service_class: Database["public"]["Enums"]["service_class"] | null
+          updated_at: string | null
+          vehicle_photo_url: string | null
+          vehicle_type: Database["public"]["Enums"]["vehicle_type"]
+          year: number | null
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "transport_vehicles"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
       auto_update_career_level: { Args: never; Returns: undefined }
       award_monthly_bonus: { Args: never; Returns: undefined }
       calculate_career_level: {
@@ -6409,6 +6516,35 @@ export type Database = {
           delivery_commission: number
           id: string
         }[]
+      }
+      get_my_profile: {
+        Args: never
+        Returns: {
+          avatar_url: string | null
+          binary_parent_id: string | null
+          binary_position: string | null
+          career_level: Database["public"]["Enums"]["career_level"] | null
+          career_level_updated_at: string | null
+          created_at: string | null
+          est_souverain: boolean
+          full_name: string
+          id: string
+          id_moissonneur: string | null
+          id_number: string | null
+          id_verified: boolean | null
+          phone: string | null
+          preferred_currency: string
+          referral_code: string
+          referred_by: string | null
+          updated_at: string | null
+          verification_token: string
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "profiles"
+          isOneToOne: false
+          isSetofReturn: true
+        }
       }
       get_role_access_level: {
         Args: { _role: Database["public"]["Enums"]["app_role"] }
