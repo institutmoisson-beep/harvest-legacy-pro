@@ -1,122 +1,163 @@
-## Demande
 
-Cinq chantiers liés à la professionnalisation et la communication :
+# Système "Points Relais Partenaires" (Riz, Attiéké, Resto, Cave, Hôtel)
 
-1. **Documents PDF auto-générés à l'achat d'un pack MLM** : reçu de paiement, contrat de garantie, contrat de livraison (15 j max), signés numériquement « Oniel Celvus — Directeur Général ».
-2. **Code unique de commande** à présenter au point relais (déjà partiellement via `pickup_code`, on l'unifie et on l'imprime sur les documents).
-3. **Contrat d'adhésion communautaire** téléchargeable par tout utilisateur, pré-signé par le DG, à contre-signer.
-4. **Hub Admin (Gestionnaire de tâches)** dans Level Admin : page unique qui regroupe et liste tout ce que l'admin doit administrer avec badges « à traiter » (commandes en attente, retraits, crédits, packs, événements, relais, etc.).
-5. **Canal de diffusion Admin → Utilisateurs** : l'admin publie messages, images, liens (Zoom…) ; chaque utilisateur a sa « Boîte Canal » avec historique.
+Module intégré à l'app existante. Réutilise le Wallet MSN, les rôles (`merchant`, `admin`), le système de reçus PDF et le scanner QR déjà présents (`VerifierMoissonneur`, codes alphanumériques type `PKP/DLV/RSV`).
 
 ---
 
-## 1. Génération de documents PDF
+## 1. Schéma de base de données (migration Supabase)
 
-### Stack
-- Librairie : `jspdf` + `jspdf-autotable` (déjà légères, côté client, pas de Edge function nécessaire).
-- Police signature : Google Font script `Great Vibes` (chargée via CSS pour rendu d'aperçu) — pour le PDF, on dessine le nom en italique cursive via la police « italic » intégrée de jsPDF + tracé manuel d'un trait de signature.
-- Logo Moissonneur + couleurs Moov (vert #00A859 / violet #7C3AED).
+Toutes les tables en `public.*` avec `GRANT` + RLS + policies.
 
-### Module `src/lib/documents/`
-- `generateReceipt(purchase, user, pack)` → PDF reçu de paiement.
-- `generateWarrantyContract(purchase, user, pack)` → contrat de garantie produit.
-- `generateDeliveryContract(purchase, user, pack, relay?)` → contrat de livraison sous 15 jours, mentionne mode (domicile/relais) + adresse + code retrait.
-- `generateMembershipContract(user)` → contrat d'adhésion communautaire.
-- `drawSignature(pdf, x, y)` → composant signature DG réutilisable : nom « Oniel Celvus » en cursive, titre « Directeur Général », date, paraphe stylisé.
+### `relay_partners` — Boutiques/Restos/Caves/Hôtels
+- `id uuid pk`
+- `owner_id uuid` → auth.users (partenaire propriétaire)
+- `partner_type text` enum: `alimentation | restaurant | cave | hotel`
+- `name text`, `slug text unique`, `description text`
+- `address text`, `city text`, `latitude/longitude numeric`
+- `phone text`, `cover_url text`, `logo_url text`
+- `commission_rate numeric default 10` (% prélevé par la plateforme)
+- `is_active bool default true`
+- `low_stock_threshold int default 5`
+- `created_at/updated_at`
 
-### Intégration
-- Après succès du RPC `purchase_mlm_pack` dans `MLMPackDetail.tsx` :
-  - Affichage écran de confirmation avec 3 boutons « Télécharger reçu / contrat garantie / contrat livraison ».
-  - Stockage du `pickup_code` retourné côté UI pour le mettre sur tous les documents.
-- Sur `Profile.tsx` : bouton « Télécharger mon contrat d'adhésion ».
-- Sur `MyRelayDeliveries.tsx` : bouton « Re-télécharger les documents » par commande.
+### `relay_products` — Catalogue
+- `id uuid pk`, `partner_id uuid` → relay_partners
+- `category text` (`riz, attieke, plat, vin, chambre, ...`)
+- `name text`, `description text`, `photo_url text`
+- `price_fcfa numeric`
+- `is_service bool` (true = resto/hôtel, pas de stock physique strict)
+- `service_type text` (`product | meal | room_booking`)
+- `is_active bool`, `created_at/updated_at`
 
-### Code unique
-- Réutilisation de `pickup_code` (déjà généré par `set_delivery_codes` / `generate_pickup_code`) comme référence unique sur tous les documents, qu'il s'agisse d'une livraison à domicile ou en relais. Pour les livraisons domicile sans code existant, on en génère un côté frontend (`MSN-<8 chars hex>`) et on stocke dans `mlm_pack_purchases.tracking_code`.
+### `relay_stocks` — Inventaire par boutique
+- `id uuid pk`, `partner_id uuid`, `product_id uuid`
+- `quantity int default 0`
+- `unique(partner_id, product_id)`
 
-### Migration mineure
-- Ajout colonne `tracking_code TEXT` sur `mlm_pack_purchases` (génération auto par trigger si null à l'insert).
+### `relay_orders` — Commandes / Réservations
+- `id uuid pk`
+- `client_id uuid` → auth.users
+- `partner_id uuid` → relay_partners
+- `product_id uuid` → relay_products
+- `quantity int default 1`
+- `unit_price numeric`, `total_price numeric`, `commission_amount numeric`, `partner_amount numeric`
+- `qr_token text unique` (UUID v4 signé, 64 chars)
+- `pickup_code text unique` (ex: `RLP-AB12CD`, code court de secours)
+- `status text` enum: `paid_pending | served | refunded | expired`
+- `booking_date timestamptz` (pour hôtel/resto avec horaire)
+- `served_at timestamptz`, `served_by uuid` (l'agent qui a scanné)
+- `payout_status text` enum: `held | released | refunded` default `held`
+- `payout_transaction_id uuid` → wallet_transactions
+- `created_at/updated_at`
 
----
+### `relay_stock_movements` — Audit stocks
+- `id, partner_id, product_id, order_id, delta int, reason text, created_at`
 
-## 2. Hub Admin « Gestionnaire de tâches »
-
-### Nouveau composant : `src/components/dashboard/AdminTaskHub.tsx`
-- Grille de cartes regroupées par catégorie :
-  - **Finances** : retraits en attente, transactions à approuver, demandes de crédit
-  - **MLM** : achats packs en attente, livraisons relais à préparer
-  - **Marketplace** : commandes à valider, produits à modérer
-  - **Communauté** : événements à approuver, cagnottes à activer
-  - **Transport / Immo** : courses, biens à valider
-  - **Diffusion** : nouveau message canal
-- Chaque carte affiche un badge avec compteur (requêtes count à Supabase) + lien direct vers l'onglet correspondant.
-- Auto-refresh toutes les 30 s.
-
-### Intégration
-- Nouvel onglet `<TabsTrigger value="hub">🧭 Gestionnaire</TabsTrigger>` placé en première position dans `src/pages/LevelAdmin.tsx`, défaut actif.
-- Mêmes compteurs aussi affichés sur `AdminDashboard.tsx`.
-
----
-
-## 3. Canal de diffusion Admin → Utilisateurs
-
-### Backend (migration)
-- Table `broadcast_channel_messages` :
-  - `id`, `author_id` (admin), `title`, `body TEXT`, `image_url TEXT NULL`, `link_url TEXT NULL`, `link_label TEXT NULL`, `category TEXT` (info / réunion / annonce), `published_at TIMESTAMPTZ`, `created_at`.
-- Table `broadcast_channel_reads` :
-  - `message_id`, `user_id`, `read_at`. Unique (message_id, user_id).
-- RLS :
-  - SELECT : tous les utilisateurs authentifiés.
-  - INSERT / UPDATE / DELETE : `has_access_level(auth.uid(), 80)`.
-  - Lectures : utilisateur ne peut insérer/voir que ses propres `broadcast_channel_reads`.
-
-### Frontend
-- Nouvelle page `src/pages/BroadcastChannel.tsx` (route `/canal`) — liste chronologique des messages, badge « Non lu », bouton « Marquer lu », vignette image, bouton « Rejoindre » pour les liens (Zoom…).
-- Bouton flottant dans `Index.tsx` + raccourci dans le `MemberHubSheet` + entrée dans la navbar utilisateur (avec compteur non-lus).
-- Composant admin `src/components/dashboard/BroadcastChannelAdmin.tsx` :
-  - Formulaire : titre, corps, upload image (bucket Supabase `broadcast`), lien + libellé, catégorie, programmation `published_at`.
-  - Liste des messages publiés avec édition / suppression.
-- Ajout d'un onglet « 📢 Canal » dans LevelAdmin.
-
-### Storage
-- Bucket public `broadcast` pour les images uploadées.
-
-### Real-time
-- Subscription Realtime `broadcast_channel_messages` pour faire apparaître les nouveaux messages sans refresh + déclencher notification navigateur.
+Réutilisations : `wallets`, `wallet_transactions`, `decrement_wallet_balance`, `increment_wallet_balance`, `treasury` (commissions).
 
 ---
 
-## Fichiers principaux touchés / créés
+## 2. Sécurisation anti double-scan
 
-### Création
-- `src/lib/documents/pdfBase.ts` — helpers communs (entête, footer, signature DG).
-- `src/lib/documents/receipt.ts`
-- `src/lib/documents/warrantyContract.ts`
-- `src/lib/documents/deliveryContract.ts`
-- `src/lib/documents/membershipContract.ts`
-- `src/components/documents/PackDocumentsActions.tsx` — boutons regroupés.
-- `src/components/dashboard/AdminTaskHub.tsx`
-- `src/components/dashboard/BroadcastChannelAdmin.tsx`
-- `src/pages/BroadcastChannel.tsx`
-- Migration SQL : `tracking_code`, tables broadcast, RLS, bucket storage.
+Le QR encode **uniquement le `qr_token` UUID** (pas d'info métier — opaque). La validation se fait côté serveur via Edge Function avec :
 
-### Modification
-- `src/pages/MLMPackDetail.tsx` — écran post-achat avec 3 documents.
-- `src/pages/Profile.tsx` — bouton contrat d'adhésion.
-- `src/pages/MyRelayDeliveries.tsx` — re-téléchargement documents.
-- `src/pages/LevelAdmin.tsx` — onglets « Gestionnaire » + « Canal », nouveau défaut.
-- `src/components/home/MemberHubSheet.tsx` — entrée Canal.
-- `src/App.tsx` — route `/canal`.
-- `src/components/Navbar.tsx` — icône canal + badge non-lus (si présente).
-
-### Dépendances à ajouter
-- `jspdf`, `jspdf-autotable`.
+1. `SELECT ... FOR UPDATE` sur `relay_orders` par `qr_token`
+2. Refuse si `status != 'paid_pending'` → renvoie 409 `already_served | refunded | expired`
+3. Une seule transition possible `paid_pending → served`, garantie par contrainte + verrou ligne
+4. Le `qr_token` n'est **jamais réutilisable** : après `served`, toute lecture renvoie un payload "obsolète"
+5. RLS : seul un `merchant` rattaché à `partner_id` peut lire et modifier la commande
 
 ---
 
-## Hors périmètre
+## 3. Fonctions / Edge Functions
 
-- Pas de signature numérique cryptographique réelle (PKI / e-IDAS) : signature visuelle uniquement, comme demandé.
-- Pas de programmation différée de messages (publish_at est stocké mais l'envoi est immédiat ; champ prévu pour évolution).
-- Pas de notifications push iOS dédiées (réutilise le système existant Web Notification API).
-- Aucune suppression de module existant.
+### a) `relay_purchase(p_product_id, p_quantity, p_booking_date)` — RPC SQL `SECURITY DEFINER`
+```
+1. Lock relay_products + relay_stocks (si is_service=false)
+2. Vérifie stock >= quantity
+3. Calcule total, commission (= total * partner.commission_rate/100), partner_amount
+4. PERFORM decrement_wallet_balance(client, total)
+5. INSERT wallet_transactions (client → plateforme, type 'relay_order_hold', status 'completed')
+6. INSERT relay_orders (status 'paid_pending', payout_status 'held', qr_token = gen_random_uuid(), pickup_code = generate_relay_code())
+7. Décrémente stock si produit physique + log relay_stock_movements
+8. RETURN order_id, qr_token, pickup_code
+```
+
+### b) `relay_scan_serve(p_qr_or_code)` — Edge Function (utilisée par partenaire)
+```
+1. Authentifie user → vérifie merchant_role + partner ownership
+2. SELECT order FOR UPDATE WHERE qr_token = $1 OR pickup_code = upper($1)
+3. Si status != 'paid_pending' → 409
+4. UPDATE status='served', served_at=now(), served_by=auth.uid()
+5. Retourne snapshot commande (photo, nom, qty, client masqué)
+```
+
+### c) `relay_release_payout(p_order_id)` — Edge Function admin
+```
+1. Vérifie role admin (access_level >= 80)
+2. Order doit être status='served' && payout_status='held'
+3. PERFORM increment_wallet_balance(partner.owner_id, partner_amount)
+4. UPDATE treasury += commission_amount
+5. INSERT wallet_transactions (plateforme → partner, type 'relay_payout')
+6. UPDATE order payout_status='released', payout_transaction_id
+```
+
+### d) `relay_refund(p_order_id)` — annulation admin/expiration
+- Rembourse wallet client, remet stock, status='refunded'
+
+### e) Trigger alerte stock bas
+- AFTER UPDATE sur `relay_stocks` : si `quantity < partner.low_stock_threshold` → INSERT notification destinée aux admins + au owner.
+
+### f) Reçu PDF
+Réutilise `src/lib/documents/pdfBase.ts` → `generateRelayReceipt(order, product, partner, client)` avec QR (lib `qrcode`) + `pickup_code` + photo produit + statut.
+
+---
+
+## 4. Arborescence d'écrans
+
+### Client (`/dashboard` menu, ajout dans `DashboardGateway.tsx`)
+- `/relais` — Catalogue (onglets : Alimentation / Restaurant / Cave / Hôtel)
+- `/relais/partenaire/:slug` — fiche boutique + produits
+- `/relais/produit/:id` — détail + bouton "Acheter avec Wallet"
+- `/relais/mes-tickets` — liste reçus, badge statut, ouvrir QR plein écran, télécharger PDF
+- `/relais/ticket/:orderId` — QR plein écran + code court + détails
+
+### Partenaire (rôle `merchant`, menu + carte dédiée dans `DashboardGateway`)
+- `/partenaire/relais` — tableau de bord boutique (CA jour, ventes, alertes stock)
+- `/partenaire/relais/scanner` — scanner caméra (lib `html5-qrcode`) + saisie manuelle du code
+- `/partenaire/relais/commande/:orderId` — détail post-scan + bouton "Marquer comme servi/livré"
+- `/partenaire/relais/produits` — CRUD catalogue + stocks
+- `/partenaire/relais/historique` — commandes servies, paiements reçus
+
+### Admin (`/admin` + `AdminFeaturesGateway`)
+- `/admin/relais` — temps réel : table commandes (client, produit, partenaire, statut, scanné par, montant)
+- `/admin/relais/partenaires` — validation/désactivation partenaires, taux de commission
+- `/admin/relais/payouts` — file d'attente reversements `served + held` → bouton "Verser" (appelle `relay_release_payout`)
+- `/admin/relais/stocks` — vue globale + alertes stock bas
+- `/admin/relais/transactions` — journal wallet_transactions filtré sur les types `relay_*`
+
+---
+
+## 5. Détails techniques
+
+- **QR rendering** : lib `qrcode` (déjà compatible — sinon `bun add qrcode`)
+- **QR scanning** : `html5-qrcode` côté partenaire (caméra arrière)
+- **Realtime** : `ALTER PUBLICATION supabase_realtime ADD TABLE relay_orders;` pour rafraîchir admin + tickets clients
+- **Rôle** : ajouter `merchant` à `relay_partners.owner_id` via flow "Devenir partenaire" (déjà partiellement présent via `MerchantDashboard`)
+- **Sécurité PII** : QR n'expose que `qr_token` UUID, pas d'info client
+- **i18n** : 100% FR, devise FCFA + équivalent MSN (1 MSN = 750 FCFA, déjà géré dans `currency.ts`)
+- **Design tokens** : utiliser `bg-card`, `text-primary`, etc. — aucune couleur hardcodée
+
+---
+
+## 6. Ordre d'implémentation
+
+1. Migration SQL (tables + grants + RLS + RPC `relay_purchase` + triggers)
+2. Edge functions `relay-scan-serve` / `relay-release-payout` / `relay-refund`
+3. Pages client (catalogue → achat → ticket QR + PDF)
+4. Pages partenaire (scanner + validation)
+5. Pages admin (dashboard temps réel + payouts + stocks)
+6. Branchement dans `DashboardGateway.tsx` et `AdminFeaturesGateway.tsx` (boutons toujours visibles, conformément aux corrections récentes)
+
+Confirme-moi pour que je lance l'implémentation (je peux aussi découper en plusieurs livraisons si tu préfères livrer client → partenaire → admin séparément).

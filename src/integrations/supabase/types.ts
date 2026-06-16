@@ -4574,6 +4574,150 @@ export type Database = {
         }
         Relationships: []
       }
+      relay_orders: {
+        Row: {
+          booking_date: string | null
+          client_id: string
+          commission_amount: number
+          created_at: string
+          id: string
+          partner_amount: number
+          partner_id: string
+          payout_status: string
+          payout_transaction_id: string | null
+          pickup_code: string
+          product_id: string
+          qr_token: string
+          quantity: number
+          served_at: string | null
+          served_by: string | null
+          status: string
+          total_price: number
+          unit_price: number
+          updated_at: string
+        }
+        Insert: {
+          booking_date?: string | null
+          client_id: string
+          commission_amount?: number
+          created_at?: string
+          id?: string
+          partner_amount?: number
+          partner_id: string
+          payout_status?: string
+          payout_transaction_id?: string | null
+          pickup_code: string
+          product_id: string
+          qr_token: string
+          quantity?: number
+          served_at?: string | null
+          served_by?: string | null
+          status?: string
+          total_price: number
+          unit_price: number
+          updated_at?: string
+        }
+        Update: {
+          booking_date?: string | null
+          client_id?: string
+          commission_amount?: number
+          created_at?: string
+          id?: string
+          partner_amount?: number
+          partner_id?: string
+          payout_status?: string
+          payout_transaction_id?: string | null
+          pickup_code?: string
+          product_id?: string
+          qr_token?: string
+          quantity?: number
+          served_at?: string | null
+          served_by?: string | null
+          status?: string
+          total_price?: number
+          unit_price?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "relay_orders_partner_id_fkey"
+            columns: ["partner_id"]
+            isOneToOne: false
+            referencedRelation: "relay_partners"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "relay_orders_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "relay_products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      relay_partners: {
+        Row: {
+          address: string | null
+          city: string | null
+          commission_rate: number
+          cover_url: string | null
+          created_at: string
+          description: string | null
+          id: string
+          is_active: boolean
+          latitude: number | null
+          logo_url: string | null
+          longitude: number | null
+          low_stock_threshold: number
+          name: string
+          owner_id: string
+          partner_type: string
+          phone: string | null
+          slug: string
+          updated_at: string
+        }
+        Insert: {
+          address?: string | null
+          city?: string | null
+          commission_rate?: number
+          cover_url?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          latitude?: number | null
+          logo_url?: string | null
+          longitude?: number | null
+          low_stock_threshold?: number
+          name: string
+          owner_id: string
+          partner_type: string
+          phone?: string | null
+          slug: string
+          updated_at?: string
+        }
+        Update: {
+          address?: string | null
+          city?: string | null
+          commission_rate?: number
+          cover_url?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          latitude?: number | null
+          logo_url?: string | null
+          longitude?: number | null
+          low_stock_threshold?: number
+          name?: string
+          owner_id?: string
+          partner_type?: string
+          phone?: string | null
+          slug?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       relay_points: {
         Row: {
           address: string
@@ -4633,6 +4777,128 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      relay_products: {
+        Row: {
+          category: string
+          created_at: string
+          description: string | null
+          id: string
+          is_active: boolean
+          is_service: boolean
+          name: string
+          partner_id: string
+          photo_url: string | null
+          price_fcfa: number
+          service_type: string
+          updated_at: string
+        }
+        Insert: {
+          category: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          is_service?: boolean
+          name: string
+          partner_id: string
+          photo_url?: string | null
+          price_fcfa: number
+          service_type?: string
+          updated_at?: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          is_service?: boolean
+          name?: string
+          partner_id?: string
+          photo_url?: string | null
+          price_fcfa?: number
+          service_type?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "relay_products_partner_id_fkey"
+            columns: ["partner_id"]
+            isOneToOne: false
+            referencedRelation: "relay_partners"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      relay_stock_movements: {
+        Row: {
+          created_at: string
+          delta: number
+          id: string
+          order_id: string | null
+          partner_id: string
+          product_id: string
+          reason: string | null
+        }
+        Insert: {
+          created_at?: string
+          delta: number
+          id?: string
+          order_id?: string | null
+          partner_id: string
+          product_id: string
+          reason?: string | null
+        }
+        Update: {
+          created_at?: string
+          delta?: number
+          id?: string
+          order_id?: string | null
+          partner_id?: string
+          product_id?: string
+          reason?: string | null
+        }
+        Relationships: []
+      }
+      relay_stocks: {
+        Row: {
+          id: string
+          partner_id: string
+          product_id: string
+          quantity: number
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          partner_id: string
+          product_id: string
+          quantity?: number
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          partner_id?: string
+          product_id?: string
+          quantity?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "relay_stocks_partner_id_fkey"
+            columns: ["partner_id"]
+            isOneToOne: false
+            referencedRelation: "relay_partners"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "relay_stocks_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "relay_products"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       role_permissions: {
         Row: {
@@ -6479,6 +6745,7 @@ export type Database = {
       generate_delivery_code: { Args: never; Returns: string }
       generate_pickup_code: { Args: never; Returns: string }
       generate_referral_code: { Args: never; Returns: string }
+      generate_relay_pickup_code: { Args: never; Returns: string }
       generate_reservation_code: { Args: never; Returns: string }
       generate_tracking_code: { Args: never; Returns: string }
       generate_withdrawal_code: { Args: never; Returns: string }
@@ -6693,6 +6960,36 @@ export type Database = {
         Returns: {
           message: string
           success: boolean
+        }[]
+      }
+      relay_purchase: {
+        Args: {
+          p_booking_date?: string
+          p_product_id: string
+          p_quantity?: number
+        }
+        Returns: {
+          order_id: string
+          pickup_code: string
+          qr_token: string
+        }[]
+      }
+      relay_refund: {
+        Args: { p_order_id: string; p_reason?: string }
+        Returns: undefined
+      }
+      relay_release_payout: { Args: { p_order_id: string }; Returns: undefined }
+      relay_scan_serve: {
+        Args: { p_code: string }
+        Returns: {
+          order_id: string
+          partner_name: string
+          photo_url: string
+          pickup_code: string
+          product_name: string
+          quantity: number
+          status: string
+          total_price: number
         }[]
       }
       route_call_to_agent: { Args: { p_queue_id: string }; Returns: string }
