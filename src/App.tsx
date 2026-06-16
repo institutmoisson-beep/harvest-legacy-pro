@@ -75,6 +75,12 @@ const MoissonProjectDetail = lazy(() => import("./pages/MoissonProjectDetail"));
 const MesInvestissementsGrenier = lazy(() => import("./pages/MesInvestissementsGrenier"));
 const CarteMoissonneur = lazy(() => import("./pages/CarteMoissonneur"));
 const VerifierMoissonneur = lazy(() => import("./pages/VerifierMoissonneur"));
+const RelaisCatalog = lazy(() => import("./pages/relais/RelaisCatalog"));
+const RelaisProductDetail = lazy(() => import("./pages/relais/RelaisProductDetail"));
+const MesTicketsRelais = lazy(() => import("./pages/relais/MesTickets"));
+const TicketDetailRelais = lazy(() => import("./pages/relais/TicketDetail"));
+const PartnerRelaisDashboard = lazy(() => import("./pages/relais/PartnerRelaisDashboard"));
+const AdminRelais = lazy(() => import("./pages/relais/AdminRelais"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 // Composant interne pour utiliser les hooks après AuthProvider
@@ -152,7 +158,14 @@ const AppContent = () => {
         <Route path="/mes-investissements-grenier" element={<MesInvestissementsGrenier />} />
         <Route path="/ma-carte" element={<CarteMoissonneur />} />
         <Route path="/verifier" element={<VerifierMoissonneur />} />
+        <Route path="/verifier" element={<VerifierMoissonneur />} />
         <Route path="/verify" element={<VerifierMoissonneur />} />
+        <Route path="/relais" element={<RelaisCatalog />} />
+        <Route path="/relais/produit/:productId" element={<RelaisProductDetail />} />
+        <Route path="/relais/mes-tickets" element={<MesTicketsRelais />} />
+        <Route path="/relais/ticket/:orderId" element={<TicketDetailRelais />} />
+        <Route path="/partenaire/relais" element={<PartnerRelaisDashboard />} />
+        <Route path="/admin/relais" element={<AdminRelais />} />
         {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
         <Route path="*" element={<NotFound />} />
       </Routes>
