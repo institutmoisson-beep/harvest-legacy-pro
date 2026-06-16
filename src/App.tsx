@@ -75,6 +75,12 @@ const MoissonProjectDetail = lazy(() => import("./pages/MoissonProjectDetail"));
 const MesInvestissementsGrenier = lazy(() => import("./pages/MesInvestissementsGrenier"));
 const CarteMoissonneur = lazy(() => import("./pages/CarteMoissonneur"));
 const VerifierMoissonneur = lazy(() => import("./pages/VerifierMoissonneur"));
+const RelaisCatalog = lazy(() => import("./pages/relais/RelaisCatalog"));
+const RelaisProductDetail = lazy(() => import("./pages/relais/RelaisProductDetail"));
+const MesTicketsRelais = lazy(() => import("./pages/relais/MesTickets"));
+const TicketDetailRelais = lazy(() => import("./pages/relais/TicketDetail"));
+const PartnerRelaisDashboard = lazy(() => import("./pages/relais/PartnerRelaisDashboard"));
+const AdminRelais = lazy(() => import("./pages/relais/AdminRelais"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 // Composant interne pour utiliser les hooks après AuthProvider
