@@ -52,7 +52,7 @@ export default function AdminRelais() {
       .on('postgres_changes', { event: '*', schema: 'public', table: 'relay_orders' }, () => load())
       .subscribe();
     return () => { sb.removeChannel(ch); };
-  }, [user, authLoading, hasAdminAccess, navigate]);
+  }, [user, authLoading, navigate]);
 
   const releasePayout = async (orderId: string) => {
     const sb: any = supabase;
