@@ -64,6 +64,9 @@ const MENU_ITEMS = [
   { icon: Wheat, label: 'Le Grenier', route: '/grenier', always: true },
   { icon: IdCard, label: 'Ma Carte', route: '/ma-carte', always: true },
   { icon: ScanLine, label: 'Vérifier', route: '/verifier', always: true },
+  { icon: MapPinned, label: 'Points Relais', route: '/relais', always: true },
+  { icon: Ticket, label: 'Mes Tickets', route: '/relais/mes-tickets', always: true },
+  { icon: StoreIcon, label: 'Ma Boutique Relais', route: '/partenaire/relais', always: true },
 ];
 
 export default function DashboardGateway({ hasAdminAccess, hasMerchantRole, hasDriverRole, onSignOut }: DashboardGatewayProps) {
