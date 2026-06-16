@@ -14,7 +14,7 @@ import { formatFCFA } from '@/lib/currency';
 
 export default function PartnerRelaisDashboard() {
   const navigate = useNavigate();
-  const { user, authLoading } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const [partner, setPartner] = useState<any>(null);
   const [products, setProducts] = useState<any[]>([]);
   const [stocks, setStocks] = useState<Record<string, number>>({});

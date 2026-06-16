@@ -17,7 +17,7 @@ const STATUS_LABEL: Record<string, { label: string; variant: any }> = {
 
 export default function MesTickets() {
   const navigate = useNavigate();
-  const { user, authLoading } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const [orders, setOrders] = useState<any[]>([]);
   const [products, setProducts] = useState<Record<string, any>>({});
   const [partners, setPartners] = useState<Record<string, any>>({});

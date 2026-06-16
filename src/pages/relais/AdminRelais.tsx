@@ -13,8 +13,8 @@ import { formatFCFA } from '@/lib/currency';
 
 export default function AdminRelais() {
   const navigate = useNavigate();
-  const { user, authLoading } = useAuth();
-  const { hasAdminAccess } = useUserRoles();
+  const { user, loading: authLoading } = useAuth();
+  const { isAdmin } = useUserRoles();
   const [orders, setOrders] = useState<any[]>([]);
   const [partners, setPartners] = useState<Record<string, any>>({});
   const [products, setProducts] = useState<Record<string, any>>({});
@@ -45,7 +45,7 @@ export default function AdminRelais() {
   useEffect(() => {
     if (authLoading) return;
     if (!user) { navigate('/auth'); return; }
-    if (!hasAdminAccess) { navigate('/dashboard'); return; }
+    if (!isAdmin()) { navigate('/dashboard'); return; }
     load();
     const sb: any = supabase;
     const ch = sb.channel('admin-relay-orders')
