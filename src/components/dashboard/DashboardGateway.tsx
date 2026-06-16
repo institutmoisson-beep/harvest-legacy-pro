@@ -25,6 +25,8 @@ import {
   Wheat,
   IdCard,
   ScanLine,
+  MapPinned,
+  Store as StoreIcon,
 } from 'lucide-react';
 import VoiceCall from '@/components/VoiceCall';
 
