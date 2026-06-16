@@ -67,7 +67,7 @@ const GROUPS: Group[] = [
     color: 'from-blue-500 to-indigo-600',
     items: [
       { label: 'Livraisons', icon: Truck, route: '/admin/deliveries' },
-      { label: 'Points Relais', icon: MapPin, route: '/level-admin?tab=delivery' },
+      { label: 'Points Relais', icon: MapPin, route: '/admin/relais', description: 'Commandes, payouts, stocks' },
       { label: 'Transport / VTC', icon: Car, route: '/admin/transport' },
     ],
   },
