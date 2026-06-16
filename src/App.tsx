@@ -158,7 +158,14 @@ const AppContent = () => {
         <Route path="/mes-investissements-grenier" element={<MesInvestissementsGrenier />} />
         <Route path="/ma-carte" element={<CarteMoissonneur />} />
         <Route path="/verifier" element={<VerifierMoissonneur />} />
+        <Route path="/verifier" element={<VerifierMoissonneur />} />
         <Route path="/verify" element={<VerifierMoissonneur />} />
+        <Route path="/relais" element={<RelaisCatalog />} />
+        <Route path="/relais/produit/:productId" element={<RelaisProductDetail />} />
+        <Route path="/relais/mes-tickets" element={<MesTicketsRelais />} />
+        <Route path="/relais/ticket/:orderId" element={<TicketDetailRelais />} />
+        <Route path="/partenaire/relais" element={<PartnerRelaisDashboard />} />
+        <Route path="/admin/relais" element={<AdminRelais />} />
         {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
         <Route path="*" element={<NotFound />} />
       </Routes>
