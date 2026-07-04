@@ -81,6 +81,8 @@ const MesTicketsRelais = lazy(() => import("./pages/relais/MesTickets"));
 const TicketDetailRelais = lazy(() => import("./pages/relais/TicketDetail"));
 const PartnerRelaisDashboard = lazy(() => import("./pages/relais/PartnerRelaisDashboard"));
 const AdminRelais = lazy(() => import("./pages/relais/AdminRelais"));
+const AdminRelaisPartenaires = lazy(() => import("./pages/relais/AdminRelaisPartenaires"));
+const AdminRelaisStocks = lazy(() => import("./pages/relais/AdminRelaisStocks"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 // Composant interne pour utiliser les hooks après AuthProvider
@@ -166,6 +168,8 @@ const AppContent = () => {
         <Route path="/relais/ticket/:orderId" element={<TicketDetailRelais />} />
         <Route path="/partenaire/relais" element={<PartnerRelaisDashboard />} />
         <Route path="/admin/relais" element={<AdminRelais />} />
+        <Route path="/admin/relais/partenaires" element={<AdminRelaisPartenaires />} />
+        <Route path="/admin/relais/stocks" element={<AdminRelaisStocks />} />
         {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
         <Route path="*" element={<NotFound />} />
       </Routes>

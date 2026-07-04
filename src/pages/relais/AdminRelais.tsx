@@ -111,6 +111,15 @@ export default function AdminRelais() {
         </Button>
         <h1 className="text-2xl font-bold">Administration Points Relais</h1>
 
+        <div className="flex gap-2 flex-wrap">
+          <Button size="sm" variant="outline" onClick={() => navigate('/admin/relais/partenaires')}>
+            Gérer les partenaires
+          </Button>
+          <Button size="sm" variant="outline" onClick={() => navigate('/admin/relais/stocks')}>
+            Gérer les stocks
+          </Button>
+        </div>
+
         <Tabs defaultValue="payouts">
           <TabsList>
             <TabsTrigger value="payouts">À verser ({pendingPayouts.length})</TabsTrigger>
