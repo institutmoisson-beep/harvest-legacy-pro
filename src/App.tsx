@@ -168,6 +168,8 @@ const AppContent = () => {
         <Route path="/relais/ticket/:orderId" element={<TicketDetailRelais />} />
         <Route path="/partenaire/relais" element={<PartnerRelaisDashboard />} />
         <Route path="/admin/relais" element={<AdminRelais />} />
+        <Route path="/admin/relais/partenaires" element={<AdminRelaisPartenaires />} />
+        <Route path="/admin/relais/stocks" element={<AdminRelaisStocks />} />
         {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
         <Route path="*" element={<NotFound />} />
       </Routes>
